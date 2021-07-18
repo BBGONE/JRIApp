@@ -19,10 +19,7 @@ namespace RIAPP.DataService.Core.Types
 
         public object extraInfo { get; set; }
 
-        public SubResultList subResults
-        {
-            get { return _subResults.Value; }
-        }
+        public SubResultList subResults => _subResults.Value;
     }
 
     public class QueryResult<T> : QueryResult

@@ -98,7 +98,7 @@ namespace RIAPP.DataService.Core.Metadata
         {
             // removes duplicates of the method (there are could be synch and async methods)
             IDictionary<MethodType, MethodInfoData> methodTypes = new Dictionary<MethodType, MethodInfoData>();
-            
+
             void AddMethodInfoData(MethodType methodType, MethodInfo methodInfo)
             {
                 if (!methodTypes.ContainsKey(methodType) && methodInfo.GetParameters().FirstOrDefault()?.ParameterType == modelType)
@@ -134,7 +134,7 @@ namespace RIAPP.DataService.Core.Metadata
 
             var methods = fromType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
-            foreach(var method in methods)
+            foreach (var method in methods)
             {
                 AddMethod(method);
             }
@@ -167,12 +167,12 @@ namespace RIAPP.DataService.Core.Metadata
 
             IEnumerable<MethodInfoData> UnionMethods(IEnumerable<MethodInfoData> list, IDictionary<MethodType, MethodInfoData> crudMethods)
             {
-                foreach(var kv in crudMethods)
+                foreach (var kv in crudMethods)
                 {
                     yield return kv.Value;
                 }
 
-                foreach(var item in list)
+                foreach (var item in list)
                 {
                     if (!crudMethods.ContainsKey(item.MethodType))
                     {
@@ -292,7 +292,7 @@ namespace RIAPP.DataService.Core.Metadata
                         assoc.name, frel.childField));
                 }
             }
-            
+
             //indexed by Name
             associations.Add(assoc.name, assoc);
 

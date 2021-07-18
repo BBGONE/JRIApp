@@ -9,14 +9,8 @@ namespace RIAPP.DataService.Utils
         private static readonly AsyncLocal<CallContext<T>> _asyncLocal = new AsyncLocal<CallContext<T>>();
         private static CallContext<T> _currentScope
         {
-            get
-            {
-                return _asyncLocal.Value;
-            }
-            set
-            {
-                _asyncLocal.Value = value;
-            }
+            get => _asyncLocal.Value;
+            set => _asyncLocal.Value = value;
         }
 
         private readonly object SyncRoot = new object();

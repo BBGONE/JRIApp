@@ -64,7 +64,7 @@ namespace Pipeline
             }
         }
 
-        RequestDelegate<TContext> GetCatchError(RequestDelegate<TContext> next)
+        private RequestDelegate<TContext> GetCatchError(RequestDelegate<TContext> next)
         {
             RequestDelegate<TContext> catchErrorDelegate = async ctx =>
             {
@@ -92,6 +92,6 @@ namespace Pipeline
             return this;
         }
 
-        readonly LinkedList<MiddlewareComponentNode<TContext>> _components = new LinkedList<MiddlewareComponentNode<TContext>>();
+        private readonly LinkedList<MiddlewareComponentNode<TContext>> _components = new LinkedList<MiddlewareComponentNode<TContext>>();
     }
 }

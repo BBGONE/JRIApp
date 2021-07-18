@@ -40,12 +40,6 @@ namespace RIAPP.DataService.Core.CodeGen
             return new XamlProvider<TService>(owner, this.Lang);
         }
 
-        public string Lang
-        {
-            get
-            {
-                return "xaml";
-            }
-        }
+        public string Lang => "xaml";
     }
 }

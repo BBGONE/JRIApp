@@ -46,14 +46,14 @@ namespace RIAPP.DataService.Core.UseCases.CRUDMiddleware
 
         public ChangeSetRequest Request { get; }
         public ChangeSetResponse Response { get; }
-        public IServiceProvider RequestServices { get { return ServiceContainer.ServiceProvider; } }
+        public IServiceProvider RequestServices => ServiceContainer.ServiceProvider;
 
         public void CaptureException(Exception ex)
         {
             _ExceptionInfo = ExceptionDispatchInfo.Capture(ex);
         }
 
-        public Exception ProcessingException { get { return _ExceptionInfo?.SourceException; } }
+        public Exception ProcessingException => _ExceptionInfo?.SourceException;
 
         public IServiceContainer<TService> ServiceContainer { get; }
 

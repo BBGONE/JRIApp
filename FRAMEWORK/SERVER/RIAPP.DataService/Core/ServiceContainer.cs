@@ -66,110 +66,32 @@ namespace RIAPP.DataService.Core
             return _provider.GetServices<T>();
         }
 
-        public IServiceProvider ServiceProvider
-        {
-            get
-            {
-                return _provider;
-            }
-        }
+        public IServiceProvider ServiceProvider => _provider;
 
-        public ISerializer Serializer
-        {
-            get
-            {
-                return _serializer;
-            }
-        }
+        public ISerializer Serializer => _serializer;
 
 
-        IServiceOperationsHelper IServiceContainer.ServiceHelper
-        {
-            get
-            {
-                return this.GetServiceHelper();
-            }
-        }
+        IServiceOperationsHelper IServiceContainer.ServiceHelper => this.GetServiceHelper();
 
-        IDataHelper IServiceContainer.DataHelper
-        {
-            get
-            {
-                return this.GetDataHelper();
-            }
-        }
+        IDataHelper IServiceContainer.DataHelper => this.GetDataHelper();
 
-        IValueConverter IServiceContainer.ValueConverter
-        {
-            get
-            {
-                return this.GetValueConverter();
-            }
-        }
+        IValueConverter IServiceContainer.ValueConverter => this.GetValueConverter();
 
-        IAuthorizer IServiceContainer.Authorizer
-        {
-            get
-            {
-                return this.GetAuthorizer();
-            }
-        }
+        IAuthorizer IServiceContainer.Authorizer => this.GetAuthorizer();
 
-        ICodeGenFactory IServiceContainer.CodeGenFactory
-        {
-            get
-            {
-                return this.GetCodeGenFactory();
-            }
-        }
+        ICodeGenFactory IServiceContainer.CodeGenFactory => this.GetCodeGenFactory();
 
-        IDataManagerContainer IServiceContainer.DataManagerContainer
-        {
-            get
-            {
-                return this.GetDataManagerContainer();
-            }
-        }
+        IDataManagerContainer IServiceContainer.DataManagerContainer => this.GetDataManagerContainer();
 
-        IValidatorContainer IServiceContainer.ValidatorContainer
-        {
-            get
-            {
-                return this.GetValidatorContainer();
-            }
-        }
+        IValidatorContainer IServiceContainer.ValidatorContainer => this.GetValidatorContainer();
 
-        ICRUDOperationsUseCaseFactory IServiceContainer.CRUDOperationsUseCaseFactory
-        {
-            get
-            {
-                return this.GetCRUDOperationsUseCaseFactory();
-            }
-        }
+        ICRUDOperationsUseCaseFactory IServiceContainer.CRUDOperationsUseCaseFactory => this.GetCRUDOperationsUseCaseFactory();
 
-        IQueryOperationsUseCaseFactory IServiceContainer.QueryOperationsUseCaseFactory
-        {
-            get
-            {
-                return this.GetQueryOperationsUseCaseFactory();
-            }
-        }
+        IQueryOperationsUseCaseFactory IServiceContainer.QueryOperationsUseCaseFactory => this.GetQueryOperationsUseCaseFactory();
 
-        IRefreshOperationsUseCaseFactory IServiceContainer.RefreshOperationsUseCaseFactory
-        {
-            get
-            {
-                return this.GetRefreshOperationsUseCaseFactory();
-            }
-        }
+        IRefreshOperationsUseCaseFactory IServiceContainer.RefreshOperationsUseCaseFactory => this.GetRefreshOperationsUseCaseFactory();
 
-        IInvokeOperationsUseCaseFactory IServiceContainer.InvokeOperationsUseCaseFactory
-        {
-            get
-            {
-                return this.GetInvokeOperationsUseCaseFactory();
-            }
-        }
+        IInvokeOperationsUseCaseFactory IServiceContainer.InvokeOperationsUseCaseFactory => this.GetInvokeOperationsUseCaseFactory();
 
         public void Dispose()
         {

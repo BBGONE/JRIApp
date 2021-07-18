@@ -1,4 +1,5 @@
 ﻿using RIAPP.DataService.Core.Types;
+using RIAPP.DataService.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -118,15 +119,17 @@ namespace RIAPP.DataService.Core.CodeGen
                 templateName = "ChildComplexProperty.txt";
             }
 
-            Dictionary<string, Func<string>> dic = new Dictionary<string, Func<string>>();
-            dic.Add("PROPERTIES", () => TrimEnd(sbProperties.ToString()));
-            dic.Add("TYPE_NAME", () => typeName);
-            dic.Add("FIELDS_DEF", () => sbFieldsDef.ToString());
-            dic.Add("FIELDS_INIT", () => sbFieldsInit.ToString());
-            dic.Add("INTERFACE_NAME", () => interfaceName);
-            dic.Add("INTERFACE_FIELDS", () => TrimEnd(sbInterfaceFields.ToString()));
+            Dictionary<string, Func<TemplateParser.Context, string>> dic = new Dictionary<string, Func<TemplateParser.Context, string>>
+            {
+                { "PROPERTIES", (context) => TrimEnd(sbProperties.ToString()) },
+                { "TYPE_NAME", (context) => typeName },
+                { "FIELDS_DEF", (context) => sbFieldsDef.ToString() },
+                { "FIELDS_INIT", (context) => sbFieldsInit.ToString() },
+                { "INTERFACE_NAME", (context) => interfaceName },
+                { "INTERFACE_FIELDS", (context) => TrimEnd(sbInterfaceFields.ToString()) }
+            };
 
-            string complexType = new CodeGenTemplate(templateName).ProcessTemplate(dic);
+            string complexType = new CodeGenTemplate(templateName).ToString(dic);
 
             _complexTypes.Add(typeName, complexType);
             return typeName;

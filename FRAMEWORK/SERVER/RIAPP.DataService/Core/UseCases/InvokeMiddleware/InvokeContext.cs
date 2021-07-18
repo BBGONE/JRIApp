@@ -40,14 +40,14 @@ namespace RIAPP.DataService.Core.UseCases.InvokeMiddleware
 
         public InvokeRequest Request { get; }
         public InvokeResponse Response { get; }
-        public IServiceProvider RequestServices { get { return ServiceContainer.ServiceProvider; } }
+        public IServiceProvider RequestServices => ServiceContainer.ServiceProvider;
 
         public void CaptureException(Exception ex)
         {
             _ExceptionInfo = ExceptionDispatchInfo.Capture(ex);
         }
 
-        public Exception ProcessingException { get { return _ExceptionInfo?.SourceException; } }
+        public Exception ProcessingException => _ExceptionInfo?.SourceException;
 
         public IServiceContainer<TService> ServiceContainer { get; }
 

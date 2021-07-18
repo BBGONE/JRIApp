@@ -8,20 +8,11 @@ namespace RIAPP.DataService.Core
         where T : class
 
     {
-        protected RequestContext RequestContext
-        {
-            get { return RequestContext.Current; }
-        }
+        protected RequestContext RequestContext => RequestContext.Current;
 
-        public ChangeType ChangeType
-        {
-            get { return RequestContext.CurrentRowInfo.changeType; }
-        }
+        public ChangeType ChangeType => RequestContext.CurrentRowInfo.changeType;
 
-        public T Original
-        {
-            get { return RequestContext.GetOriginal<T>(); }
-        }
+        public T Original => RequestContext.GetOriginal<T>();
 
         public Task<IEnumerable<ValidationErrorInfo>> ValidateModelAsync(object model, string[] modifiedField)
         {

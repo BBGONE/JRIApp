@@ -17,7 +17,7 @@ namespace RIAPP.DataService.Core.Config
 {
     public static class ServiceConfigureEx
     {
-        class ServiceFactory<TService> : IServiceFactory<TService>
+        private class ServiceFactory<TService> : IServiceFactory<TService>
             where TService : BaseDomainService
         {
             private readonly IServiceProvider _sp;
@@ -138,17 +138,17 @@ namespace RIAPP.DataService.Core.Config
             services.TryAddScoped<ICRUDOperationsUseCaseFactory<TService>>((sp) => new CRUDOperationsUseCaseFactory<TService>((svc, serviceMethods) =>
                 (ICRUDOperationsUseCase<TService>)crudCaseFactory(sp, new object[] { svc, serviceMethods })));
 
-            var queryCaseFactory = ActivatorUtilities.CreateFactory(typeof(QueryOperationsUseCase<TService>), new System.Type[] { typeof(BaseDomainService), typeof(Action<Exception>) });
+            var queryCaseFactory = ActivatorUtilities.CreateFactory(typeof(QueryOperationsUseCase<TService>), new System.Type[] { typeof(BaseDomainService), typeof(Func<Exception, string>) });
 
             services.TryAddScoped<IQueryOperationsUseCaseFactory<TService>>((sp) => new QueryOperationsUseCaseFactory<TService>((svc, onError) =>
                 (IQueryOperationsUseCase<TService>)queryCaseFactory(sp, new object[] { svc, onError })));
 
-            var refreshCaseFactory = ActivatorUtilities.CreateFactory(typeof(RefreshOperationsUseCase<TService>), new System.Type[] { typeof(BaseDomainService), typeof(Action<Exception>) });
+            var refreshCaseFactory = ActivatorUtilities.CreateFactory(typeof(RefreshOperationsUseCase<TService>), new System.Type[] { typeof(BaseDomainService), typeof(Func<Exception, string>) });
 
             services.TryAddScoped<IRefreshOperationsUseCaseFactory<TService>>((sp) => new RefreshOperationsUseCaseFactory<TService>((svc, onError) =>
                 (IRefreshOperationsUseCase<TService>)refreshCaseFactory(sp, new object[] { svc, onError })));
 
-            var invokeCaseFactory = ActivatorUtilities.CreateFactory(typeof(InvokeOperationsUseCase<TService>), new System.Type[] { typeof(BaseDomainService), typeof(Action<Exception>) });
+            var invokeCaseFactory = ActivatorUtilities.CreateFactory(typeof(InvokeOperationsUseCase<TService>), new System.Type[] { typeof(BaseDomainService), typeof(Func<Exception, string>) });
 
             services.TryAddScoped<IInvokeOperationsUseCaseFactory<TService>>((sp) => new InvokeOperationsUseCaseFactory<TService>((svc, onError) =>
                 (IInvokeOperationsUseCase<TService>)invokeCaseFactory(sp, new object[] { svc, onError })));

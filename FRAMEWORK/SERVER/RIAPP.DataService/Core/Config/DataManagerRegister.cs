@@ -15,8 +15,7 @@ namespace RIAPP.DataService.Core.Config
 
         public bool isDataManagerRegistered(Type modelType)
         {
-            ServiceTypeDescriptor descriptor;
-            return _managers.TryGetValue(modelType, out descriptor);
+            return _managers.TryGetValue(modelType, out ServiceTypeDescriptor descriptor);
         }
 
         public bool TryGetDescriptor(Type modelType, out ServiceTypeDescriptor descriptor)
@@ -53,6 +52,6 @@ namespace RIAPP.DataService.Core.Config
             _managers.TryAdd(typeof(TModel), descriptor);
         }
 
-        public IEnumerable<ServiceTypeDescriptor> Descriptors { get { return _managers.Values; } }
+        public IEnumerable<ServiceTypeDescriptor> Descriptors => _managers.Values;
     }
 }

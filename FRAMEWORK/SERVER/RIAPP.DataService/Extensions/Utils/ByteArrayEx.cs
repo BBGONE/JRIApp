@@ -4,7 +4,7 @@ namespace RIAPP.DataService.Utils.Extensions
 {
     public static class ByteArrayEx
     {
-        static readonly string[] BYTES_MAP = new string[256];
+        private static readonly string[] BYTES_MAP = new string[256];
 
         static ByteArrayEx()
         {

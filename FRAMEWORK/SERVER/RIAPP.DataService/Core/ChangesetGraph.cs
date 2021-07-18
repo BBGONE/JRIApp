@@ -41,25 +41,13 @@ namespace RIAPP.DataService.Core
 
         public ChangeSetRequest ChangeSet { get; }
 
-        public IEnumerable<RowInfo> InsertList
-        {
-            get { return _insertList; }
-        }
+        public IEnumerable<RowInfo> InsertList => _insertList;
 
-        public IEnumerable<RowInfo> UpdateList
-        {
-            get { return _updateList; }
-        }
+        public IEnumerable<RowInfo> UpdateList => _updateList;
 
-        public IEnumerable<RowInfo> DeleteList
-        {
-            get { return _deleteList; }
-        }
+        public IEnumerable<RowInfo> DeleteList => _deleteList;
 
-        public IEnumerable<RowInfo> AllList
-        {
-            get { return _allList; }
-        }
+        public IEnumerable<RowInfo> AllList => _allList;
 
         private void GetAllParentDbSets(HashSet<String> list, string dbSetName)
         {
@@ -133,9 +121,11 @@ namespace RIAPP.DataService.Core
                 var ckey = string.Format("{0}:{1}", assoc.childDbSetName, trackAssoc.childKey);
                 var parent = rowsMap[pkey];
                 var child = rowsMap[ckey];
-                var childNode = new ParentChildNode(child);
-                childNode.Association = assoc;
-                childNode.ParentRow = parent;
+                var childNode = new ParentChildNode(child)
+                {
+                    Association = assoc,
+                    ParentRow = parent
+                };
                 updateNodes.AddLast(childNode);
             }
 

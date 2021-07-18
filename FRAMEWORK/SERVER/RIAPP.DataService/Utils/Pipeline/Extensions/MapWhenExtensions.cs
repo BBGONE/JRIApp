@@ -15,10 +15,7 @@ namespace Pipeline.Extensions
             /// </summary>
             public Predicate<TContext> Predicate
             {
-                get
-                {
-                    return _predicate;
-                }
+                get => _predicate;
                 set
                 {
                     if (value == null)

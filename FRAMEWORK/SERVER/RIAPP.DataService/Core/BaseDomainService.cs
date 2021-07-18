@@ -18,34 +18,16 @@ namespace RIAPP.DataService.Core
             this.ServiceContainer = serviceContainer;
         }
 
-        public ClaimsPrincipal User
-        {
-            get
-            {
-                return this.ServiceContainer.GetUserProvider().User;
-            }
-        }
+        public ClaimsPrincipal User => this.ServiceContainer.GetUserProvider().User;
 
-        public ISerializer Serializer
-        {
-            get
-            {
-                return this.ServiceContainer.Serializer;
-            }
-        }
+        public ISerializer Serializer => this.ServiceContainer.Serializer;
 
         public IServiceContainer ServiceContainer
         {
             get;
         }
 
-        BaseDomainService IDataServiceComponent.DataService
-        {
-            get
-            {
-                return this;
-            }
-        }
+        BaseDomainService IDataServiceComponent.DataService => this;
 
         public RunTimeMetadata GetMetadata()
         {
@@ -82,6 +64,11 @@ namespace RIAPP.DataService.Core
 
         protected virtual void OnError(Exception ex)
         {
+        }
+
+        protected virtual string GetFriendlyErrorMessage(Exception ex)
+        {
+            return ex.GetFriendlyMessage();
         }
 
         protected abstract Task ExecuteChangeSet();
@@ -215,7 +202,7 @@ namespace RIAPP.DataService.Core
         public async Task<QueryResponse> ServiceGetData(QueryRequest message)
         {
             var factory = this.ServiceContainer.QueryOperationsUseCaseFactory;
-            IQueryOperationsUseCase uc = factory.Create(this, (err) => _OnError(err));
+            IQueryOperationsUseCase uc = factory.Create(this, (err) => { _OnError(err); return this.GetFriendlyErrorMessage(err); });
             var output = this.ServiceContainer.GetRequiredService<IResponsePresenter<QueryResponse, QueryResponse>>();
 
             bool res = await uc.Handle(message, output);
@@ -227,7 +214,7 @@ namespace RIAPP.DataService.Core
         {
             var factory = this.ServiceContainer.CRUDOperationsUseCaseFactory;
             var serviceMethods = new CRUDServiceMethods(
-                (err) => this._OnError(err),
+                (err) => { _OnError(err); return this.GetFriendlyErrorMessage(err); },
                 (row) => this.TrackChangesToEntity(row),
                 async () =>
                 {
@@ -254,7 +241,7 @@ namespace RIAPP.DataService.Core
         public async Task<RefreshResponse> ServiceRefreshRow(RefreshRequest message)
         {
             var factory = this.ServiceContainer.RefreshOperationsUseCaseFactory;
-            IRefreshOperationsUseCase uc = factory.Create(this, (err) => _OnError(err));
+            IRefreshOperationsUseCase uc = factory.Create(this, (err) => { _OnError(err); return this.GetFriendlyErrorMessage(err); });
             var output = this.ServiceContainer.GetRequiredService<IResponsePresenter<RefreshResponse, RefreshResponse>>();
 
             bool res = await uc.Handle(message, output);
@@ -265,7 +252,7 @@ namespace RIAPP.DataService.Core
         public async Task<InvokeResponse> ServiceInvokeMethod(InvokeRequest message)
         {
             var factory = this.ServiceContainer.InvokeOperationsUseCaseFactory;
-            IInvokeOperationsUseCase uc = factory.Create(this, (err) => _OnError(err));
+            IInvokeOperationsUseCase uc = factory.Create(this, (err) => { _OnError(err); return this.GetFriendlyErrorMessage(err); });
             var output = this.ServiceContainer.GetRequiredService<IResponsePresenter<InvokeResponse, InvokeResponse>>();
 
             bool res = await uc.Handle(message, output);

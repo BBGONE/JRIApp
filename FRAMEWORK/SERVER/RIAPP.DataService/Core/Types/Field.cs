@@ -123,11 +123,7 @@ namespace RIAPP.DataService.Core.Types
         /// </summary>
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
 
-        public FieldsList nested
-        {
-            get { return _nested.Value; }
-            //set { _nested = new Lazy<FieldsList>(() => value, false); }
-        }
+        public FieldsList nested => _nested.Value;
 
         internal int _ordinal { get; set; }
 

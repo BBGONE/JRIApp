@@ -8,7 +8,7 @@ namespace RIAPP.DataService.Utils.Extensions
 {
     public static class EnumerableEx
     {
-        static readonly ConcurrentDictionary<Type, Func<IEnumerable, IEnumerable>> _cacheToArray = new ConcurrentDictionary<Type, Func<IEnumerable, IEnumerable>>();
+        private static readonly ConcurrentDictionary<Type, Func<IEnumerable, IEnumerable>> _cacheToArray = new ConcurrentDictionary<Type, Func<IEnumerable, IEnumerable>>();
 
         public static IEnumerable ToArray(this IEnumerable list, Type elementType)
         {
@@ -18,7 +18,7 @@ namespace RIAPP.DataService.Utils.Extensions
 
         private static class Internal
         {
-            static readonly MethodInfo ToArrayDelegateMI = typeof(Internal).GetMethod(nameof(Internal._GetToArrayDelegate), BindingFlags.Public | BindingFlags.Static);
+            private static readonly MethodInfo ToArrayDelegateMI = typeof(Internal).GetMethod(nameof(Internal._GetToArrayDelegate), BindingFlags.Public | BindingFlags.Static);
 
             public static Func<IEnumerable, IEnumerable> GetToArrayDelegate(Type type)
             {

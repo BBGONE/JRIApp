@@ -1,5 +1,6 @@
 ﻿using RIAPP.DataService.Utils;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -25,8 +26,15 @@ namespace RIAPP.DataService.Core.CodeGen
             }
         }
 
+        protected override IEnumerable<Part> GetTemplate(string name, IDictionary<string, Func<Context, string>> dic)
+        {
+            CodeGenTemplate parser = new CodeGenTemplate(name);
+            var result = parser.Execute(dic);
+            return result;
+        }
+
         public CodeGenTemplate(string ID) :
-            base(() => GetTemplate(ID))
+            base(ID, () => GetTemplate(ID))
         {
 
         }

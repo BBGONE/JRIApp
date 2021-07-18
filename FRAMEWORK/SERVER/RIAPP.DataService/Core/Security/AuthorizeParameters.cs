@@ -41,5 +41,5 @@ namespace RIAPP.DataService.Core.Security
         public bool IsAllowAnonymous;
         public string MethodName;
         public IEnumerable<IAuthorizeData> AuthorizeData;
-   }
+    }
 }

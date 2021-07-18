@@ -87,7 +87,7 @@ namespace RIAPP.DataService.Core.Metadata
             var xdbSets = xmetadata.Element(NS_DATA + "Metadata.DbSets");
             var ximports = xmetadata.Nodes().Where(n => n is XProcessingInstruction && (n as XProcessingInstruction).Target == "import").Cast<XProcessingInstruction>();
 
-            foreach(var xpc in ximports)
+            foreach (var xpc in ximports)
             {
                 metadata.TypeScriptImports.Add(xpc.Data);
             }

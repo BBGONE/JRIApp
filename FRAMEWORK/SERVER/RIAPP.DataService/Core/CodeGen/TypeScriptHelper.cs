@@ -88,7 +88,7 @@ namespace RIAPP.DataService.Core.CodeGen
 
         public string CreateTypeScript(string comment = null)
         {
-            using (var dotNet2TS = new DotNet2TS(_valueConverter, (t)=> _OnNewClientTypeAdded(t)))
+            using (var dotNet2TS = new DotNet2TS(_valueConverter, (t) => _OnNewClientTypeAdded(t)))
             {
                 _sb.Length = 0;
                 if (!string.IsNullOrWhiteSpace(comment))
@@ -176,15 +176,15 @@ namespace RIAPP.DataService.Core.CodeGen
 
         private string CreateHeader()
         {
-            Dictionary<string, Func<string>> dic = new Dictionary<string, Func<string>>();
+            Dictionary<string, Func<TemplateParser.Context, string>> dic = new Dictionary<string, Func<TemplateParser.Context, string>>();
             StringBuilder sb = new StringBuilder();
-            foreach(string str in _metadata.TypeScriptImports)
+            foreach (string str in _metadata.TypeScriptImports)
             {
                 sb.AppendLine($"import {str};");
             }
             string imports = sb.ToString();
-            dic.Add("IMPORTS", () => imports);
-            return new CodeGenTemplate("Header.txt").ProcessTemplate(dic);
+            dic.Add("IMPORTS", (context) => imports);
+            return new CodeGenTemplate("Header.txt").ToString(dic);
         }
 
         private string CreateDbSetProps()
@@ -320,31 +320,35 @@ namespace RIAPP.DataService.Core.CodeGen
 
             var pkVals = pkProp.Name.ToCamelCase() + ": " + dotNet2TS.RegisterType(pkProp.PropertyType);
 
-            Dictionary<string, Func<string>> dic = new Dictionary<string, Func<string>>();
-            dic.Add("DICT_NAME", () => name);
-            dic.Add("ITEM_TYPE_NAME", () => string.Format("_{0}", itemName));
-            dic.Add("ASPECT_NAME", () => aspectName);
-            dic.Add("VALS_NAME", () => valsName);
-            dic.Add("INTERFACE_NAME", () => itemName);
-            dic.Add("PROPS", () => properties);
-            dic.Add("KEY_NAME", () => keyName);
-            dic.Add("PK_VALS", () => pkVals);
+            Dictionary<string, Func<TemplateParser.Context, string>> dic = new Dictionary<string, Func<TemplateParser.Context, string>>
+            {
+                { "DICT_NAME", (context) => name },
+                { "ITEM_TYPE_NAME", (context) => string.Format("_{0}", itemName) },
+                { "ASPECT_NAME", (context) => aspectName },
+                { "VALS_NAME", (context) => valsName },
+                { "INTERFACE_NAME", (context) => itemName },
+                { "PROPS", (context) => properties },
+                { "KEY_NAME", (context) => keyName },
+                { "PK_VALS", (context) => pkVals }
+            };
 
-            return _dictionaryTemplate.ProcessTemplate(dic);
+            return _dictionaryTemplate.ToString(dic);
         }
 
         private string CreateList(string name, string itemName, string aspectName, string valsName,
             string properties)
         {
-            Dictionary<string, Func<string>> dic = new Dictionary<string, Func<string>>();
-            dic.Add("LIST_NAME", () => name);
-            dic.Add("ITEM_TYPE_NAME", () => string.Format("_{0}", itemName));
-            dic.Add("ASPECT_NAME", () => aspectName);
-            dic.Add("VALS_NAME", () => valsName);
-            dic.Add("INTERFACE_NAME", () => itemName);
-            dic.Add("PROP_INFOS", () => properties);
+            Dictionary<string, Func<TemplateParser.Context, string>> dic = new Dictionary<string, Func<TemplateParser.Context, string>>
+            {
+                { "LIST_NAME", (context) => name },
+                { "ITEM_TYPE_NAME", (context) => string.Format("_{0}", itemName) },
+                { "ASPECT_NAME", (context) => aspectName },
+                { "VALS_NAME", (context) => valsName },
+                { "INTERFACE_NAME", (context) => itemName },
+                { "PROP_INFOS", (context) => properties }
+            };
 
-            return _listTemplate.ProcessTemplate(dic);
+            return _listTemplate.ToString(dic);
         }
 
         private string CreateListItem(string itemName, string aspectName, string valsName,
@@ -359,14 +363,16 @@ namespace RIAPP.DataService.Core.CodeGen
                     propInfo.Name, dotNet2TS.RegisterType(propInfo.PropertyType)));
             });
 
-            Dictionary<string, Func<string>> dic = new Dictionary<string, Func<string>>();
-            dic.Add("LIST_ITEM_NAME", () => string.Format("_{0}", itemName));
-            dic.Add("VALS_NAME", () => valsName);
-            dic.Add("INTERFACE_NAME", () => itemName);
-            dic.Add("ASPECT_NAME", () => aspectName);
-            dic.Add("ITEM_PROPS", () => sbProps.ToString());
+            Dictionary<string, Func<TemplateParser.Context, string>> dic = new Dictionary<string, Func<TemplateParser.Context, string>>
+            {
+                { "LIST_ITEM_NAME", (context) => string.Format("_{0}", itemName) },
+                { "VALS_NAME", (context) => valsName },
+                { "INTERFACE_NAME", (context) => itemName },
+                { "ASPECT_NAME", (context) => aspectName },
+                { "ITEM_PROPS", (context) => sbProps.ToString() }
+            };
 
-            return _listItemTemplate.ProcessTemplate(dic);
+            return _listItemTemplate.ToString(dic);
         }
 
         private string CreateClientType(Type type, DotNet2TS dotNet2TS)
@@ -558,15 +564,17 @@ namespace RIAPP.DataService.Core.CodeGen
                 sbCreateDbSets.AppendLine();
             });
 
-            Dictionary<string, Func<string>> dic = new Dictionary<string, Func<string>>();
-            dic.Add("DBSETS_NAMES", () => _serializer.Serialize(dbSetNames));
-            dic.Add("DBSETS_PROPS", () => CreateDbSetProps());
-            dic.Add("DBSETS", () => sbCreateDbSets.ToString().Trim('\r', '\n', ' '));
-            dic.Add("TIMEZONE", () => DateTimeHelper.GetTimezoneOffset().ToString());
-            dic.Add("ASSOCIATIONS", () => _serializer.Serialize(_associations));
-            dic.Add("METHODS", () => _serializer.Serialize(_metadata.MethodDescriptions.OrderByDescending(m => m.isQuery).ThenBy(m => m.methodName)));
+            Dictionary<string, Func<TemplateParser.Context, string>> dic = new Dictionary<string, Func<TemplateParser.Context, string>>
+            {
+                { "DBSETS_NAMES", (context) => _serializer.Serialize(dbSetNames) },
+                { "DBSETS_PROPS", (context) => CreateDbSetProps() },
+                { "DBSETS", (context) => sbCreateDbSets.ToString().Trim('\r', '\n', ' ') },
+                { "TIMEZONE", (context) => DateTimeHelper.GetTimezoneOffset().ToString() },
+                { "ASSOCIATIONS", (context) => _serializer.Serialize(_associations) },
+                { "METHODS", (context) => _serializer.Serialize(_metadata.MethodDescriptions.OrderByDescending(m => m.isQuery).ThenBy(m => m.methodName)) }
+            };
 
-            return new CodeGenTemplate("DbContext.txt").ProcessTemplate(dic);
+            return new CodeGenTemplate("DbContext.txt").ToString(dic);
         }
 
 
@@ -599,42 +607,49 @@ namespace RIAPP.DataService.Core.CodeGen
 
                 pkVals += pkField.fieldName.ToCamelCase() + ": " + GetFieldDataType(pkField);
             }
-            Dictionary<string, Func<string>> dic = new Dictionary<string, Func<string>>();
-            dic.Add("DBSET_NAME", () => dbSetInfo.dbSetName);
-            dic.Add("DBSET_TYPE", () => dbSetType);
-            dic.Add("ENTITY_NAME", () => entityDef.entityName);
-            dic.Add("ASPECT_NAME", () => entityDef.aspectName);
-            dic.Add("INTERFACE_NAME", () => entityDef.interfaceName);
-            dic.Add("VALS_NAME", () => entityDef.valsName);
-            dic.Add("DBSET_INFO", () =>
+            Dictionary<string, Func<TemplateParser.Context, string>> dic = new Dictionary<string, Func<TemplateParser.Context, string>>
             {
-                //we are making copy of the object, in order that we don't change original object
-                //while it can be accessed by other threads
-                //we change our own copy, making it threadsafe
-                var copy = dbSetInfo.ShallowCopy();
-                copy.SetFieldInfos(new FieldsList()); //serialze with empty field infos
-                return _serializer.Serialize(copy);
-            });
-            dic.Add("FIELD_INFOS", () => _serializer.Serialize(dbSetInfo.fieldInfos));
-            dic.Add("CHILD_ASSOC", () => _serializer.Serialize(childAssoc));
-            dic.Add("PARENT_ASSOC", () => _serializer.Serialize(parentAssoc));
-            dic.Add("QUERIES", () => CreateDbSetQueries(dbSetInfo, dotNet2TS));
-            dic.Add("CALC_FIELDS", () => CreateCalcFields(dbSetInfo));
-            dic.Add("PK_VALS", () => pkVals);
+                { "DBSET_NAME", (context) => dbSetInfo.dbSetName },
+                { "DBSET_TYPE", (context) => dbSetType },
+                { "ENTITY_NAME", (context) => entityDef.entityName },
+                { "ASPECT_NAME", (context) => entityDef.aspectName },
+                { "INTERFACE_NAME", (context) => entityDef.interfaceName },
+                { "VALS_NAME", (context) => entityDef.valsName },
+                {
+                    "DBSET_INFO",
+                    (context) =>
+                     {
+                        //we are making copy of the object, in order that we don't change original object
+                        //while it can be accessed by other threads
+                        //we change our own copy, making it threadsafe
+                        var copy = dbSetInfo.ShallowCopy();
+                        copy.SetFieldInfos(new FieldsList()); //serialze with empty field infos
+                        return _serializer.Serialize(copy);
+                     }
+                },
+                { "FIELD_INFOS", (context) => _serializer.Serialize(dbSetInfo.fieldInfos) },
+                { "CHILD_ASSOC", (context) => _serializer.Serialize(childAssoc) },
+                { "PARENT_ASSOC", (context) => _serializer.Serialize(parentAssoc) },
+                { "QUERIES", (context) => CreateDbSetQueries(dbSetInfo, dotNet2TS) },
+                { "CALC_FIELDS", (context) => CreateCalcFields(dbSetInfo) },
+                { "PK_VALS", (context) => pkVals }
+            };
 
-            return _dbSetTemplate.ProcessTemplate(dic);
+            return _dbSetTemplate.ToString(dic);
         }
 
         private string CreateEntityInterface(EntityDefinition entityDef, string valsFields, string entityFields)
         {
-            Dictionary<string, Func<string>> dic = new Dictionary<string, Func<string>>();
-            dic.Add("VALS_NAME", () => entityDef.valsName);
-            dic.Add("INTERFACE_NAME", () => entityDef.interfaceName);
-            dic.Add("ASPECT_NAME", () => entityDef.aspectName);
-            dic.Add("VALS_FIELDS", () => valsFields);
-            dic.Add("ENTITY_FIELDS", () => entityFields);
+            Dictionary<string, Func<TemplateParser.Context, string>> dic = new Dictionary<string, Func<TemplateParser.Context, string>>
+            {
+                { "VALS_NAME", (context) => entityDef.valsName },
+                { "INTERFACE_NAME", (context) => entityDef.interfaceName },
+                { "ASPECT_NAME", (context) => entityDef.aspectName },
+                { "VALS_FIELDS", (context) => valsFields },
+                { "ENTITY_FIELDS", (context) => entityFields }
+            };
 
-            return TrimEnd(_entityIntfTemplate.ProcessTemplate(dic));
+            return TrimEnd(_entityIntfTemplate.ToString(dic));
         }
 
         private EntityDefinition CreateEntityType(DbSetInfo dbSetInfo, DotNet2TS dotNet2TS)
@@ -745,18 +760,20 @@ namespace RIAPP.DataService.Core.CodeGen
                 }
             });
 
-            Dictionary<string, Func<string>> dic = new Dictionary<string, Func<string>>();
-            dic.Add("DBSET_NAME", () => dbSetInfo.dbSetName);
-            dic.Add("DBSET_TYPE", () => dbSetType);
-            dic.Add("ENTITY_NAME", () => entityDef.entityName);
-            dic.Add("INTERFACE_NAME", () => entityDef.interfaceName);
-            dic.Add("VALS_NAME", () => entityDef.valsName);
-            dic.Add("ASPECT_NAME", () => entityDef.aspectName);
-            dic.Add("ENTITY_FIELDS", () => TrimEnd(sbFields.ToString()));
-            dic.Add("FIELDS_DEF", () => TrimEnd(sbFieldsDef.ToString()));
-            dic.Add("FIELDS_INIT", () => TrimEnd(sbFieldsInit.ToString()));
+            Dictionary<string, Func<TemplateParser.Context, string>> dic = new Dictionary<string, Func<TemplateParser.Context, string>>
+            {
+                { "DBSET_NAME", (context) => dbSetInfo.dbSetName },
+                { "DBSET_TYPE", (context) => dbSetType },
+                { "ENTITY_NAME", (context) => entityDef.entityName },
+                { "INTERFACE_NAME", (context) => entityDef.interfaceName },
+                { "VALS_NAME", (context) => entityDef.valsName },
+                { "ASPECT_NAME", (context) => entityDef.aspectName },
+                { "ENTITY_FIELDS", (context) => TrimEnd(sbFields.ToString()) },
+                { "FIELDS_DEF", (context) => TrimEnd(sbFieldsDef.ToString()) },
+                { "FIELDS_INIT", (context) => TrimEnd(sbFieldsInit.ToString()) }
+            };
 
-            entityDef.entityDefinition = TrimEnd(_entityTemplate.ProcessTemplate(dic));
+            entityDef.entityDefinition = TrimEnd(_entityTemplate.ToString(dic));
             entityDef.interfaceDefinition = this.CreateEntityInterface(entityDef, TrimEnd(sbValsFields.ToString()), TrimEnd(sbEntityFields.ToString()));
 
             return entityDef;

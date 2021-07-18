@@ -14,7 +14,7 @@ namespace RIAPP.DataService.Core.Security
     {
         private const string ANONYMOUS_USER = "ANONYMOUS_USER";
         private readonly Lazy<IEnumerable<IAuthorizeData>> _serviceAuthorization;
-      
+
 
         public Authorizer(AuthorizationContext<TService> authorizationContext)
         {
@@ -57,23 +57,11 @@ namespace RIAPP.DataService.Core.Security
         }
 
         #region Private methods
-        private ClaimsPrincipal User
-        {
-            get
-            {
-                return this.AuthorizationContext.User;
-            }
-        }
+        private ClaimsPrincipal User => this.AuthorizationContext.User;
 
-        private string UserName
-        {
-            get
-            {
-                return this.User == null || this.User.Identity == null || !this.User.Identity.IsAuthenticated
+        private string UserName => this.User == null || this.User.Identity == null || !this.User.Identity.IsAuthenticated
                     ? ANONYMOUS_USER
                     : this.User.Identity.Name;
-            }
-        }
 
         private async Task<bool> CheckAccessCore(IEnumerable<IAuthorizeData> authorizeData)
         {
@@ -105,7 +93,7 @@ namespace RIAPP.DataService.Core.Security
             }
 
             var authorizers = authorizeData.Where(a => !(a is IDenyAuthorizeData));
-            
+
             int cnt = 0;
 
             foreach (var item in authorizers)

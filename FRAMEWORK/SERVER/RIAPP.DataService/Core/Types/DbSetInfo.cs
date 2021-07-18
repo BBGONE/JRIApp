@@ -30,10 +30,7 @@ namespace RIAPP.DataService.Core.Types
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
 
-        public FieldsList fieldInfos
-        {
-            get { return _fieldInfos; }
-        }
+        public FieldsList fieldInfos => _fieldInfos;
 
 
         public bool enablePaging { get; set; }

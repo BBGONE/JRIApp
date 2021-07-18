@@ -10,7 +10,7 @@ namespace RIAPP.DataService.Core
 
     public class CRUDServiceMethods
     {
-        public CRUDServiceMethods(Action<Exception> onError,
+        public CRUDServiceMethods(Func<Exception, string> onError,
         Action<RowInfo> trackChanges,
         ChangeSetExecutor executeChangeSet,
         AfterChangeSetExecuted afterChangeSetExecuted,
@@ -22,7 +22,7 @@ namespace RIAPP.DataService.Core
             AfterChangeSetExecuted = afterChangeSetExecuted;
             AfterChangeSetCommited = subResultsExecutor;
         }
-        public Action<Exception> OnError { get; }
+        public Func<Exception, string> OnError { get; }
         public Action<RowInfo> TrackChanges { get; }
         public ChangeSetExecutor ExecuteChangeSet { get; }
         public AfterChangeSetExecuted AfterChangeSetExecuted { get; }

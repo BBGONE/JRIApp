@@ -38,10 +38,7 @@ namespace RIAPP.DataService.Core
             }
         }
 
-        public ClaimsPrincipal User
-        {
-            get { return DataService.User; }
-        }
+        public ClaimsPrincipal User => DataService.User;
 
         public DbSet CurrentDbSet { get; }
 
@@ -53,13 +50,7 @@ namespace RIAPP.DataService.Core
 
         public ServiceOperationType CurrentOperation { get; }
 
-        public dynamic DataBag
-        {
-            get
-            {
-                return _dataBag.Value;
-            }
-        }
+        public dynamic DataBag => _dataBag.Value;
 
         public BaseDomainService DataService
         {

@@ -1,5 +1,4 @@
-﻿using RIAPP.DataService.Annotations;
-using RIAPP.DataService.Core.Exceptions;
+﻿using RIAPP.DataService.Core.Exceptions;
 using RIAPP.DataService.Core.Types;
 using RIAPP.DataService.Resources;
 using System;
@@ -15,8 +14,8 @@ namespace RIAPP.DataService.Core.Metadata
 
         public RunTimeMetadata(DbSetsDictionary dbSets,
             ILookup<Type, DbSetInfo> dbSetsByTypeLookUp,
-            AssociationsDictionary associations, 
-            MethodMap svcMethods, 
+            AssociationsDictionary associations,
+            MethodMap svcMethods,
             OperationalMethods operMethods,
             string[] typeScriptImports)
         {
@@ -77,10 +76,7 @@ namespace RIAPP.DataService.Core.Metadata
 
         public AssociationsDictionary Associations { get; }
 
-        public MethodsList MethodDescriptions
-        {
-            get { return new MethodsList(_svcMethods.Values); }
-        }
+        public MethodsList MethodDescriptions => new MethodsList(_svcMethods.Values);
 
     }
 }

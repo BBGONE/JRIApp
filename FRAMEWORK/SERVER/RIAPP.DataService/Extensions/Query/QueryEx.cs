@@ -195,15 +195,13 @@ namespace RIAPP.DataService.Core.Query
         public static IQueryable<T> PerformQuery<T>(this IDataServiceComponent dataService, IQueryable<T> entities)
            where T : class
         {
-            IQueryable<T> countQuery = null;
-            return PerformQuery(dataService, entities, out countQuery);
+            return PerformQuery(dataService, entities, out IQueryable<T> countQuery);
         }
 
         public static PerformQueryResult<T> PerformQuery<T>(this IDataServiceComponent dataService, IQueryable<T> entities, Func<IQueryable<T>, Task<int>> totalCountFunc)
             where T : class
         {
-            IQueryable<T> countQuery = null;
-            IQueryable<T> result = PerformQuery(dataService, entities, out countQuery);
+            IQueryable<T> result = PerformQuery(dataService, entities, out IQueryable<T> countQuery);
             Func<Task<int?>> dataCount = () => Task.FromResult<int?>(null);
 
             if (countQuery != null && totalCountFunc != null)

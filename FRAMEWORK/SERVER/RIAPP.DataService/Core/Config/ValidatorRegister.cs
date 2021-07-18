@@ -49,6 +49,6 @@ namespace RIAPP.DataService.Core.Config
             _validators.TryAdd(typeof(TModel), descriptor);
         }
 
-        public IEnumerable<ServiceTypeDescriptor> Descriptors { get { return _validators.Values; } }
+        public IEnumerable<ServiceTypeDescriptor> Descriptors => _validators.Values;
     }
 }

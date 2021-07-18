@@ -252,8 +252,7 @@ namespace RIAPP.DataService.Core
                 }
                 else
                 {
-                    string newVal;
-                    if (isEntityValueChanged(rowInfo, fullName, fieldInfo, out newVal))
+                    if (isEntityValueChanged(rowInfo, fullName, fieldInfo, out string newVal))
                     {
                         val.val = newVal;
                         val.flags = val.flags | ValueFlags.Refreshed;
@@ -420,7 +419,7 @@ namespace RIAPP.DataService.Core
             rowInfo.GetChangeState().Entity = dbEntity;
             rowInfo.GetChangeState().OriginalEntity = dbEntity;
             var instance = GetMethodOwner(methodData);
-            var res =  methodData.MethodInfo.Invoke(instance, new[] { dbEntity });
+            var res = methodData.MethodInfo.Invoke(instance, new[] { dbEntity });
             if (res is Task)
             {
                 await (res as Task);
@@ -477,8 +476,7 @@ namespace RIAPP.DataService.Core
                             break;
                         case ChangeType.Updated:
                             {
-                                string newVal;
-                                bool isChanged = isEntityValueChanged(rowInfo, fullName, f, out newVal);
+                                bool isChanged = isEntityValueChanged(rowInfo, fullName, f, out string newVal);
                                 if (isChanged)
                                 {
                                     _validationHelper.CheckValue(f, newVal);

@@ -18,7 +18,7 @@
             {
                 return (T)(object)null;
             }
-            return (T)obj;
+            return obj;
         }
     }
 }

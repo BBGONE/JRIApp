@@ -26,5 +26,13 @@ namespace RIAPP.DataService.Core.Exceptions
 
             return result;
         }
+
+        public static string GetFriendlyMessage(this Exception exception)
+        {
+            string result = exception.Message;
+           
+
+            return result;
+        }
     }
 }

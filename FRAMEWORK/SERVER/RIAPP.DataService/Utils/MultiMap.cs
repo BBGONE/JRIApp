@@ -31,10 +31,7 @@ namespace RIAPP.DataService.Utils
             }
         }
 
-        public IEnumerable<K> Keys
-        {
-            get { return _dictionary.Keys; }
-        }
+        public IEnumerable<K> Keys => _dictionary.Keys;
 
         public IEnumerable<V> Values
         {
@@ -54,10 +51,7 @@ namespace RIAPP.DataService.Utils
         }
 
 
-        public IEnumerable<V> this[K key]
-        {
-            get { return GetListByKey(key); }
-        }
+        public IEnumerable<V> this[K key] => GetListByKey(key);
 
         public void MakeReadOnly()
         {
@@ -83,10 +77,7 @@ namespace RIAPP.DataService.Utils
             }
         }
 
-        public bool IsReadOnly
-        {
-            get { return _isReadOnly; }
-        }
+        public bool IsReadOnly => _isReadOnly;
 
 
         private static IEnumerable<V> ListFactory(K key)
@@ -98,8 +89,7 @@ namespace RIAPP.DataService.Utils
         {
             if (_isReadOnly)
             {
-                IEnumerable<V> val;
-                if (_dictionary.TryGetValue(key, out val))
+                if (_dictionary.TryGetValue(key, out IEnumerable<V> val))
                 {
                     return val;
                 }

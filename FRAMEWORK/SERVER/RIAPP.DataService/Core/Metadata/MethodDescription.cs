@@ -16,10 +16,7 @@ namespace RIAPP.DataService.Core.Metadata
         }
 
 
-        public string methodName
-        {
-            get { return _methodData.MethodInfo.Name; }
-        }
+        public string methodName => _methodData.MethodInfo.Name;
 
 
         public List<ParamMetadata> parameters { get; set; }
@@ -38,10 +35,7 @@ namespace RIAPP.DataService.Core.Metadata
 
 
         [Description("Is it a Query method")]
-        public bool isQuery
-        {
-            get { return _methodData.MethodType == MethodType.Query; }
-        }
+        public bool isQuery => _methodData.MethodType == MethodType.Query;
 
 
         internal MethodInfoData _methodData { get; }

@@ -16,29 +16,23 @@ namespace RIAPP.DataService.Core.Security
             this.ServiceFactory = serviceFactory ?? throw new ArgumentNullException(nameof(serviceFactory));
         }
 
-        public ClaimsPrincipal User
-        {
-            get
-            {
-                return this._userProvider.User;
-            }
-        }
+        public ClaimsPrincipal User => this._userProvider.User;
 
         public BaseDomainService Service { get; }
 
         public IServiceFactory ServiceFactory { get; }
     }
 
-    public class AuthorizationContext<TService>: AuthorizationContext
+    public class AuthorizationContext<TService> : AuthorizationContext
         where TService : BaseDomainService
     {
         public AuthorizationContext(TService service, IUserProvider userProvider, IServiceFactory<TService> serviceFactory)
-            :base(service, userProvider, serviceFactory)
+            : base(service, userProvider, serviceFactory)
         {
         }
 
-        public new TService Service { get { return (TService)base.Service; } }
+        public new TService Service => (TService)base.Service;
 
-        public new IServiceFactory<TService> ServiceFactory { get { return (IServiceFactory<TService>)base.ServiceFactory; } }
+        public new IServiceFactory<TService> ServiceFactory => (IServiceFactory<TService>)base.ServiceFactory;
     }
 }

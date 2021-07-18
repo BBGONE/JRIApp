@@ -17,9 +17,13 @@ namespace RIAPP.DataService.Utils
     public static class ServiceFactoryExtensions
     {
         public static T GetInstance<T>(this IServiceFactory factory)
-            => (T) factory.GetInstance(typeof(T));
+        {
+            return (T)factory.GetInstance(typeof(T));
+        }
 
         public static IEnumerable<T> GetInstances<T>(this IServiceFactory factory)
-            => (IEnumerable<T>)factory.GetInstance(typeof(IEnumerable<T>));
+        {
+            return (IEnumerable<T>)factory.GetInstance(typeof(IEnumerable<T>));
+        }
     }
 }

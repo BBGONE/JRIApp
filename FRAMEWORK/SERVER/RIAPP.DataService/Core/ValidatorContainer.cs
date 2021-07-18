@@ -18,8 +18,7 @@ namespace RIAPP.DataService.Core
 
         public IValidator GetValidator(Type modelType)
         {
-            ServiceTypeDescriptor descriptor;
-            if (_validatorRegister.TryGetDescriptor(modelType, out descriptor))
+            if (_validatorRegister.TryGetDescriptor(modelType, out ServiceTypeDescriptor descriptor))
             {
                 return (IValidator)_serviceContainer.GetService(descriptor.ServiceType);
             }

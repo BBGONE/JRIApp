@@ -297,7 +297,7 @@ namespace RIAPP.DataService.Core.CodeGen
 
         void IDisposable.Dispose()
         {
-           // NOOP
+            // NOOP
         }
     }
 }

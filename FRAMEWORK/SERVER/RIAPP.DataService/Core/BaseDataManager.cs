@@ -8,28 +8,13 @@ namespace RIAPP.DataService.Core
         where TModel : class
         where TDataService : BaseDomainService
     {
-        BaseDomainService IDataServiceComponent.DataService
-        {
-            get
-            {
-                return this.DataService;
-            }
-        }
+        BaseDomainService IDataServiceComponent.DataService => this.DataService;
 
-        public TDataService DataService
-        {
-            get { return (TDataService)RequestContext.DataService; }
-        }
+        public TDataService DataService => (TDataService)RequestContext.DataService;
 
-        protected RequestContext RequestContext
-        {
-            get { return RequestContext.Current; }
-        }
+        protected RequestContext RequestContext => RequestContext.Current;
 
-        protected QueryRequest CurrentQueryInfo
-        {
-            get { return RequestContext.CurrentQueryInfo; }
-        }
+        protected QueryRequest CurrentQueryInfo => RequestContext.CurrentQueryInfo;
 
         public virtual Task AfterExecuteChangeSet(ChangeSetRequest changeSet)
         {
@@ -41,10 +26,7 @@ namespace RIAPP.DataService.Core
             return Task.CompletedTask;
         }
 
-        public IServiceContainer ServiceContainer
-        {
-            get { return DataService.ServiceContainer; }
-        }
+        public IServiceContainer ServiceContainer => DataService.ServiceContainer;
 
 
         public object GetParent(Type entityType)

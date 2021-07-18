@@ -102,6 +102,13 @@ namespace RIAPP.DataService.Utils
             {
                 return converter(value, fieldInfo);
             }
+            /*
+            else if (mainType.IsEnum)
+            {
+                var val = Convert.ChangeType(value, Enum.GetUnderlyingType(mainType), CultureInfo.InvariantCulture);
+                return (string)Convert.ChangeType(val, typeof(string), CultureInfo.InvariantCulture);
+            }
+            */
             else if (mainType.IsValueType)
             {
                 return (string)Convert.ChangeType(value, typeof(string), CultureInfo.InvariantCulture);

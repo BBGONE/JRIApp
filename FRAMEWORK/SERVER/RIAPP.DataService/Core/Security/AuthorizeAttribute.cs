@@ -15,7 +15,7 @@ namespace RIAPP.DataService.Core.Security
 
         public string RolesString
         {
-            get { return string.Join(",", Roles); }
+            get => string.Join(",", Roles);
             set
             {
                 if (string.IsNullOrWhiteSpace(value))

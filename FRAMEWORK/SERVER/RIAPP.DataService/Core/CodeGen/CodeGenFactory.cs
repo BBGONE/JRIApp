@@ -32,12 +32,6 @@ namespace RIAPP.DataService.Core.CodeGen
             return providerFactory.Create(dataService);
         }
 
-        public bool IsCodeGenEnabled
-        {
-            get
-            {
-                return _codeGenConfig != null && _codeGenConfig.IsCodeGenEnabled;
-            }
-        }
+        public bool IsCodeGenEnabled => _codeGenConfig != null && _codeGenConfig.IsCodeGenEnabled;
     }
 }

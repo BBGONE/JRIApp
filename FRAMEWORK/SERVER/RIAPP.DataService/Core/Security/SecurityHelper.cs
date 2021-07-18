@@ -86,7 +86,7 @@ namespace RIAPP.DataService.Core.Security
             }
 
             var permits = attr.Where(a => a is IAuthorizeData && !(a is IDenyAuthorizeData) && !(a is IOverrideAuthorizeData)).Cast<IAuthorizeData>().ToArray();
-            
+
             managerAuthorization.AuthorizeData = Enumerable.Union(denies, permits);
 
             return managerAuthorization;
@@ -95,7 +95,7 @@ namespace RIAPP.DataService.Core.Security
         public static IEnumerable<IAuthorizeData> GetTypeAuthorization(this Type instanceType)
         {
             var attr = instanceType.GetCustomAttributes(false).ToArray();
-           
+
             var denies = attr.Where(a => a is IDenyAuthorizeData).Cast<IAuthorizeData>().ToArray();
             var overrides = attr.Where(a => a is IOverrideAuthorizeData).Cast<IAuthorizeData>().ToArray();
 

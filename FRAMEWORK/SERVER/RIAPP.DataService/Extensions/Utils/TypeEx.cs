@@ -38,7 +38,7 @@ namespace RIAPP.DataService.Utils.Extensions
 
         }
 
-        static readonly Dictionary<Type, DataType> typeMap = new Dictionary<Type, DataType>
+        private static readonly Dictionary<Type, DataType> typeMap = new Dictionary<Type, DataType>
         {
             { typeof(byte), DataType.Binary },
             { typeof(string), DataType.String },

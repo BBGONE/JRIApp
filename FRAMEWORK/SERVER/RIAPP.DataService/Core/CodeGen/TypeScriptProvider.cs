@@ -72,12 +72,6 @@ namespace RIAPP.DataService.Core.CodeGen
                 this.Lang, this._clientTypes);
         }
 
-        public string Lang
-        {
-            get
-            {
-                return "ts";
-            }
-        }
+        public string Lang => "ts";
     }
 }
