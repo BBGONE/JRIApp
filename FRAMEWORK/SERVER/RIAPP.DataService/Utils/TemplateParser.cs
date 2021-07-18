@@ -158,7 +158,7 @@ namespace RIAPP.DataService.Utils
                             StringBuilder sb = new StringBuilder();
                             foreach (var item in res)
                             {
-                                sb.Append(context.GetPartPartValue(item));
+                                sb.Append(context.GetPartValue(item));
                             }
                             return sb.ToString();
                         }, res, true));
@@ -185,7 +185,7 @@ namespace RIAPP.DataService.Utils
             StringBuilder sb = new StringBuilder();
             foreach (var item in res)
             {
-                sb.Append(context.GetPartPartValue(item));
+                sb.Append(context.GetPartValue(item));
             }
             string result = sb.ToString();
             return result;
@@ -242,7 +242,7 @@ namespace RIAPP.DataService.Utils
                 get;
             }
 
-            public string GetPartPartValue(Part part)
+            public string GetPartValue(Part part)
             {
                 string value = this.valueGetter(this, part);
                 return value;
