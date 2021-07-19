@@ -26,11 +26,9 @@ namespace RIAPP.DataService.Core.CodeGen
             }
         }
 
-        protected override IEnumerable<Part> GetTemplate(string name, IDictionary<string, Func<Context, string>> dic)
+        protected override TemplateParser GetTemplate(string name, IDictionary<string, Func<Context, string>> dic)
         {
-            CodeGenTemplate parser = new CodeGenTemplate(name);
-            var result = parser.Execute(dic);
-            return result;
+            return new CodeGenTemplate(name);
         }
 
         public CodeGenTemplate(string ID) :

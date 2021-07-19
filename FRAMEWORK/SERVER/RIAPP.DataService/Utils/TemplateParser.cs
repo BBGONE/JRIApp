@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RIAPP.DataService.Utils
 {
@@ -22,7 +23,7 @@ namespace RIAPP.DataService.Utils
 
         public TemplateParser(string templateName, Func<string> templateProvider)
         {
-            this.TemplateName = templateName;
+            TemplateName = templateName;
             DocParts = new Lazy<IEnumerable<DocPart>>(() => ParseTemplate(templateProvider()), true);
         }
 
@@ -34,7 +35,7 @@ namespace RIAPP.DataService.Utils
 
         private DocPart GetDocPart(string str, bool IsTemplateRef = false)
         {
-            var parts = str.Split(':').Select(s => s.Trim()).ToArray();
+            string[] parts = str.Split(':').Select(s => s.Trim()).ToArray();
 
             return new DocPart
             {
@@ -50,14 +51,14 @@ namespace RIAPP.DataService.Utils
             char? prevChar = null;
             bool isPlaceHolder1 = false;
             bool isPlaceHolder2 = false;
-            var list = new LinkedList<DocPart>();
+            LinkedList<DocPart> list = new LinkedList<DocPart>();
 
-            var sb = new StringBuilder(512);
+            StringBuilder sb = new StringBuilder(512);
 
-            var chars = template.ToCharArray();
-            for (var i = 0; i < chars.Length; ++i)
+            char[] chars = template.ToCharArray();
+            for (int i = 0; i < chars.Length; ++i)
             {
-                var ch = chars[i];
+                char ch = chars[i];
 
 
                 if (ch == LEFT_CHAR1)
@@ -125,26 +126,26 @@ namespace RIAPP.DataService.Utils
 
         private void ProcessParts(Action<DocPart> partHandler)
         {
-            foreach (var part in DocParts.Value)
+            foreach (DocPart part in DocParts.Value)
             {
                 partHandler(part);
             }
         }
 
-        public IEnumerable<Part> Execute(IDictionary<string, Func<Context, string>> dic)
+        private void Execute(IDictionary<string, Func<Context, string>> dic, Func<Context, Part, string> valueGetter)
         {
             if (dic == null)
             {
                 dic = new Dictionary<string, Func<Context, string>>();
             }
 
-            this.list.Clear();
+            list.Clear();
 
-            this.ProcessParts(part =>
+            ProcessParts(part =>
             {
                 if (!part.isPlaceHolder)
                 {
-                    this.list.AddLast(new Part(this.TemplateName, string.Empty, (Context context) => part.value, null, false));
+                    list.AddLast(new Part(TemplateName, string.Empty, (Context context) => part.value, false));
                 }
                 else
                 {
@@ -152,25 +153,19 @@ namespace RIAPP.DataService.Utils
 
                     if (part.isTemplateRef)
                     {
-                        IEnumerable<Part> res = this.GetTemplate(name, dic);
+                        var parser = GetTemplate(name, dic);
 
-                        this.list.AddLast(new Part(this.TemplateName, name, (Context context) => {
-                            StringBuilder sb = new StringBuilder();
-                            foreach (var item in res)
-                            {
-                                sb.Append(context.GetPartValue(item));
-                            }
-                            return sb.ToString();
-                        }, res, true));
+                        list.AddLast(new Part(TemplateName, name, (Context context) =>
+                        {
+                            return parser.ToString(dic, valueGetter);
+                        }, true));
                     }
-                    else if (dic.TryGetValue(name, out var fn))
+                    else if (dic.TryGetValue(name, out Func<Context, string> fn))
                     {
-                        this.list.AddLast(new Part(this.TemplateName, name, fn, null, false));
+                        list.AddLast(new Part(TemplateName, name, fn, false));
                     }
                 }
             });
-
-            return list.ToList();
         }
 
         public virtual string ToString(IDictionary<string, Func<Context, string>> dic, Func<Context, Part, string> valueGetter = null)
@@ -180,25 +175,31 @@ namespace RIAPP.DataService.Utils
                 valueGetter = (ctxt, part) => part.ValueGetter(ctxt);
             }
 
-            var res = this.Execute(dic);
-            Context context = new Context(res.ToList(), valueGetter);
+            Execute(dic, valueGetter);
+            Context context = new Context(list);
+
             StringBuilder sb = new StringBuilder();
-            foreach (var item in res)
+
+            foreach (Part item in list)
             {
-                sb.Append(context.GetPartValue(item));
+                string value = valueGetter(context, item);
+                sb.Append(value);
             }
+
             string result = sb.ToString();
+            
+            // removes empty lines
+            // return Regex.Replace(result, @"^\s+$[\r\n]*", string.Empty, RegexOptions.Multiline);
             return result;
         }
 
         public class Part
         {
-            public Part(string templateName, string name, Func<Context, string> valueGetter, IEnumerable<Part> subparts = null, bool IsTemplateRef = false)
+            public Part(string templateName, string name, Func<Context, string> valueGetter, bool IsTemplateRef = false)
             {
-                this.TemplateName = templateName;
-                this.Name = name;
-                this.ValueGetter = valueGetter;
-                this.SubParts = subparts ?? Enumerable.Empty<Part>();
+                TemplateName = templateName;
+                Name = name;
+                ValueGetter = valueGetter;
                 this.IsTemplateRef = IsTemplateRef;
             }
 
@@ -221,37 +222,24 @@ namespace RIAPP.DataService.Utils
             {
                 get;
             }
-
-            public IEnumerable<Part> SubParts
-            {
-                get;
-            }
         }
 
         public class Context
         {
-            private readonly Func<Context, Part, string> valueGetter;
-            public Context(IEnumerable<Part> parts, Func<Context, Part, string> valueGetter)
+            internal Context(LinkedList<Part> parts)
             {
-                this.Parts = parts;
-                this.valueGetter = valueGetter;
+                Parts = parts.ToList();
             }
 
-            public IEnumerable<Part> Parts
+            public List<Part> Parts
             {
                 get;
             }
-
-            public string GetPartValue(Part part)
-            {
-                string value = this.valueGetter(this, part);
-                return value;
-            }
         }
 
-        protected virtual IEnumerable<Part> GetTemplate(string name, IDictionary<string, Func<Context, string>> dic)
+        protected virtual TemplateParser GetTemplate(string name, IDictionary<string, Func<Context, string>> dic)
         {
-            return Enumerable.Empty<Part>();
+            throw new NotImplementedException();
         }
 
         private struct DocPart
