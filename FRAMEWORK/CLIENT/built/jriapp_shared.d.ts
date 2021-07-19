@@ -17,7 +17,7 @@ declare module "jriapp_shared/consts" {
     export const APP_NAME = "app";
     export const DUMY_ERROR = "DUMMY_ERROR";
 }
-declare module "jriapp_shared/utils/ideferred" {
+declare module "jriapp_shared/utils/ipromise" {
     export const enum PromiseState {
         Pending = 0,
         ResolutionInProgress = 1,
@@ -67,7 +67,7 @@ declare module "jriapp_shared/utils/ideferred" {
 }
 declare module "jriapp_shared/int" {
     import { DEBUG_LEVEL } from "jriapp_shared/consts";
-    import { IVoidPromise } from "jriapp_shared/utils/ideferred";
+    import { IVoidPromise } from "jriapp_shared/utils/ipromise";
     export interface IConfig {
         debugLevel?: DEBUG_LEVEL;
     }
@@ -83,8 +83,8 @@ declare module "jriapp_shared/int" {
     export type TPropChangedHandler<T = any> = (sender: T, args: {
         property: string;
     }) => void;
-    export type TFunc = {
-        (...args: any[]): void;
+    export type TFunc<T = any> = {
+        (...args: any[]): T;
     };
     export type TAnyConstructor<T> = new (...args: any[]) => T;
     export interface IDisposable {
@@ -171,7 +171,7 @@ declare module "jriapp_shared/int" {
     }
 }
 declare module "jriapp_shared/utils/checks" {
-    import { IThenable } from "jriapp_shared/utils/ideferred";
+    import { IThenable } from "jriapp_shared/utils/ipromise";
     export class Checks {
         static readonly _undefined: undefined;
         static isHasProp(obj: any, prop: string): boolean;
@@ -444,7 +444,7 @@ declare module "jriapp_shared/collection/const" {
 }
 declare module "jriapp_shared/collection/int" {
     import { DATE_CONVERSION, DATA_TYPE, SORT_ORDER, FIELD_TYPE, COLL_CHANGE_OPER, COLL_CHANGE_REASON, COLL_CHANGE_TYPE, ITEM_STATUS } from "jriapp_shared/collection/const";
-    import { IPromise } from "jriapp_shared/utils/ideferred";
+    import { IPromise } from "jriapp_shared/utils/ipromise";
     import { IBaseObject, IErrorNotification, IEditable, ISubmittable, TEventHandler, TPropChangedHandler, IValidationInfo, TPriority, IIndexer } from "jriapp_shared/int";
     export const PROP_NAME: {
         isEditing: string;
@@ -837,28 +837,8 @@ declare module "jriapp_shared/object" {
         get __objSig(): object;
     }
 }
-declare module "jriapp_shared/utils/arrhelper" {
-    import { IIndexer } from "jriapp_shared/int";
-    export interface IArrayLikeList<T> {
-        length: number;
-        [index: number]: T;
-    }
-    export class ArrayHelper {
-        static clone<T>(arr: T[]): T[];
-        static fromList<T extends U, U>(list: IArrayLikeList<U>): T[];
-        static fromList<T>(list: IArrayLikeList<any>): T[];
-        static fromList<T>(list: IArrayLikeList<T>): T[];
-        static merge<T>(arrays: Array<Array<T>>): Array<T>;
-        static distinct(arr: string[]): string[];
-        static distinct(arr: number[]): number[];
-        static toMap<T extends object>(arr: T[], key: (obj: T) => string): IIndexer<T>;
-        static remove(array: any[], obj: any): number;
-        static removeIndex(array: any[], index: number): boolean;
-        static insert(array: any[], obj: any, pos: number): void;
-    }
-}
 declare module "jriapp_shared/utils/queue" {
-    import { IPromise } from "jriapp_shared/utils/ideferred";
+    import { IPromise } from "jriapp_shared/utils/promise";
     export interface IQueue {
         cancel: (taskId: number) => void;
         enque: (func: () => any) => number;
@@ -866,8 +846,9 @@ declare module "jriapp_shared/utils/queue" {
     }
     export function createQueue(interval?: number): IQueue;
 }
-declare module "jriapp_shared/utils/deferred" {
-    import { IStatefulDeferred, IStatefulPromise, ITaskQueue, PromiseState, TResolved, IThenable, IPromise, IAbortablePromise, ICancellationToken, ICancellationTokenSource } from "jriapp_shared/utils/ideferred";
+declare module "jriapp_shared/utils/promise" {
+    import { IStatefulDeferred, IStatefulPromise, ITaskQueue, PromiseState, TResolved, IThenable, IPromise, IAbortablePromise, ICancellationToken, ICancellationTokenSource } from "jriapp_shared/utils/ipromise";
+    export * from "jriapp_shared/utils/ipromise";
     export function createDefer<T = any>(isSync?: boolean): IStatefulDeferred<T>;
     export function createSyncDefer<T>(): IStatefulDeferred<T>;
     export function getTaskQueue(): ITaskQueue;
@@ -987,8 +968,8 @@ declare module "jriapp_shared/utils/logger" {
         static error(str: string): void;
     }
 }
-declare module "jriapp_shared/utils/async" {
-    import { ITaskQueue, IStatefulDeferred, IStatefulPromise, IPromise, IThenable } from "jriapp_shared/utils/ideferred";
+declare module "jriapp_shared/utils/asyncutils" {
+    import { ITaskQueue, IStatefulDeferred, IStatefulPromise, IPromise, IThenable } from "jriapp_shared/utils/ipromise";
     export type TDelayedFunc<T> = () => IPromise<T> | T;
     export class AsyncUtils {
         static createDeferred<T>(isSync?: boolean): IStatefulDeferred<T>;
@@ -1005,7 +986,7 @@ declare module "jriapp_shared/utils/async" {
     }
 }
 declare module "jriapp_shared/utils/http" {
-    import { IAbortablePromise } from "jriapp_shared/utils/ideferred";
+    import { IAbortablePromise } from "jriapp_shared/utils/ipromise";
     import { IIndexer } from "jriapp_shared/int";
     export class HttpUtils {
         static isStatusOK(status: string | number): boolean;
@@ -1014,6 +995,26 @@ declare module "jriapp_shared/utils/http" {
         static getAjax(url: string, headers?: IIndexer<string>): IAbortablePromise<string>;
         static defaultHeaders: IIndexer<string>;
         static ajaxTimeOut: number;
+    }
+}
+declare module "jriapp_shared/utils/arrhelper" {
+    import { IIndexer } from "jriapp_shared/int";
+    export interface IArrayLikeList<T> {
+        length: number;
+        [index: number]: T;
+    }
+    export class ArrayHelper {
+        static clone<T>(arr: T[]): T[];
+        static fromList<T extends U, U>(list: IArrayLikeList<U>): T[];
+        static fromList<T>(list: IArrayLikeList<any>): T[];
+        static fromList<T>(list: IArrayLikeList<T>): T[];
+        static merge<T>(arrays: Array<Array<T>>): Array<T>;
+        static distinct(arr: string[]): string[];
+        static distinct(arr: number[]): number[];
+        static toMap<T extends object>(arr: T[], key: (obj: T) => string): IIndexer<T>;
+        static remove(array: any[], obj: any): number;
+        static removeIndex(array: any[], index: number): boolean;
+        static insert(array: any[], obj: any, pos: number): void;
     }
 }
 declare module "jriapp_shared/utils/dates" {
@@ -1052,12 +1053,12 @@ declare module "jriapp_shared/utils/utils" {
     import { ERROR } from "jriapp_shared/utils/error";
     import { LOGGER } from "jriapp_shared/utils/logger";
     import { SysUtils } from "jriapp_shared/utils/sysutils";
-    import { AsyncUtils } from "jriapp_shared/utils/async";
+    import { AsyncUtils } from "jriapp_shared/utils/asyncutils";
     import { HttpUtils } from "jriapp_shared/utils/http";
     import { StringUtils } from "jriapp_shared/utils/strutils";
     import { Checks } from "jriapp_shared/utils/checks";
     import { ArrayHelper } from "jriapp_shared/utils/arrhelper";
-    import { ITaskQueue } from "jriapp_shared/utils/ideferred";
+    import { ITaskQueue } from "jriapp_shared/utils/ipromise";
     import { DateUtils } from "jriapp_shared/utils/dates";
     export class Utils {
         static readonly check: typeof Checks;
@@ -1065,7 +1066,7 @@ declare module "jriapp_shared/utils/utils" {
         static readonly arr: typeof ArrayHelper;
         static readonly http: typeof HttpUtils;
         static readonly core: typeof CoreUtils;
-        static readonly defer: typeof AsyncUtils;
+        static readonly async: typeof AsyncUtils;
         static readonly err: typeof ERROR;
         static readonly log: typeof LOGGER;
         static readonly debug: typeof DEBUG;
@@ -1118,7 +1119,7 @@ declare module "jriapp_shared/collection/utils" {
 declare module "jriapp_shared/collection/base" {
     import { SORT_ORDER, ITEM_STATUS, COLL_CHANGE_REASON, COLL_CHANGE_OPER } from "jriapp_shared/collection/const";
     import { IFieldInfo } from "jriapp_shared/collection/int";
-    import { IPromise } from "jriapp_shared/utils/ideferred";
+    import { IPromise } from "jriapp_shared/utils/ipromise";
     import { IIndexer, IValidationInfo, TEventHandler, TPropChangedHandler, IBaseObject, TPriority } from "jriapp_shared/int";
     import { BaseObject } from "jriapp_shared/object";
     import { ICollectionItem, ICollection, ICollectionOptions, IPermissions, IInternalCollMethods, ICollChangedArgs, ICancellableArgs, ICollFillArgs, ICollEndEditArgs, ICollItemArgs, ICollItemStatusArgs, ICollValidateFieldArgs, ICollValidateItemArgs, ICurrentChangingArgs, ICommitChangesArgs, IItemAddedArgs, IPageChangingArgs, IErrors } from "jriapp_shared/collection/int";
@@ -1303,7 +1304,7 @@ declare module "jriapp_shared/collection/validation" {
 declare module "jriapp_shared/collection/aspect" {
     import { ITEM_STATUS, VALS_VERSION } from "jriapp_shared/collection/const";
     import { IFieldInfo } from "jriapp_shared/collection/int";
-    import { IVoidPromise } from "jriapp_shared/utils/ideferred";
+    import { IVoidPromise } from "jriapp_shared/utils/ipromise";
     import { IIndexer, IValidationInfo, TEventHandler, IErrorNotification } from "jriapp_shared/int";
     import { BaseObject } from "jriapp_shared/object";
     import { ICollectionItem, IItemAspect } from "jriapp_shared/collection/int";
@@ -1541,11 +1542,11 @@ declare module "jriapp_shared" {
     export { ListItemAspect, IListItem, BaseList } from "jriapp_shared/collection/list";
     export { BaseDictionary } from "jriapp_shared/collection/dictionary";
     export { ValidationError } from "jriapp_shared/errors";
-    export * from "jriapp_shared/utils/ideferred";
-    export { StatefulPromise, AbortablePromise, CancellationTokenSource } from "jriapp_shared/utils/deferred";
+    export * from "jriapp_shared/utils/ipromise";
+    export { StatefulPromise, AbortablePromise, CancellationTokenSource } from "jriapp_shared/utils/promise";
     export { Utils } from "jriapp_shared/utils/utils";
     export { WaitQueue, IWaitQueueItem } from "jriapp_shared/utils/waitqueue";
     export { Debounce } from "jriapp_shared/utils/debounce";
     export { Lazy, TValueFactory } from "jriapp_shared/utils/lazy";
-    export const VERSION = "3.0.8";
+    export const VERSION = "4.0.0";
 }

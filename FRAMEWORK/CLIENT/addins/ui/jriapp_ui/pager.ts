@@ -9,10 +9,10 @@ import { addToolTip } from "./baseview";
 import { BaseElView } from "./baseview";
 import { COLL_CHANGE_REASON, COLL_CHANGE_TYPE } from "jriapp_shared/collection/const";
 import { ICollection, ICollectionItem } from "jriapp_shared/collection/int";
-import { bootstrap, selectableProviderWeakMap } from "jriapp/bootstrap";
+import { bootstrapper, selectableProviderWeakMap } from "jriapp/bootstrapper";
 
 const utils = Utils, dom = DomUtils, doc = dom.document, sys = utils.sys,
-    { format } = utils.str, { getNewID, extend } = utils.core, boot = bootstrap;
+    { format } = utils.str, { getNewID, extend } = utils.core, boot = bootstrapper;
 const _STRS = STRS.PAGER;
 
 const enum css {

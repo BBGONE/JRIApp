@@ -1,5 +1,5 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { TextBoxElView, ITextBoxOptions } from "./textbox";
 
 
@@ -29,4 +29,4 @@ export class TextAreaElView extends TextBoxElView<HTMLTextAreaElement> {
     }
 }
 
-bootstrap.registerElView("textarea", TextAreaElView);
+bootstrapper.registerElView("textarea", TextAreaElView);

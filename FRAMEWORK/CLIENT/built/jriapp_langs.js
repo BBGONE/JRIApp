@@ -1,4 +1,4 @@
-define("jriapp_ru", ["require", "exports", "jriapp_shared/lang", "jriapp/bootstrap"], function (require, exports, lang_1, bootstrap_1) {
+define("jriapp_ru", ["require", "exports", "jriapp_shared/lang", "jriapp/bootstrapper"], function (require, exports, lang_1, bootstrapper_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var PAGER = {
@@ -117,10 +117,11 @@ define("jriapp_ru", ["require", "exports", "jriapp_shared/lang", "jriapp/bootstr
     };
     lang_1.assign(lang_1.STRS, _STRS);
     lang_1.assign(lang_1.ERRS, _ERRS);
-    bootstrap_1.bootstrap.addOnInitialize(function (boot) {
+    bootstrapper_1.bootstrapper.addOnInitialize(function (boot) {
         var datepicker = boot.getSvc("IDatepicker");
-        if (!datepicker)
+        if (!datepicker) {
             throw new Error("IDatepicker service is not registered");
+        }
         $.datepicker.regional["ru"] = {
             closeText: "Закрыть",
             prevText: "&#x3c;Пред",

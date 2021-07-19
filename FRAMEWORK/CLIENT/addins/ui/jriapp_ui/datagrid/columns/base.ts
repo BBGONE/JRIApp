@@ -4,7 +4,7 @@ import { DomUtils } from "jriapp/utils/dom";
 import { IContentOptions, ITemplateEvents, ITemplate } from "jriapp/int";
 import { createTemplate } from "jriapp/template";
 import { addToolTip } from "../../baseview";
-import { selectableProviderWeakMap } from "jriapp/bootstrap";
+import { selectableProviderWeakMap } from "jriapp/bootstrapper";
 
 import { css } from "../consts";
 import { DataGrid } from "../datagrid";

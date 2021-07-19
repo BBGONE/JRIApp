@@ -1,8 +1,8 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { SpanElView } from "./span";
 
-const boot = bootstrap;
+const boot = bootstrapper;
 
 export class BlockElView extends SpanElView {
     toString(): string {

@@ -4,7 +4,7 @@ import {
     ITEM_STATUS, COLL_CHANGE_REASON, COLL_CHANGE_TYPE, COLL_CHANGE_OPER
 } from "./const";
 import { IFieldInfo } from "./int";
-import { IPromise } from "../utils/ideferred";
+import { IPromise } from "../utils/ipromise";
 import {
     IIndexer, IValidationInfo, TEventHandler, TPropChangedHandler, IBaseObject, TPriority
 } from "../int";
@@ -826,7 +826,7 @@ export abstract class BaseCollection<TItem extends ICollectionItem> extends Base
     }
     sortLocal(fieldNames: string[], sortOrder: SORT_ORDER): IPromise<any> {
         const sortFn = this._getSortFn(fieldNames, sortOrder);
-        const self = this, deferred = utils.defer.createDeferred<void>();
+        const self = this, deferred = utils.async.createDeferred<void>();
         this.waitForNotLoading(() => {
             const cur = self.currentItem;
             self._setIsLoading(true);

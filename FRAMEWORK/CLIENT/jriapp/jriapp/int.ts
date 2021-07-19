@@ -154,6 +154,9 @@ export interface IElView extends IBaseObject {
     readonly el: HTMLElement;
     readonly app: IApplication;
     readonly uniqueID: string;
+    // when binding are started to be set, this property is set to 1, otherwise it's zero
+    // it's useful when several bindings are set - to determine when it's started and ended
+    bindingState: number;
     viewMounted?: () => void;
 }
 

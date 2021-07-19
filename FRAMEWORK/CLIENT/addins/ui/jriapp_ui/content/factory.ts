@@ -14,7 +14,7 @@ import { DateContent } from "./date";
 import { DateTimeContent } from "./datetime";
 import { LookupContent } from "./lookup";
 
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 
 const utils = Utils, { format } = utils.str;
 let factoryInstance: IContentFactory;
@@ -97,7 +97,7 @@ class ContentFactory implements IContentFactory {
 export function initContentFactory() {
     if (!factoryInstance) {
         factoryInstance = new ContentFactory();
-        bootstrap.contentFactory.addFactory((_nextFactory?: IContentFactory) => {
+        bootstrapper.contentFactory.addFactory((_nextFactory?: IContentFactory) => {
             return factoryInstance;
         });
     }

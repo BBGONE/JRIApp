@@ -3,13 +3,13 @@ import { Utils } from "jriapp_shared";
 import { $ } from "./utils/jquery";
 import { LOADER_GIF } from "jriapp/consts";
 import { IViewOptions } from "jriapp/int";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { DomUtils } from "jriapp/utils/dom";
 
 
 import { BaseElView } from "./baseview";
 
-const { isNt } = Utils.check, boot = bootstrap, dom = DomUtils;
+const { isNt } = Utils.check, boot = bootstrapper, dom = DomUtils;
 
 export interface IBusyViewOptions extends IViewOptions {
     img?: string;
@@ -36,7 +36,7 @@ export class BusyElView extends BaseElView {
         if (!isNt(options.delay)) {
             this._delay = parseInt("" + options.delay);
         }
-        this._loaderPath = bootstrap.getImagePath(img);
+        this._loaderPath = bootstrapper.getImagePath(img);
         this._img = new Image();
         this._img.style.position = "absolute";
         this._img.style.display = "none";

@@ -1,14 +1,14 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
 import { DATA_TYPE } from "jriapp_shared/collection/const";
 import { IConverter } from "jriapp/int";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 
 import { BasicContent } from "./basic";
 
 export class DateTimeContent extends BasicContent {
     // override
     protected getParam(_isEdit: boolean): any {
-        const finf = this.getFieldInfo(), defaults = bootstrap.defaults;
+        const finf = this.getFieldInfo(), defaults = bootstrapper.defaults;
         switch (finf.dataType) {
             case DATA_TYPE.DateTime:
                 return defaults.dateTimeFormat;

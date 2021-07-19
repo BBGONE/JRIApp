@@ -1,5 +1,5 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { BaseElView } from "./baseview";
 
 export class SpanElView extends BaseElView {
@@ -37,4 +37,4 @@ export class SpanElView extends BaseElView {
     }
 }
 
-bootstrap.registerElView("span", SpanElView);
+bootstrapper.registerElView("span", SpanElView);

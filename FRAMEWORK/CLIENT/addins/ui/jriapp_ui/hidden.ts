@@ -1,5 +1,5 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { InputElView } from "./input";
 
 export class HiddenElView extends InputElView<HTMLInputElement> {
@@ -8,4 +8,4 @@ export class HiddenElView extends InputElView<HTMLInputElement> {
     }
 }
 
-bootstrap.registerElView("input:hidden", HiddenElView);
+bootstrapper.registerElView("input:hidden", HiddenElView);

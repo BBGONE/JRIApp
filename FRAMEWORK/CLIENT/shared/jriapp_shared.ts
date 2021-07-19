@@ -17,11 +17,11 @@ export { ListItemAspect, IListItem, BaseList } from "./jriapp_shared/collection/
 export { BaseDictionary } from "./jriapp_shared/collection/dictionary";
 export { ValidationError } from "./jriapp_shared/errors";
 
-export * from "./jriapp_shared/utils/ideferred";
-export { StatefulPromise, AbortablePromise, CancellationTokenSource } from "./jriapp_shared/utils/deferred";
+export * from "./jriapp_shared/utils/ipromise";
+export { StatefulPromise, AbortablePromise, CancellationTokenSource } from "./jriapp_shared/utils/promise";
 export { Utils } from "./jriapp_shared/utils/utils";
 export { WaitQueue, IWaitQueueItem } from "./jriapp_shared/utils/waitqueue";
 export { Debounce } from "./jriapp_shared/utils/debounce";
 export { Lazy, TValueFactory } from "./jriapp_shared/utils/lazy";
 
-export const VERSION = "3.0.8";
+export const VERSION = "4.0.0";

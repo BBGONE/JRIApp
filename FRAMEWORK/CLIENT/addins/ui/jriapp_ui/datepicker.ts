@@ -1,10 +1,10 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
 import { IDatepicker } from "jriapp/int";
 import { SERVICES } from "jriapp/consts";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { TextBoxElView, ITextBoxOptions } from "./textbox";
 
-const boot = bootstrap;
+const boot = bootstrapper;
 
 export interface IDatePickerOptions extends ITextBoxOptions {
     datepicker?: any;

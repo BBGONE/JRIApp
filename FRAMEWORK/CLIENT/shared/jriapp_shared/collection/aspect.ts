@@ -1,7 +1,7 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
 import { FIELD_TYPE, ITEM_STATUS, VALS_VERSION } from "./const";
 import { IFieldInfo } from "./int";
-import { IVoidPromise } from "../utils/ideferred";
+import { IVoidPromise } from "../utils/ipromise";
 import { IIndexer, IValidationInfo, TEventHandler, IErrorNotification } from "../int";
 import { BaseObject } from "../object";
 import { Utils } from "../utils/utils";
@@ -324,7 +324,7 @@ export abstract class ItemAspect<TItem extends ICollectionItem = ICollectionItem
         return res.join("|");
     }
     submitChanges(): IVoidPromise {
-        return utils.defer.reject<void>("not implemented");
+        return utils.async.reject<void>("not implemented");
     }
     rejectChanges(): void {
         // noop

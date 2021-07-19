@@ -4,7 +4,7 @@ import { DomUtils } from "jriapp/utils/dom";
 import { ICollectionItem } from "jriapp_shared/collection/int";
 import { SubscribeFlags } from "jriapp/consts";
 import { ISubscriber } from "jriapp/int";
-import { subscribeWeakMap } from "jriapp/bootstrap";
+import { subscribeWeakMap } from "jriapp/bootstrapper";
 
 import { DblClick } from "../../utils/dblclick";
 import { Row } from "../rows/row";

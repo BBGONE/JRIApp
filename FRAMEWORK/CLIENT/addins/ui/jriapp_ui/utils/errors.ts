@@ -2,11 +2,11 @@
 import { IValidationInfo, LocaleSTRS as STRS, createWeakMap } from "jriapp_shared";
 import { SERVICES } from "jriapp/consts";
 import { ITooltipService } from "jriapp/int";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { cssStyles, IUIErrorsService } from "../int";
 import { DomUtils } from "jriapp/utils/dom";
 
-const boot = bootstrap, dom = DomUtils, formMap = createWeakMap();
+const boot = bootstrapper, dom = DomUtils, formMap = createWeakMap();
 
 function addToolTip(el: Element, tip: string, isError?: boolean, pos?: string) {
     const svc = boot.getSvc<ITooltipService>(SERVICES.TOOLTIP_SVC);

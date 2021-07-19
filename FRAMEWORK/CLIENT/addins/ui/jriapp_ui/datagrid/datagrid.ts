@@ -11,7 +11,7 @@ import {
 import {
     Parser
 } from "jriapp/utils/parser";
-import { bootstrap, selectableProviderWeakMap } from "jriapp/bootstrap";
+import { bootstrapper, selectableProviderWeakMap } from "jriapp/bootstrapper";
 import {
     COLL_CHANGE_REASON, ITEM_STATUS, COLL_CHANGE_TYPE
 } from "jriapp_shared/collection/const";
@@ -47,7 +47,7 @@ import { $ } from "../utils/jquery";
 
 
 const utils = Utils, { format } = utils.str, { forEach, merge, getNewID, extend, Indexer } = utils.core, ERROR = utils.err, sys = utils.sys,
-    dom = DomUtils, parser = Parser, doc = dom.document, win = dom.window, boot = bootstrap;
+    dom = DomUtils, parser = Parser, doc = dom.document, win = dom.window, boot = bootstrapper;
 
 let _columnWidthInterval: number, _gridsCount: number = 0;
 const _createdGrids = Indexer<DataGrid>();
@@ -1010,7 +1010,7 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
     sortByColumn(column: DataColumn): IPromise<any> {
         const ds = this.dataSource;
         if (!ds) {
-            return utils.defer.reject<void>("DataGrid's datasource is not set");
+            return utils.async.reject<void>("DataGrid's datasource is not set");
         }
         const sorts = column.sortMemberName.split(";");
         const promise = ds.sort(sorts, column.sortOrder);
@@ -1019,7 +1019,9 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
     selectRows(isSelect: boolean): void {
         for (const row of this._rows)
         {
-            if (!row.isDeleted) {
+            const cell = row.rowSelectorCell;
+
+            if (!row.isDeleted && (!cell || !cell.isDisabled)) {
                 row.isSelected = isSelect;
             }
         }

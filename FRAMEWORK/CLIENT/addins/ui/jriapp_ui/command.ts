@@ -11,12 +11,14 @@ const utils = Utils, dom = DomUtils;
 export interface ICommandViewOptions extends IViewOptions {
     preventDefault?: boolean;
     stopPropagation?: boolean;
+    noCheckCanExecute?: boolean;
 }
 
 const enum CommandFlags {
     PreventDefault = 0,
     StopPropagation = 1,
-    Disabled= 2
+    Disabled = 2,
+    NoCheckCanExecute = 3
 }
 
 export class CommandElView<TElement extends HTMLElement = HTMLElement> extends BaseElView<TElement> {
@@ -37,6 +39,7 @@ export class CommandElView<TElement extends HTMLElement = HTMLElement> extends B
         if (disabled) {
             this._setCommandFlag(disabled, CommandFlags.Disabled);
         }
+        this._setCommandFlag(!!options.noCheckCanExecute, CommandFlags.NoCheckCanExecute);
         dom.setClass([el], cssStyles.disabled, this.isEnabled);
     }
     dispose(): void {
@@ -69,7 +72,7 @@ export class CommandElView<TElement extends HTMLElement = HTMLElement> extends B
         return this._commandParam;
     }
     protected _onCommandChanged(): void {
-        if (!!this._command) {
+        if (!!this._command && !this._getCommandFlag(CommandFlags.NoCheckCanExecute)) {
             this.isEnabled = this._command.canExecute(this._getCommandParam());
         }
     }
@@ -104,11 +107,11 @@ export class CommandElView<TElement extends HTMLElement = HTMLElement> extends B
     }
     set command(v: ICommand) {
         if (v !== this._command) {
-            if (!!this._command) {
+            if (!!this._command && !this._getCommandFlag(CommandFlags.NoCheckCanExecute)) {
                 this._command.offOnCanExecuteChanged(this.uniqueID);
             }
             this._command = v;
-            if (!!this._command) {
+            if (!!this._command && !this._getCommandFlag(CommandFlags.NoCheckCanExecute)) {
                 this._command.addOnCanExecuteChanged(this._onCanExecuteChanged, this.uniqueID, this);
             }
             this._debounce.enque(() => {

@@ -1,5 +1,5 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { BaseElView } from "./baseview";
 
 export class ImgElView extends BaseElView<HTMLImageElement> {
@@ -18,4 +18,4 @@ export class ImgElView extends BaseElView<HTMLImageElement> {
     }
 }
 
-bootstrap.registerElView("img", ImgElView);
+bootstrapper.registerElView("img", ImgElView);

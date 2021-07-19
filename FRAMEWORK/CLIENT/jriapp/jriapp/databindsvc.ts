@@ -14,7 +14,7 @@ import { getBindingOptions, Binding } from "./binding";
 import { ViewChecks } from "./utils/viewchecks";
 import { Parser } from "./utils/parser";
 
-const utils = Utils, { createDeferred } = utils.defer, viewChecks = ViewChecks, dom = DomUtils,
+const utils = Utils, { createDeferred } = utils.async, viewChecks = ViewChecks, dom = DomUtils,
     { startsWith } = utils.str, parser = Parser, { forEach } = utils.core, { toMap } = utils.arr;
 
 export function createDataBindSvc(app: IApplication): IDataBindingService {
@@ -71,7 +71,7 @@ function getBindables(scope: Document | HTMLElement): IBindable[] {
     const result: IBindable[] = [], allElems = dom.queryAll<HTMLElement>(scope, "*");
     for (const el of allElems)
     {
-        const res = toBindable(el);
+        const res: IBindable = toBindable(el);
         if (!!res) {
             result.push(res);
         }
@@ -127,16 +127,25 @@ class DataBindingService extends BaseObject implements IDataBindingService, IErr
         }
     }
     private _bindElView(args: IBindElViewArgs): void {
-        const self = this;
+        const self = this, { elView, bindings } = args.bind, dataContext = args.dataContext;
+
         // then create databinding if element has data-bind attribute
-        const bindings = args.bind.bindings;
-        if (!!bindings && bindings.length > 0) {
-            const bindInfos = parser.parseBindings(bindings),
-                len = bindInfos.length;
-            for (let j = 0; j < len; j += 1) {
-                const op = getBindingOptions(bindInfos[j], args.bind.elView, args.dataContext);
-                const binding = self.bind(op);
-                args.lftm.addObj(binding);
+        if (bindings?.length > 0) {
+            const bindInfos = parser.parseBindings(bindings);
+
+            try {
+                // it signals that we start settings the bindings
+                elView.bindingState = 1;
+
+                for (const bindInfo of bindInfos) {
+                    const op = getBindingOptions(bindInfo, elView, dataContext);
+                    const binding = self.bind(op);
+                    args.lftm.addObj(binding);
+                }
+            }
+            finally {
+                // when all bindings are created it is set to zero
+                elView.bindingState = 0;
             }
         }
     }
@@ -173,10 +182,10 @@ class DataBindingService extends BaseObject implements IDataBindingService, IErr
 
         
         try {
-            const bindElems = getBindables(scope);
+            const bindElems: IBindable[] = getBindables(scope);
             
             // skip all the bindings inside dataforms (because a dataform performs databinding itself in its own scope)
-            const bindables = filterBindables(scope, bindElems);
+            const bindables: IBindable[] = filterBindables(scope, bindElems);
 
             for (const bindElem of bindables)
             {

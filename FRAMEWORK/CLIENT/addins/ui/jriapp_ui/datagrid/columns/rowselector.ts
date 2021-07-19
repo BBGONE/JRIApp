@@ -37,7 +37,7 @@ export class RowSelectorColumn extends BaseColumn {
         dom.events.on(this.grid.table, "click", (e) => {
             const chk = <HTMLInputElement>e.target,
                 cell = <RowSelectorCell>dom.getData(chk, "cell");
-            if (!!cell && !cell.getIsStateDirty()) {
+            if (!!cell && !cell.getIsStateDirty() && !cell.isDisabled) {
                 cell.row.isSelected = cell.checked;
             }
         }, {

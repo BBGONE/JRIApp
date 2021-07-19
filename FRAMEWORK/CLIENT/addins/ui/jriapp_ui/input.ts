@@ -5,16 +5,22 @@ export class InputElView<TElement extends HTMLInputElement | HTMLTextAreaElement
     toString(): string {
         return "InputElView";
     }
-    get isEnabled(): boolean {
+    get isDisabled(): boolean {
         return this.el.disabled;
     }
-    set isEnabled(v: boolean) {
-        v = !v;
+    set isDisabled(v: boolean) {
         const el = this.el;
-        if (v !== !this.isEnabled) {
+        if (v !== el.disabled) {
             el.disabled = v;
+            this.objEvents.raiseProp("isDisabled");
             this.objEvents.raiseProp("isEnabled");
         }
+    }
+    get isEnabled(): boolean {
+        return !this.isDisabled;
+    }
+    set isEnabled(v: boolean) {
+        this.isDisabled = !v;
     }
     get value(): string {
         return this.el.value;

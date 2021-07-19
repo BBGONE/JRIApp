@@ -1,6 +1,6 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
 import { Utils } from "jriapp_shared";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { CheckBoxElView } from "./checkbox";
 
 const { isNt } = Utils.check;
@@ -24,4 +24,4 @@ export class RadioElView extends CheckBoxElView {
     }
 }
 
-bootstrap.registerElView("input:radio", RadioElView);
+bootstrapper.registerElView("input:radio", RadioElView);

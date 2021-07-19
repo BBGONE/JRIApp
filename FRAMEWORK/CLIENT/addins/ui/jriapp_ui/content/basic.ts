@@ -7,13 +7,13 @@ import {
     IContent, IContentOptions, IConstructorContentOptions, ILifeTimeScope, IViewOptions,
     TBindingInfo, TBindingOptions, IApplication, IConverter, IElView, IElViewInfo
 } from "jriapp/int";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { Binding, getBindingOptions } from "jriapp/binding";
 import { LifeTimeScope } from "jriapp/utils/lifetime";
 import { cssStyles } from "../int";
 
 const utils = Utils, dom = DomUtils, doc = dom.document, { extend } = utils.core,
-    boot = bootstrap, sys = utils.sys;
+    boot = bootstrapper, sys = utils.sys;
 
 export interface IContentView extends IBaseObject {
     readonly el: HTMLElement;

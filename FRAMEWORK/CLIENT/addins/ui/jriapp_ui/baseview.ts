@@ -1,10 +1,10 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
-import { Utils, BaseObject, IPropertyBag, IValidationInfo, IValidatable } from "jriapp_shared";
+import { Utils, BaseObject, IPropertyBag, IValidationInfo, IValidatable, TFunc } from "jriapp_shared";
 import { DomUtils } from "jriapp/utils/dom";
 import { ViewChecks } from "jriapp/utils/viewchecks";
 import { SERVICES, DATA_ATTR, SubscribeFlags } from "jriapp/consts";
 import { IElView, IElViewStore, IApplication, IViewOptions, ISubscriber, ITooltipService } from "jriapp/int";
-import { bootstrap, subscribeWeakMap } from "jriapp/bootstrap";
+import { bootstrapper, subscribeWeakMap } from "jriapp/bootstrapper";
 import { ICommand } from "jriapp/mvvm";
 import { EventBag, EVENT_CHANGE_TYPE, IEventChangedArgs } from "./utils/eventbag";
 import { PropertyBag } from "./utils/propbag";
@@ -14,7 +14,7 @@ import { IViewErrorsService } from "jriapp/int";
 export { IEventChangedArgs, EVENT_CHANGE_TYPE };
 
 const utils = Utils, { getNewID } = utils.core, dom = DomUtils, { _undefined } = utils.check,
-    boot = bootstrap, viewChecks = ViewChecks, subscribeMap = subscribeWeakMap;
+    boot = bootstrapper, viewChecks = ViewChecks, subscribeMap = subscribeWeakMap;
 
 viewChecks.isElView = (obj: any): obj is IElView => {
     return !!obj && obj instanceof BaseElView;
@@ -43,10 +43,15 @@ export class BaseElView<TElement extends HTMLElement = HTMLElement> extends Base
     private _el: TElement;
     private _subscribeFlags: number;
     private _viewState: IElViewState;
+    private _bindingState: number;
+    private _bindCompleteList: TFunc[];
 
     constructor(el: TElement, options?: IViewOptions) {
         super();
         this._el = el;
+        this._bindingState = 0;
+        this._bindCompleteList = null;
+            
         options = options || {};
         const state: IElViewState = {
             tip: !options.tip ? null : options.tip,
@@ -100,6 +105,20 @@ export class BaseElView<TElement extends HTMLElement = HTMLElement> extends Base
     private _getStore(): IElViewStore {
         return this.app.viewFactory.store;
     }
+    private _onBindCompleted(): void {
+        if (!this._bindCompleteList) {
+            return;
+        }
+
+        try {
+            for (const fn of this._bindCompleteList) {
+                fn();
+            }
+        }
+        finally {
+            this._bindCompleteList = null;
+        }
+    }
     protected _onEventChanged(args: IEventChangedArgs): void {
         switch (args.changeType) {
             case EVENT_CHANGE_TYPE.Added:
@@ -136,6 +155,13 @@ export class BaseElView<TElement extends HTMLElement = HTMLElement> extends Base
         this._viewState._errors = errors;
         const errSvc = !this._viewState.errorsService ? getErrorsService() : this._viewState.errorsService;
         errSvc.setErrors(el, errors, this.toolTip);
+    }
+    protected _registerOnBindCompleted(fn: TFunc): void {
+        if (!this._bindCompleteList) {
+            this._bindCompleteList = [fn];
+        } else {
+            this._bindCompleteList.push(fn);
+        }
     }
     isSubscribed(flag: SubscribeFlags): boolean {
         return !!(this._subscribeFlags & (1 << flag));
@@ -191,7 +217,7 @@ export class BaseElView<TElement extends HTMLElement = HTMLElement> extends Base
             this.objEvents.raiseProp("toolTip");
         }
     }
-    // stores commands for data binding to the HtmlElement's events
+    // exposes commands to databind directly to the underlying HtmlElement's events
     get events(): IPropertyBag {
         if (!this._viewState._eventBag) {
             if (this.getIsStateDirty()) {
@@ -203,7 +229,7 @@ export class BaseElView<TElement extends HTMLElement = HTMLElement> extends Base
         }
         return this._viewState._eventBag;
     }
-    // exposes All HTML Element properties for data binding directly to them
+    // exposes All HTML Element properties to databind directly to them
     get props(): IPropertyBag {
         if (!this._viewState._propBag) {
             if (this.getIsStateDirty()) {
@@ -213,7 +239,7 @@ export class BaseElView<TElement extends HTMLElement = HTMLElement> extends Base
         }
         return this._viewState._propBag;
     }
-    // exposes All CSS Classes for data binding directly to them
+    // exposes All CSS Classes to databind directly to them
     get classes(): IPropertyBag {
         if (!this._viewState._classBag) {
             if (this.getIsStateDirty()) {
@@ -242,6 +268,26 @@ export class BaseElView<TElement extends HTMLElement = HTMLElement> extends Base
 
             dom.setClasses([this._el], arr);
             this.objEvents.raiseProp("css");
+        }
+    }
+    get bindingState(): number {
+        return this._bindingState;
+    }
+    /*
+     * it is set automatically by the databinding service when it binds properties on this element view
+     * usage: inside some property setter it is checked that bindingState == 1, which means the bindings are currently set
+     * in there we can register a function which is executed when the databinding is completed
+     * example:  if (this.bindingState === 1) this._registerOnBindCompleted(()=> this.doSomething(););
+     * it could be useful in components like combobox, which have several properties to databind
+     * and is needed to know the moment when they are all set and ready to be used
+     * p.s. - for this purpose the viewMounted method can be used as well
+    */
+    set bindingState(v: number) {
+        if (this._bindingState !== v) {
+            this._bindingState = v;
+            if (this._bindingState === 0 && !!this._bindCompleteList) {
+                this._onBindCompleted();
+            }
         }
     }
     get app(): IApplication {

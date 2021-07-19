@@ -3,10 +3,10 @@ import { Utils } from "jriapp_shared";
 import { ITemplate, ITemplateEvents, IViewOptions, ITemplateElView } from "jriapp/int";
 import { IExecutor } from "jriapp/mvvm";
 import { ViewChecks } from "jriapp/utils/viewchecks";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { BaseElView } from "./baseview";
 
-const utils = Utils, viewChecks = ViewChecks, boot = bootstrap, ERROR = utils.err;
+const utils = Utils, viewChecks = ViewChecks, boot = bootstrapper, ERROR = utils.err;
 
 viewChecks.isTemplateElView = (obj: any): obj is ITemplateElView =>  {
     return !!obj && obj instanceof TemplateElView;

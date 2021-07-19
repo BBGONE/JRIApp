@@ -35,12 +35,26 @@ export class RowSelectorCell extends BaseCell<RowSelectorColumn> {
         dom.removeData(this._chk);
         super.dispose();
     }
+    get isDisabled(): boolean {
+        return this._chk.disabled;
+    }
+    set isDisabled(v: boolean) {
+        const el = this._chk;
+        if (v !== el.disabled) {
+            el.disabled = v;
+
+            if (v) {
+                this.checked = false;
+            }
+            this.objEvents.raiseProp("isDisabled");
+        }
+    }
     get checked(): boolean {
         return this._chk.checked;
     }
     set checked(v: boolean) {
         const bv = !!v;
-        if (bv !== this._chk.checked) {
+        if (!this.isDisabled && bv !== this._chk.checked) {
             this._chk.checked = bv;
         }
     }

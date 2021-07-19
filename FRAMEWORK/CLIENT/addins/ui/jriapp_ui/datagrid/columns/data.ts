@@ -3,13 +3,13 @@ import { IIndexer, IBaseObject, LocaleERRS as ERRS, Utils } from "jriapp_shared"
 import { DomUtils } from "jriapp/utils/dom";
 import { SORT_ORDER } from "jriapp_shared/collection/const";
 import { IExternallyCachable, IContentConstructor } from "jriapp/int";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 
 import { css } from "../consts";
 import { BaseColumn, ICellInfo } from "./base";
 import { DataGrid } from "../datagrid";
 
-const utils = Utils, { Indexer, forEach } = utils.core, dom = DomUtils, boot = bootstrap;
+const utils = Utils, { Indexer, forEach } = utils.core, dom = DomUtils, boot = bootstrapper;
 
 export class DataColumn extends BaseColumn {
     private _sortOrder: SORT_ORDER;

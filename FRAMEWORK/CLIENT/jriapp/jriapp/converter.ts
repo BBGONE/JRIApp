@@ -3,11 +3,11 @@ import {
     LocaleERRS, Utils
 } from "jriapp_shared";
 import { IConverter } from "./int";
-import { bootstrap } from "./bootstrap";
+import { bootstrapper } from "./bootstrapper";
 import { IDatepicker } from "jriapp/int";
 
 const utils = Utils, { isNt, isNumber } = utils.check, { format, stripNonNumeric, formatNumber } = utils.str,
-    { round } = utils.core, { strToDate, dateToStr } = utils.dates, boot = bootstrap, ERRS = LocaleERRS;
+    { round } = utils.core, { strToDate, dateToStr } = utils.dates, boot = bootstrapper, ERRS = LocaleERRS;
 
 export const NUM_CONV = { None: 0, Integer: 1, Decimal: 2, Float: 3, SmallInt: 4 };
 
@@ -60,7 +60,7 @@ export class NumberConverter implements IConverter {
         if (isNt(val)) {
             return null;
         }
-        const defaults = bootstrap.defaults, dp = defaults.decimalPoint, thousandSep = defaults.thousandSep;
+        const defaults = bootstrapper.defaults, dp = defaults.decimalPoint, thousandSep = defaults.thousandSep;
         let prec = 4;
         let value = val.replace(thousandSep, "");
         value = value.replace(dp, ".");
@@ -97,7 +97,7 @@ export class NumberConverter implements IConverter {
         if (isNt(val)) {
             return "";
         }
-        const defaults = bootstrap.defaults, dp = defaults.decimalPoint, thousandSep = defaults.thousandSep;
+        const defaults = bootstrapper.defaults, dp = defaults.decimalPoint, thousandSep = defaults.thousandSep;
         let prec: number;
         switch (param) {
             case NUM_CONV.Integer:

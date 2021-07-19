@@ -10,17 +10,17 @@ import {
     IDataBindingService, IBinding, IBindArgs, TLoaderFunc, THTMLLoaderFunc, TDocInfo
 } from "./int";
 import {
-    bootstrap, getOptions, registerSvc, unregisterSvc, getSvc, registerConverter, getConverter,
+    bootstrapper, getOptions, registerSvc, unregisterSvc, getSvc, registerConverter, getConverter,
     getObject, registerObject, unregisterObject
-} from "./bootstrap";
+} from "./bootstrapper";
 import { DomUtils } from "./utils/dom";
 import { getLoader, registerLoader, registerTemplateGroup } from "./utils/tloader";
 import { createElViewFactory } from "./elview";
 import { createDataBindSvc } from "./databindsvc";
 
 const utils = Utils, dom = DomUtils, doc = dom.document, { format } = utils.str,
-    { isThenable } = utils.check, boot = bootstrap, sys = utils.sys, ERRS = LocaleERRS,
-    { forEach, getNewID, memoize, Indexer } = utils.core, { createDeferred, resolve, reject } = utils.defer, http = utils.http;
+    { isThenable } = utils.check, boot = bootstrapper, sys = utils.sys, ERRS = LocaleERRS,
+    { forEach, getNewID, memoize, Indexer } = utils.core, { createDeferred, resolve, reject } = utils.async, http = utils.http;
 
 const enum APP_EVENTS {
     startup = "startup"
@@ -28,7 +28,7 @@ const enum APP_EVENTS {
 
 const enum AppState { None, Starting, Started, Disposed, Error }
 
-export class Application extends BaseObject implements IApplication {
+export class Application<TOptions extends IAppOptions = any> extends BaseObject implements IApplication {
     private _UC: any;
     private _moduleInits: IIndexer<(app: IApplication) => void>;
     private _uniqueID: string;
@@ -39,12 +39,12 @@ export class Application extends BaseObject implements IApplication {
     private _viewFactory: IElViewFactory;
     private _internal: IInternalAppMethods;
     private _appState: AppState;
-    protected _options: IAppOptions;
+    private _options: TOptions;
 
-    constructor(options?: IAppOptions) {
+    constructor(options?: TOptions) {
         super();
         if (!options) {
-            options = Indexer();
+            options = <any>Indexer();
         }
         const self = this, moduleInits = options.modulesInits || <IIndexer<(app: IApplication) => void>>Indexer(), appName = APP_NAME;
         this._appName = appName;
@@ -350,7 +350,7 @@ export class Application extends BaseObject implements IApplication {
     get uniqueID(): string {
         return this._uniqueID;
     }
-    get options(): IAppOptions {
+    get options(): TOptions {
         return this._options;
     }
     get appName(): string {

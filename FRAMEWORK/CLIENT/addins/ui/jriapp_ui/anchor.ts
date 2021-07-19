@@ -1,11 +1,11 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
 import { DomUtils } from "jriapp/utils/dom";
 import { SubscribeFlags } from "jriapp/consts";
-import { bootstrap, subscribeWeakMap } from "jriapp/bootstrap";
+import { bootstrapper, subscribeWeakMap } from "jriapp/bootstrapper";
 import { cssStyles } from "./int";
 import { CommandElView, ICommandViewOptions } from "./command";
 
-const dom = DomUtils, boot = bootstrap, subscribeMap = subscribeWeakMap;
+const dom = DomUtils, boot = bootstrapper, subscribeMap = subscribeWeakMap;
 
 export interface IAncorOptions extends ICommandViewOptions {
     imageSrc?: string;

@@ -4,14 +4,14 @@ import { DATA_ATTR } from "./consts";
 import {
     ITemplate, ILifeTimeScope, ITemplateEvents, IApplication, IElView, ITemplateElView, TDocInfo
 } from "./int";
-import { bootstrap } from "./bootstrap";
+import { bootstrapper } from "./bootstrapper";
 import { Binding } from "binding";
 import { ViewChecks } from "./utils/viewchecks";
 import { DomUtils } from "./utils/dom";
 
-const utils = Utils, { reject } = utils.defer, dom = DomUtils, viewChecks = ViewChecks,
+const utils = Utils, { reject } = utils.async, dom = DomUtils, viewChecks = ViewChecks,
     { isFunc, isThenable } = utils.check, { format } = utils.str,
-    arrHelper = utils.arr, sys = utils.sys, boot = bootstrap, ERRS = LocaleERRS,
+    arrHelper = utils.arr, sys = utils.sys, boot = bootstrapper, ERRS = LocaleERRS,
     ERROR = utils.err, doc = dom.document;
 
 export const enum css {
@@ -275,6 +275,6 @@ class Template extends BaseObject implements ITemplate {
         return this._el;
     }
     get app(): IApplication {
-        return bootstrap.app;
+        return bootstrapper.app;
     }
 }

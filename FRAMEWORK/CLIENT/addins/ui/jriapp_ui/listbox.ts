@@ -11,11 +11,11 @@ import {
 } from "jriapp_shared/collection/int";
 import { SubscribeFlags } from "jriapp/consts";
 import { IViewOptions, ISubscriber } from "jriapp/int";
-import { bootstrap, subscribeWeakMap } from "jriapp/bootstrap";
+import { bootstrapper, subscribeWeakMap } from "jriapp/bootstrapper";
 import { BaseElView } from "./baseview";
 
 const utils = Utils, dom = DomUtils, doc = dom.document, sys = utils.sys,
-    { _undefined, isString, isNt } = utils.check, { forEach, extend, getNewID, Indexer } = utils.core, boot = bootstrap, subscribeMap = subscribeWeakMap;
+    { _undefined, isString, isNt } = utils.check, { forEach, extend, getNewID, Indexer } = utils.core, boot = bootstrapper, subscribeMap = subscribeWeakMap;
 
 export interface IOptionStateProvider {
     getCSS(item: ICollectionItem, itemIndex: number, val: any): string;
@@ -30,6 +30,7 @@ export interface IListBoxOptions {
     textPath: string;
     statePath?: string;
     emptyOptionText?: string;
+    noEmptyOption?: boolean;
     syncSetDatasource?: boolean;
     nodelegate?: boolean;
 }
@@ -274,7 +275,9 @@ export class ListBox extends BaseObject implements ISubscriber {
         this._isRefreshing = true;
         try {
             this._clear();
-            this._addOption(null, false);
+            if (!this._options.noEmptyOption) {
+                this._addOption(null, false);
+            }
             let cnt = 0;
             if (!!ds) {
                 for (const item of ds.items)
@@ -550,7 +553,9 @@ export class ListBox extends BaseObject implements ISubscriber {
                     this._refresh();
                 } else {
                     this._clear();
-                    this._addOption(null, false);
+                    if (!this._options.noEmptyOption) {
+                        this._addOption(null, false);
+                    }
                 }
             } finally {
                 this.endTrackSelected();

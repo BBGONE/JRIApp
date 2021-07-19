@@ -4,7 +4,7 @@ import { IModuleLoader, Config as config } from "../int";
 import { createCssLoader as createCSSLoader } from "./sloader";
 
 const utils = Utils, { forEach, Indexer } = utils.core, { startsWith } = utils.str,
-    { reject: _reject, resolve: _resolve, whenAll: _whenAll, createDeferred } = utils.defer,
+    { reject: _reject, resolve: _resolve, whenAll: _whenAll, createDeferred } = utils.async,
     arrHelper = utils.arr, CSSPrefix = "css!";
 
 let _moduleLoader: IModuleLoader = null;

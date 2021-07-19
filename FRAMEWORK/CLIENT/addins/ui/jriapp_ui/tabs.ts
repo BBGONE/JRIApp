@@ -2,7 +2,7 @@
 import { Utils } from "jriapp_shared";
 import { $, JQueryUtils } from "./utils/jquery";
 import { IViewOptions } from "jriapp/int";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { BaseElView } from "./baseview";
 
 const utils = Utils, coreUtils = utils.core;
@@ -109,4 +109,4 @@ export class TabsElView extends BaseElView implements ITabs {
     }
 }
 
-bootstrap.registerElView("tabs", TabsElView);
+bootstrapper.registerElView("tabs", TabsElView);

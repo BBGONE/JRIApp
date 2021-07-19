@@ -3,7 +3,7 @@ import { Utils, IPromise, Debounce } from "jriapp_shared";
 import { ITemplate, ITemplateEvents, IViewOptions } from "jriapp/int";
 import { DomUtils } from "jriapp/utils/dom";
 import { createTemplate } from "jriapp/template";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { BaseElView } from "./baseview";
 
 const utils = Utils, sys = utils.sys, dom = DomUtils;
@@ -175,4 +175,4 @@ export class DynaContentElView extends BaseElView implements ITemplateEvents {
     }
 }
 
-bootstrap.registerElView("dynacontent", DynaContentElView);
+bootstrapper.registerElView("dynacontent", DynaContentElView);

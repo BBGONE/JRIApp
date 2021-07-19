@@ -3,11 +3,11 @@ import { IValidationInfo, Utils } from "jriapp_shared";
 import { IViewOptions } from "jriapp/int";
 import { DomUtils } from "jriapp/utils/dom";
 import { SubscribeFlags } from "jriapp/consts";
-import { bootstrap, subscribeWeakMap } from "jriapp/bootstrap";
+import { bootstrapper, subscribeWeakMap } from "jriapp/bootstrapper";
 import { cssStyles } from "./int";
 import { InputElView } from "./input";
 
-const { isNt } = Utils.check, dom = DomUtils, boot = bootstrap, subscribeMap = subscribeWeakMap;
+const { isNt } = Utils.check, dom = DomUtils, boot = bootstrapper, subscribeMap = subscribeWeakMap;
 
 export interface ICheckBoxViewOptions extends IViewOptions {
     name?: string;

@@ -3,7 +3,7 @@ import {
     IPagerText, IValidateText, IText, ILocaleText, STRS, ERRS,
     IErrors, assign
 } from "jriapp_shared/lang";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { IDatepicker } from "jriapp/int";
 import { SERVICES } from "jriapp/consts";
 
@@ -129,10 +129,11 @@ const _ERRS: IErrors = {
 assign(STRS, _STRS);
 assign(ERRS, _ERRS);
 
-bootstrap.addOnInitialize((boot) => {
-    let datepicker = boot.getSvc<IDatepicker>(SERVICES.DATEPICKER_SVC);
-    if (!datepicker)
+bootstrapper.addOnInitialize((boot) => {
+    const datepicker = boot.getSvc<IDatepicker>(SERVICES.DATEPICKER_SVC);
+    if (!datepicker) {
         throw new Error("IDatepicker service is not registered");
+    }
 
     $.datepicker.regional["ru"] = {
         closeText: "Закрыть",

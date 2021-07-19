@@ -1,10 +1,10 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
-import { IAbortablePromise, ICancellationToken, TResolved } from "./ideferred";
+import { IAbortablePromise, ICancellationToken, TResolved } from "./ipromise";
 import { IIndexer } from "../int";
 import { StringUtils } from "./strUtils";
 import { DummyError } from "../errors";
 import { CoreUtils } from "./coreutils";
-import { AbortablePromise } from "./deferred";
+import { AbortablePromise } from "./promise";
 
 const { forEach, merge, Indexer } = CoreUtils, { startsWith, fastTrim } = StringUtils;
 

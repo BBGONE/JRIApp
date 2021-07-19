@@ -1,7 +1,7 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
 import { Utils, BRACKETS, LocaleERRS as ERRS, DateUtils, TIME_RANGE } from "jriapp_shared";
 import { spaceRX, getRX, DATES, TAG, TOKEN, IKeyVal, PARSE_TYPE, THIS_LEN } from "./int";
-import { bootstrap } from "../bootstrap";
+import { bootstrapper } from "../bootstrapper";
 
 const utils = Utils, { isNumeric, isBoolString, _undefined, isString } = utils.check,
     { format, fastTrim: trim, startsWith, trimQuotes } = utils.str,
@@ -275,12 +275,12 @@ export class Funcs {
         if (isBind) {
             switch (parseType) {
                 case PARSE_TYPE.VIEW:
-                    let source = dataContext || bootstrap.app;
+                    let source = dataContext || bootstrapper.app;
 
                     if (bindparts.length > 1) {
                         // resolve source (second path in the array)
                         if (isString(bindparts[1])) {
-                            source = resolvePath(bootstrap.app, bindparts[1] as string);
+                            source = resolvePath(bootstrapper.app, bindparts[1] as string);
                             if (!source) {
                                 throw new Error(`Invalid source in the bind expression, see key: ${kv.key}   val: ${kv.val}`);
                             }
@@ -499,7 +499,7 @@ export class Helper {
                 argsdata[i] = val;
             }
         }
-        return bootstrap.app.getSvc(trimQuotes(id), ...argsdata);
+        return bootstrapper.app.getSvc(trimQuotes(id), ...argsdata);
     }
 
     static isGetExpr(val: string): boolean {
@@ -518,7 +518,7 @@ export class Helper {
     }
 
     static getOptions(id: string): string {
-        return bootstrap.app.getOptions(trimQuotes(id));
+        return bootstrapper.app.getOptions(trimQuotes(id));
     }
 
     static parseGetExpr(parseType: PARSE_TYPE, strExpr: string, dataContext: any): object {

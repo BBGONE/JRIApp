@@ -1,5 +1,5 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { SERVICES } from "jriapp/consts";
 import { initContentFactory } from "./jriapp_ui/content/factory";
 import { createToolTipSvc } from "./jriapp_ui/utils/tooltip";
@@ -29,7 +29,6 @@ export { ButtonElView } from "./jriapp_ui/button";
 export { CheckBoxElView } from "./jriapp_ui/checkbox";
 export { CheckBoxThreeStateElView } from "./jriapp_ui/checkbox3";
 export { CommandElView } from "./jriapp_ui/command";
-export { ExpanderElView, IExpanderOptions } from "./jriapp_ui/expander";
 export { HiddenElView } from "./jriapp_ui/hidden";
 export { ImgElView } from "./jriapp_ui/img";
 export { InputElView } from "./jriapp_ui/input";
@@ -42,9 +41,9 @@ export { DblClick } from "./jriapp_ui/utils/dblclick";
 export { JQueryUtils, $ } from "./jriapp_ui/utils/jquery";
 export * from "./jriapp_ui/content/all";
 
-export const VERSION = "3.0.5";
+export const VERSION = "4.0.8";
 
-const boot = bootstrap;
+const boot = bootstrapper;
 
 initContentFactory();
 

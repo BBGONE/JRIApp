@@ -2,7 +2,7 @@
 import {
     IIndexer, Utils, IStatefulPromise, PromiseState
 } from "jriapp_shared";
-import { AsyncUtils } from "jriapp_shared/utils/async";
+import { AsyncUtils } from "jriapp_shared/utils/asyncutils";
 import { DomUtils } from "./dom";
 import { IStylesLoader } from "../int";
 import { PathHelper } from "./path";
@@ -135,9 +135,9 @@ class StylesLoader implements IStylesLoader {
         return this.loadStyle(cssUrl);
     }
     whenAllLoaded(): IStatefulPromise<any> {
-        const obj = this._loadedCSS, names = Object.keys(obj), promises = <IStatefulPromise<any>[]>[];
-        for (let i = 0; i < names.length; i += 1) {
-            promises.push(obj[names[i]]);
+        const obj = this._loadedCSS, names = Object.keys(obj), promises: IStatefulPromise<any>[] = [];
+        for (let name of names) {
+            promises.push(obj[name]);
         }
         return whenAll(promises);
     }

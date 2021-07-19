@@ -70,7 +70,7 @@ export class ChildDataView<TItem extends IEntityItem = IEntityItem> extends Data
         };
         this._association = assoc;
         if (!!parentItem && !options.explicitRefresh) {
-            const queue = utils.defer.getTaskQueue();
+            const queue = utils.async.getTaskQueue();
             queue.enque(() => {
                 self._refreshSync(COLL_CHANGE_REASON.None);
             });

@@ -8,7 +8,7 @@ import { DomUtils } from "jriapp/utils/dom";
 import { DATA_ATTR, ELVIEW_NM, BindScope, SERVICES } from "jriapp/consts";
 import { ViewChecks } from "jriapp/utils/viewchecks";
 import { IContent, IElView, ILifeTimeScope, IViewOptions, IApplication } from "jriapp/int";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { cssStyles, IFormErrorsService } from "./int";
 import { BaseElView } from "./baseview";
 
@@ -16,8 +16,8 @@ import { Binding } from "jriapp/binding";
 import { parseContentAttr } from "./content/int";
 
 const utils = Utils, dom = DomUtils, { isFunc } = utils.check, { getNewID } = utils.core,
-    { format } = utils.str, sys = utils.sys, boot = bootstrap, viewChecks = ViewChecks,
-    { reject: _reject } = utils.defer;
+    { format } = utils.str, sys = utils.sys, boot = bootstrapper, viewChecks = ViewChecks,
+    { reject: _reject } = utils.async;
 
 viewChecks.isDataForm = (el: Element) => {
     if (!el) {

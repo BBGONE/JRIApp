@@ -5,13 +5,13 @@ import {
 } from "jriapp_shared";
 import { BINDING_MODE, BindTo } from "./consts";
 import { TBindingInfo, TBindingOptions, IBinding, IConverter, IApplication } from "./int";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "./bootstrapper";
 
 const utils = Utils, { isString, isUndefined, isNt, _undefined, isHasProp } = utils.check,
     { format } = utils.str, { getNewID, forEach, Indexer } = utils.core,
     sys = utils.sys, debug = utils.debug, log = utils.log,
     ERRS = LocaleERRS;
-const { resolvePath, getPathParts, getErrorNotification, getProp, setProp } = sys, boot = bootstrap;
+const { resolvePath, getPathParts, getErrorNotification, getProp, setProp } = sys, boot = bootstrapper;
 
 sys.isBinding = (obj: any): boolean => {
     return (!!obj && obj instanceof Binding);

@@ -13,10 +13,10 @@ import {
 import {
     ICollection, ICollectionItem, ICollChangedArgs
 } from "jriapp_shared/collection/int";
-import { bootstrap, selectableProviderWeakMap } from "jriapp/bootstrap";
+import { bootstrapper, selectableProviderWeakMap } from "jriapp/bootstrapper";
 
 const utils = Utils, dom = DomUtils, doc = dom.document, sys = utils.sys,
-    { format } = utils.str, { getNewID, extend, Indexer } = utils.core, boot = bootstrap;
+    { format } = utils.str, { getNewID, extend, Indexer } = utils.core, boot = bootstrapper;
 
 const enum css {
     stackpanel = "ria-stackpanel",

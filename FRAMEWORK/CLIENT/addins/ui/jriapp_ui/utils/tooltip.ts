@@ -6,7 +6,7 @@ import { DomUtils } from "jriapp/utils/dom";
 const window = DomUtils.window;
 
 export const enum css {
-    toolTip = "qtip",
+    toolTip = "qtip-light",
     toolTipError = "qtip-red"
 }
 

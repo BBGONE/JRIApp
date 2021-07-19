@@ -3,7 +3,7 @@ import {
     DATE_CONVERSION, DATA_TYPE, SORT_ORDER, FIELD_TYPE, COLL_CHANGE_OPER,
     COLL_CHANGE_REASON, COLL_CHANGE_TYPE, ITEM_STATUS
 } from "./const";
-import { IPromise } from "../utils/ideferred";
+import { IPromise } from "../utils/ipromise";
 import {
     IBaseObject, IErrorNotification, IEditable, ISubmittable, TEventHandler, TPropChangedHandler,
     IValidationInfo, TPriority, IIndexer

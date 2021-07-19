@@ -76,5 +76,6 @@ export const enum SubscribeFlags {
     change = 2,
     keypress = 3,
     keydown = 4,
-    keyup = 5
+    keyup = 5,
+    input = 6
 }

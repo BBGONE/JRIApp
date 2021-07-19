@@ -424,7 +424,7 @@ export class DataView<TItem extends ICollectionItem = ICollectionItem> extends B
     }
     sortLocal(fieldNames: string[], sortOrder: SORT_ORDER): IPromise<any> {
         this._fn_sort = this._getSortFn(fieldNames, sortOrder);
-        return utils.defer.delay(() => this._refreshSync(COLL_CHANGE_REASON.Sorting));
+        return utils.async.delay(() => this._refreshSync(COLL_CHANGE_REASON.Sorting));
     }
     clear(): void {
         this._clear(COLL_CHANGE_REASON.Refresh, COLL_CHANGE_OPER.None);

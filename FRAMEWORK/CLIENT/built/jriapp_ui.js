@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -42,11 +44,11 @@ define("jriapp_ui/int", ["require", "exports"], function (require, exports) {
         cssStyles["fontSize"] = "font-size";
     })(cssStyles = exports.cssStyles || (exports.cssStyles = {}));
 });
-define("jriapp_ui/content/basic", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrap", "jriapp/binding", "jriapp/utils/lifetime"], function (require, exports, jriapp_shared_1, dom_1, bootstrap_1, binding_1, lifetime_1) {
+define("jriapp_ui/content/basic", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrapper", "jriapp/binding", "jriapp/utils/lifetime"], function (require, exports, jriapp_shared_1, dom_1, bootstrapper_1, binding_1, lifetime_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BasicContent = exports.getBindingOption = exports.getView = void 0;
-    var utils = jriapp_shared_1.Utils, dom = dom_1.DomUtils, doc = dom.document, extend = utils.core.extend, boot = bootstrap_1.bootstrap, sys = utils.sys;
+    var utils = jriapp_shared_1.Utils, dom = dom_1.DomUtils, doc = dom.document, extend = utils.core.extend, boot = bootstrapper_1.bootstrapper, sys = utils.sys;
     function getView(el, name, options) {
         var factory = boot.app.viewFactory, elView = factory.store.getElView(el);
         if (!!elView) {
@@ -368,11 +370,11 @@ define("jriapp_ui/content/basic", ["require", "exports", "jriapp_shared", "jriap
     }(jriapp_shared_1.BaseObject));
     exports.BasicContent = BasicContent;
 });
-define("jriapp_ui/content/template", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrap", "jriapp/template"], function (require, exports, jriapp_shared_2, dom_2, bootstrap_2, template_1) {
+define("jriapp_ui/content/template", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrapper", "jriapp/template"], function (require, exports, jriapp_shared_2, dom_2, bootstrapper_2, template_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TemplateContent = void 0;
-    var utils = jriapp_shared_2.Utils, extend = utils.core.extend, dom = dom_2.DomUtils, boot = bootstrap_2.bootstrap, ERROR = utils.err;
+    var utils = jriapp_shared_2.Utils, extend = utils.core.extend, dom = dom_2.DomUtils, boot = bootstrapper_2.bootstrapper, ERROR = utils.err;
     var TemplateContent = (function (_super) {
         __extends(TemplateContent, _super);
         function TemplateContent(options) {
@@ -738,11 +740,11 @@ define("jriapp_ui/utils/cssbag", ["require", "exports", "jriapp_shared", "jriapp
     }(jriapp_shared_5.BaseObject));
     exports.CSSBag = CSSBag;
 });
-define("jriapp_ui/baseview", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/utils/viewchecks", "jriapp/bootstrap", "jriapp_ui/utils/eventbag", "jriapp_ui/utils/propbag", "jriapp_ui/utils/cssbag"], function (require, exports, jriapp_shared_6, dom_4, viewchecks_1, bootstrap_3, eventbag_1, propbag_1, cssbag_1) {
+define("jriapp_ui/baseview", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/utils/viewchecks", "jriapp/bootstrapper", "jriapp_ui/utils/eventbag", "jriapp_ui/utils/propbag", "jriapp_ui/utils/cssbag"], function (require, exports, jriapp_shared_6, dom_4, viewchecks_1, bootstrapper_3, eventbag_1, propbag_1, cssbag_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BaseElView = exports.addToolTip = exports.EVENT_CHANGE_TYPE = void 0;
-    var utils = jriapp_shared_6.Utils, getNewID = utils.core.getNewID, dom = dom_4.DomUtils, _undefined = utils.check._undefined, boot = bootstrap_3.bootstrap, viewChecks = viewchecks_1.ViewChecks, subscribeMap = bootstrap_3.subscribeWeakMap;
+    var utils = jriapp_shared_6.Utils, getNewID = utils.core.getNewID, dom = dom_4.DomUtils, _undefined = utils.check._undefined, boot = bootstrapper_3.bootstrapper, viewChecks = viewchecks_1.ViewChecks, subscribeMap = bootstrapper_3.subscribeWeakMap;
     viewChecks.isElView = function (obj) {
         return !!obj && obj instanceof BaseElView;
     };
@@ -759,6 +761,8 @@ define("jriapp_ui/baseview", ["require", "exports", "jriapp_shared", "jriapp/uti
         function BaseElView(el, options) {
             var _this = _super.call(this) || this;
             _this._el = el;
+            _this._bindingState = 0;
+            _this._bindCompleteList = null;
             options = options || {};
             var state = {
                 tip: !options.tip ? null : options.tip,
@@ -812,6 +816,20 @@ define("jriapp_ui/baseview", ["require", "exports", "jriapp_shared", "jriapp/uti
         BaseElView.prototype._getStore = function () {
             return this.app.viewFactory.store;
         };
+        BaseElView.prototype._onBindCompleted = function () {
+            if (!this._bindCompleteList) {
+                return;
+            }
+            try {
+                for (var _i = 0, _a = this._bindCompleteList; _i < _a.length; _i++) {
+                    var fn = _a[_i];
+                    fn();
+                }
+            }
+            finally {
+                this._bindCompleteList = null;
+            }
+        };
         BaseElView.prototype._onEventChanged = function (args) {
             switch (args.changeType) {
                 case 1:
@@ -848,6 +866,14 @@ define("jriapp_ui/baseview", ["require", "exports", "jriapp_shared", "jriapp/uti
             this._viewState._errors = errors;
             var errSvc = !this._viewState.errorsService ? getErrorsService() : this._viewState.errorsService;
             errSvc.setErrors(el, errors, this.toolTip);
+        };
+        BaseElView.prototype._registerOnBindCompleted = function (fn) {
+            if (!this._bindCompleteList) {
+                this._bindCompleteList = [fn];
+            }
+            else {
+                this._bindCompleteList.push(fn);
+            }
         };
         BaseElView.prototype.isSubscribed = function (flag) {
             return !!(this._subscribeFlags & (1 << flag));
@@ -997,6 +1023,21 @@ define("jriapp_ui/baseview", ["require", "exports", "jriapp_shared", "jriapp/uti
             enumerable: false,
             configurable: true
         });
+        Object.defineProperty(BaseElView.prototype, "bindingState", {
+            get: function () {
+                return this._bindingState;
+            },
+            set: function (v) {
+                if (this._bindingState !== v) {
+                    this._bindingState = v;
+                    if (this._bindingState === 0 && !!this._bindCompleteList) {
+                        this._onBindCompleted();
+                    }
+                }
+            },
+            enumerable: false,
+            configurable: true
+        });
         Object.defineProperty(BaseElView.prototype, "app", {
             get: function () {
                 return boot.app;
@@ -1022,17 +1063,27 @@ define("jriapp_ui/input", ["require", "exports", "jriapp_ui/baseview"], function
         InputElView.prototype.toString = function () {
             return "InputElView";
         };
-        Object.defineProperty(InputElView.prototype, "isEnabled", {
+        Object.defineProperty(InputElView.prototype, "isDisabled", {
             get: function () {
                 return this.el.disabled;
             },
             set: function (v) {
-                v = !v;
                 var el = this.el;
-                if (v !== !this.isEnabled) {
+                if (v !== el.disabled) {
                     el.disabled = v;
+                    this.objEvents.raiseProp("isDisabled");
                     this.objEvents.raiseProp("isEnabled");
                 }
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(InputElView.prototype, "isEnabled", {
+            get: function () {
+                return !this.isDisabled;
+            },
+            set: function (v) {
+                this.isDisabled = !v;
             },
             enumerable: false,
             configurable: true
@@ -1056,11 +1107,11 @@ define("jriapp_ui/input", ["require", "exports", "jriapp_ui/baseview"], function
     }(baseview_1.BaseElView));
     exports.InputElView = InputElView;
 });
-define("jriapp_ui/textbox", ["require", "exports", "jriapp/utils/dom", "jriapp/bootstrap", "jriapp_ui/input"], function (require, exports, dom_5, bootstrap_4, input_1) {
+define("jriapp_ui/textbox", ["require", "exports", "jriapp/utils/dom", "jriapp/bootstrapper", "jriapp_ui/input"], function (require, exports, dom_5, bootstrapper_4, input_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TextBoxElView = void 0;
-    var dom = dom_5.DomUtils, subscribeMap = bootstrap_4.subscribeWeakMap;
+    var dom = dom_5.DomUtils, subscribeMap = bootstrapper_4.subscribeWeakMap;
     var TXTBOX_EVENTS;
     (function (TXTBOX_EVENTS) {
         TXTBOX_EVENTS["keypress"] = "keypress";
@@ -1072,20 +1123,36 @@ define("jriapp_ui/textbox", ["require", "exports", "jriapp/utils/dom", "jriapp/b
             var self = _this;
             if (_this.isDelegationOn) {
                 subscribeMap.set(el, _this);
-                _this._setIsSubcribed(2);
+                if (!!options.updateOnInput) {
+                    dom.events.on(el, "input", function (e) {
+                        e.stopPropagation();
+                        self.handle_change(e);
+                    }, _this.uniqueID);
+                }
+                else {
+                    _this._setIsSubcribed(2);
+                }
                 _this._setIsSubcribed(3);
                 if (!!options.updateOnKeyUp) {
                     _this._setIsSubcribed(5);
                 }
             }
             else {
-                dom.events.on(el, "change", function (e) {
-                    e.stopPropagation();
-                    self.handle_change(e);
-                }, _this.uniqueID);
                 dom.events.on(el, "keypress", function (e) {
                     self.handle_keypress(e);
                 }, _this.uniqueID);
+                if (!!options.updateOnInput) {
+                    dom.events.on(el, "input", function (e) {
+                        e.stopPropagation();
+                        self.handle_change(e);
+                    }, _this.uniqueID);
+                }
+                else {
+                    dom.events.on(el, "change", function (e) {
+                        e.stopPropagation();
+                        self.handle_change(e);
+                    }, _this.uniqueID);
+                }
                 if (!!options.updateOnKeyUp) {
                     dom.events.on(el, "keyup", function (e) {
                         self.handle_keyup(e);
@@ -1139,7 +1206,7 @@ define("jriapp_ui/textbox", ["require", "exports", "jriapp/utils/dom", "jriapp/b
         return TextBoxElView;
     }(input_1.InputElView));
     exports.TextBoxElView = TextBoxElView;
-    bootstrap_4.bootstrap.registerElView("input:text", TextBoxElView);
+    bootstrapper_4.bootstrapper.registerElView("input:text", TextBoxElView);
 });
 define("jriapp_ui/content/string", ["require", "exports", "jriapp_ui/textbox", "jriapp_ui/content/basic"], function (require, exports, textbox_1, basic_1) {
     "use strict";
@@ -1183,7 +1250,7 @@ define("jriapp_ui/content/string", ["require", "exports", "jriapp_ui/textbox", "
     }(basic_1.BasicContent));
     exports.StringContent = StringContent;
 });
-define("jriapp_ui/textarea", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/textbox"], function (require, exports, bootstrap_5, textbox_2) {
+define("jriapp_ui/textarea", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/textbox"], function (require, exports, bootstrapper_5, textbox_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TextAreaElView = void 0;
@@ -1216,7 +1283,7 @@ define("jriapp_ui/textarea", ["require", "exports", "jriapp/bootstrap", "jriapp_
         return TextAreaElView;
     }(textbox_2.TextBoxElView));
     exports.TextAreaElView = TextAreaElView;
-    bootstrap_5.bootstrap.registerElView("textarea", TextAreaElView);
+    bootstrapper_5.bootstrapper.registerElView("textarea", TextAreaElView);
 });
 define("jriapp_ui/content/multyline", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp_ui/textarea", "jriapp_ui/content/basic"], function (require, exports, jriapp_shared_7, dom_6, textarea_1, basic_2) {
     "use strict";
@@ -1360,7 +1427,7 @@ define("jriapp_ui/content/bool", ["require", "exports", "jriapp/utils/dom", "jri
     }(basic_3.BasicContent));
     exports.BoolContent = BoolContent;
 });
-define("jriapp_ui/content/number", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/textbox", "jriapp_ui/content/basic"], function (require, exports, bootstrap_6, textbox_3, basic_4) {
+define("jriapp_ui/content/number", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/textbox", "jriapp_ui/content/basic"], function (require, exports, bootstrapper_6, textbox_3, basic_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NumberContent = void 0;
@@ -1400,7 +1467,7 @@ define("jriapp_ui/content/number", ["require", "exports", "jriapp/bootstrap", "j
             }
         };
         NumberContent.prototype.previewKeyPress = function (keyCode, value) {
-            var ch = String.fromCharCode(keyCode), digits = "1234567890", defaults = bootstrap_6.bootstrap.defaults, notAllowedChars = "~@#$%^&*()+=_";
+            var ch = String.fromCharCode(keyCode), digits = "1234567890", defaults = bootstrapper_6.bootstrapper.defaults, notAllowedChars = "~@#$%^&*()+=_";
             if (notAllowedChars.indexOf(ch) > -1) {
                 return false;
             }
@@ -1452,7 +1519,7 @@ define("jriapp_ui/content/date", ["require", "exports", "jriapp_shared", "jriapp
     }(basic_5.BasicContent));
     exports.DateContent = DateContent;
 });
-define("jriapp_ui/content/datetime", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/content/basic"], function (require, exports, bootstrap_7, basic_6) {
+define("jriapp_ui/content/datetime", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/content/basic"], function (require, exports, bootstrapper_7, basic_6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DateTimeContent = void 0;
@@ -1462,7 +1529,7 @@ define("jriapp_ui/content/datetime", ["require", "exports", "jriapp/bootstrap", 
             return _super !== null && _super.apply(this, arguments) || this;
         }
         DateTimeContent.prototype.getParam = function (_isEdit) {
-            var finf = this.getFieldInfo(), defaults = bootstrap_7.bootstrap.defaults;
+            var finf = this.getFieldInfo(), defaults = bootstrapper_7.bootstrapper.defaults;
             switch (finf.dataType) {
                 case 6:
                     return defaults.dateTimeFormat;
@@ -1484,11 +1551,11 @@ define("jriapp_ui/content/datetime", ["require", "exports", "jriapp/bootstrap", 
     }(basic_6.BasicContent));
     exports.DateTimeContent = DateTimeContent;
 });
-define("jriapp_ui/listbox", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrap", "jriapp_ui/baseview"], function (require, exports, jriapp_shared_9, dom_8, bootstrap_8, baseview_2) {
+define("jriapp_ui/listbox", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrapper", "jriapp_ui/baseview"], function (require, exports, jriapp_shared_9, dom_8, bootstrapper_8, baseview_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ListBoxElView = exports.ListBox = void 0;
-    var utils = jriapp_shared_9.Utils, dom = dom_8.DomUtils, doc = dom.document, sys = utils.sys, _a = utils.check, _undefined = _a._undefined, isString = _a.isString, isNt = _a.isNt, _b = utils.core, forEach = _b.forEach, extend = _b.extend, getNewID = _b.getNewID, Indexer = _b.Indexer, boot = bootstrap_8.bootstrap, subscribeMap = bootstrap_8.subscribeWeakMap;
+    var utils = jriapp_shared_9.Utils, dom = dom_8.DomUtils, doc = dom.document, sys = utils.sys, _a = utils.check, _undefined = _a._undefined, isString = _a.isString, isNt = _a.isNt, _b = utils.core, forEach = _b.forEach, extend = _b.extend, getNewID = _b.getNewID, Indexer = _b.Indexer, boot = bootstrapper_8.bootstrapper, subscribeMap = bootstrapper_8.subscribeWeakMap;
     var LISTBOX_EVENTS;
     (function (LISTBOX_EVENTS) {
         LISTBOX_EVENTS["refreshed"] = "refreshed";
@@ -1700,7 +1767,9 @@ define("jriapp_ui/listbox", ["require", "exports", "jriapp_shared", "jriapp/util
             this._isRefreshing = true;
             try {
                 this._clear();
-                this._addOption(null, false);
+                if (!this._options.noEmptyOption) {
+                    this._addOption(null, false);
+                }
                 var cnt = 0;
                 if (!!ds) {
                     for (var _i = 0, _a = ds.items; _i < _a.length; _i++) {
@@ -1972,7 +2041,9 @@ define("jriapp_ui/listbox", ["require", "exports", "jriapp_shared", "jriapp/util
                     }
                     else {
                         _this._clear();
-                        _this._addOption(null, false);
+                        if (!_this._options.noEmptyOption) {
+                            _this._addOption(null, false);
+                        }
                     }
                 }
                 finally {
@@ -2481,7 +2552,7 @@ define("jriapp_ui/content/lookup", ["require", "exports", "jriapp_shared", "jria
     }(basic_7.BasicContent));
     exports.LookupContent = LookupContent;
 });
-define("jriapp_ui/content/factory", ["require", "exports", "jriapp_shared", "jriapp_ui/content/basic", "jriapp_ui/content/template", "jriapp_ui/content/string", "jriapp_ui/content/multyline", "jriapp_ui/content/bool", "jriapp_ui/content/number", "jriapp_ui/content/date", "jriapp_ui/content/datetime", "jriapp_ui/content/lookup", "jriapp/bootstrap"], function (require, exports, jriapp_shared_11, basic_8, template_2, string_1, multyline_1, bool_1, number_1, date_1, datetime_1, lookup_1, bootstrap_9) {
+define("jriapp_ui/content/factory", ["require", "exports", "jriapp_shared", "jriapp_ui/content/basic", "jriapp_ui/content/template", "jriapp_ui/content/string", "jriapp_ui/content/multyline", "jriapp_ui/content/bool", "jriapp_ui/content/number", "jriapp_ui/content/date", "jriapp_ui/content/datetime", "jriapp_ui/content/lookup", "jriapp/bootstrapper"], function (require, exports, jriapp_shared_11, basic_8, template_2, string_1, multyline_1, bool_1, number_1, date_1, datetime_1, lookup_1, bootstrapper_9) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.initContentFactory = void 0;
@@ -2560,7 +2631,7 @@ define("jriapp_ui/content/factory", ["require", "exports", "jriapp_shared", "jri
     function initContentFactory() {
         if (!factoryInstance) {
             factoryInstance = new ContentFactory();
-            bootstrap_9.bootstrap.contentFactory.addFactory(function (_nextFactory) {
+            bootstrapper_9.bootstrapper.contentFactory.addFactory(function (_nextFactory) {
                 return factoryInstance;
             });
         }
@@ -2596,7 +2667,7 @@ define("jriapp_ui/utils/tooltip", ["require", "exports", "jriapp_ui/utils/jquery
     var window = dom_10.DomUtils.window;
     var css;
     (function (css) {
-        css["toolTip"] = "qtip";
+        css["toolTip"] = "qtip-light";
         css["toolTipError"] = "qtip-red";
     })(css = exports.css || (exports.css = {}));
     function createToolTipSvc() {
@@ -2612,7 +2683,7 @@ define("jriapp_ui/utils/tooltip", ["require", "exports", "jriapp_ui/utils/jquery
                     text: tip
                 },
                 style: {
-                    classes: !!isError ? "qtip-red" : "qtip"
+                    classes: !!isError ? "qtip-red" : "qtip-light"
                 },
                 position: {
                     my: "top left",
@@ -2745,11 +2816,11 @@ define("jriapp_ui/utils/datepicker", ["require", "exports", "jriapp_shared", "jr
         return Datepicker;
     }(jriapp_shared_13.BaseObject));
 });
-define("jriapp_ui/utils/errors", ["require", "exports", "jriapp_shared", "jriapp/bootstrap", "jriapp/utils/dom"], function (require, exports, jriapp_shared_14, bootstrap_10, dom_11) {
+define("jriapp_ui/utils/errors", ["require", "exports", "jriapp_shared", "jriapp/bootstrapper", "jriapp/utils/dom"], function (require, exports, jriapp_shared_14, bootstrapper_10, dom_11) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createUIErrorsSvc = void 0;
-    var boot = bootstrap_10.bootstrap, dom = dom_11.DomUtils, formMap = jriapp_shared_14.createWeakMap();
+    var boot = bootstrapper_10.bootstrapper, dom = dom_11.DomUtils, formMap = jriapp_shared_14.createWeakMap();
     function addToolTip(el, tip, isError, pos) {
         var svc = boot.getSvc("ITooltipService");
         svc.addToolTip(el, tip, isError, pos);
@@ -2841,11 +2912,11 @@ define("jriapp_ui/utils/errors", ["require", "exports", "jriapp_shared", "jriapp
     }
     exports.createUIErrorsSvc = createUIErrorsSvc;
 });
-define("jriapp_ui/dialog", ["require", "exports", "jriapp_shared", "jriapp_ui/utils/jquery", "jriapp/utils/dom", "jriapp/template", "jriapp/bootstrap", "jriapp/mvvm"], function (require, exports, jriapp_shared_15, jquery_3, dom_12, template_3, bootstrap_11, mvvm_1) {
+define("jriapp_ui/dialog", ["require", "exports", "jriapp_shared", "jriapp_ui/utils/jquery", "jriapp/utils/dom", "jriapp/template", "jriapp/bootstrapper", "jriapp/mvvm"], function (require, exports, jriapp_shared_15, jquery_3, dom_12, template_3, bootstrapper_11, mvvm_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DialogVM = exports.DataEditDialog = exports.DIALOG_ACTION = void 0;
-    var utils = jriapp_shared_15.Utils, _a = utils.check, _undefined = _a._undefined, isFunc = _a.isFunc, format = utils.str.format, _b = utils.core, extend = _b.extend, getNewID = _b.getNewID, sys = utils.sys, _async = utils.defer, dom = dom_12.DomUtils, doc = dom.document, ERROR = utils.err, boot = bootstrap_11.bootstrap;
+    var utils = jriapp_shared_15.Utils, _a = utils.check, _undefined = _a._undefined, isFunc = _a.isFunc, format = utils.str.format, _b = utils.core, extend = _b.extend, getNewID = _b.getNewID, Indexer = _b.Indexer, sys = utils.sys, _async = utils.async, dom = dom_12.DomUtils, doc = dom.document, ERROR = utils.err, boot = bootstrapper_11.bootstrapper;
     var DIALOG_ACTION;
     (function (DIALOG_ACTION) {
         DIALOG_ACTION[DIALOG_ACTION["Default"] = 0] = "Default";
@@ -2970,7 +3041,7 @@ define("jriapp_ui/dialog", ["require", "exports", "jriapp_shared", "jriapp_ui/ut
                 },
                 buttons: self._getButtons()
             };
-            _this._deferredTemplate = utils.defer.createDeferred();
+            _this._deferredTemplate = utils.async.createDeferred();
             _this._createDialog();
             return _this;
         }
@@ -3034,7 +3105,8 @@ define("jriapp_ui/dialog", ["require", "exports", "jriapp_shared", "jriapp_ui/ut
                 {
                     "id": self._uniqueID + "_Refresh",
                     "text": jriapp_shared_15.LocaleSTRS.TEXT.txtRefresh,
-                    "class": "btn btn-info",
+                    "icon": "fas fa-retweet",
+                    "class": "btn btn-info btn-sm",
                     "click": function () {
                         self._onRefresh();
                     }
@@ -3042,7 +3114,8 @@ define("jriapp_ui/dialog", ["require", "exports", "jriapp_shared", "jriapp_ui/ut
                 {
                     "id": self._uniqueID + "_Ok",
                     "text": jriapp_shared_15.LocaleSTRS.TEXT.txtOk,
-                    "class": "btn btn-info",
+                    "icon": "fas fa-check",
+                    "class": "btn btn-info btn-sm",
                     "click": function () {
                         self._onOk();
                     }
@@ -3050,7 +3123,8 @@ define("jriapp_ui/dialog", ["require", "exports", "jriapp_shared", "jriapp_ui/ut
                 {
                     "id": self._uniqueID + "_Cancel",
                     "text": jriapp_shared_15.LocaleSTRS.TEXT.txtCancel,
-                    "class": "btn btn-info",
+                    "icon": "fas fa-times",
+                    "class": "btn btn-info btn-sm",
                     "click": function () {
                         self._onCancel();
                     }
@@ -3077,6 +3151,11 @@ define("jriapp_ui/dialog", ["require", "exports", "jriapp_shared", "jriapp_ui/ut
             return [this._getOkButton(), this._getCancelButton(), this._getRefreshButton()];
         };
         DataEditDialog.prototype._updateStyles = function () {
+            var btns = this._getAllButtons();
+            btns.forEach(function ($btn) {
+                $btn.removeClass("ui-button");
+                $btn.find("span.ui-button-icon").removeClass("ui-button-icon ui-icon");
+            });
         };
         DataEditDialog.prototype._disableButtons = function (isDisable) {
             var btns = this._getAllButtons();
@@ -3180,7 +3259,7 @@ define("jriapp_ui/dialog", ["require", "exports", "jriapp_shared", "jriapp_ui/ut
         DataEditDialog.prototype.show = function () {
             var self = this;
             if (self.getIsStateDirty()) {
-                return utils.defer.createDeferred().reject();
+                return utils.async.createDeferred().reject();
             }
             self._result = null;
             return this._deferredTemplate.promise().then(function (template) {
@@ -3348,8 +3427,8 @@ define("jriapp_ui/dialog", ["require", "exports", "jriapp_shared", "jriapp_ui/ut
         __extends(DialogVM, _super);
         function DialogVM(app) {
             var _this = _super.call(this, app) || this;
-            _this._factories = {};
-            _this._dialogs = {};
+            _this._factories = Indexer();
+            _this._dialogs = Indexer();
             return _this;
         }
         DialogVM.prototype.createDialog = function (name, options) {
@@ -3387,19 +3466,19 @@ define("jriapp_ui/dialog", ["require", "exports", "jriapp_shared", "jriapp_ui/ut
                 return;
             }
             this.setDisposing();
-            var self = this, keys = Object.keys(this._dialogs);
-            keys.forEach(function (key) {
-                self._dialogs[key].dispose();
-            });
-            this._factories = {};
-            this._dialogs = {};
+            for (var key in this._dialogs) {
+                this._dialogs[key].dispose();
+            }
+            ;
+            this._factories = Indexer();
+            this._dialogs = Indexer();
             _super.prototype.dispose.call(this);
         };
         return DialogVM;
     }(mvvm_1.ViewModel));
     exports.DialogVM = DialogVM;
 });
-define("jriapp_ui/dynacontent", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/template", "jriapp/bootstrap", "jriapp_ui/baseview"], function (require, exports, jriapp_shared_16, dom_13, template_4, bootstrap_12, baseview_3) {
+define("jriapp_ui/dynacontent", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/template", "jriapp/bootstrapper", "jriapp_ui/baseview"], function (require, exports, jriapp_shared_16, dom_13, template_4, bootstrapper_12, baseview_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DynaContentElView = void 0;
@@ -3566,7 +3645,7 @@ define("jriapp_ui/dynacontent", ["require", "exports", "jriapp_shared", "jriapp/
         return DynaContentElView;
     }(baseview_3.BaseElView));
     exports.DynaContentElView = DynaContentElView;
-    bootstrap_12.bootstrap.registerElView("dynacontent", DynaContentElView);
+    bootstrapper_12.bootstrapper.registerElView("dynacontent", DynaContentElView);
 });
 define("jriapp_ui/content/int", ["require", "exports", "jriapp_shared", "jriapp/utils/parser"], function (require, exports, jriapp_shared_17, parser_1) {
     "use strict";
@@ -3801,7 +3880,7 @@ define("jriapp_ui/utils/dblclick", ["require", "exports"], function (require, ex
     }());
     exports.DblClick = DblClick;
 });
-define("jriapp_ui/datagrid/columns/base", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/template", "jriapp_ui/baseview", "jriapp/bootstrap"], function (require, exports, jriapp_shared_19, dom_14, template_5, baseview_4, bootstrap_13) {
+define("jriapp_ui/datagrid/columns/base", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/template", "jriapp_ui/baseview", "jriapp/bootstrapper"], function (require, exports, jriapp_shared_19, dom_14, template_5, baseview_4, bootstrapper_13) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BaseColumn = void 0;
@@ -3823,7 +3902,7 @@ define("jriapp_ui/datagrid/columns/base", ["require", "exports", "jriapp_shared"
                 dom.addClass([col], _this._options.colCellCss);
             }
             _this._grid._getInternal().getHeader().appendChild(col);
-            bootstrap_13.selectableProviderWeakMap.set(_this._col, _this._grid);
+            bootstrapper_13.selectableProviderWeakMap.set(_this._col, _this._grid);
             dom.events.on(_this._col, "click", function () {
                 grid._getInternal().setCurrentColumn(self);
                 self._onColumnClicked();
@@ -3848,7 +3927,7 @@ define("jriapp_ui/datagrid/columns/base", ["require", "exports", "jriapp_shared"
                 return;
             }
             this.setDisposing();
-            bootstrap_13.selectableProviderWeakMap.delete(this._col);
+            bootstrapper_13.selectableProviderWeakMap.delete(this._col);
             dom.events.offNS(this.grid.table, this.uniqueID);
             if (!!this._options.tip) {
                 baseview_4.addToolTip(this._col, null);
@@ -4011,11 +4090,11 @@ define("jriapp_ui/datagrid/cells/expander", ["require", "exports", "jriapp/utils
     }(base_2.BaseCell));
     exports.ExpanderCell = ExpanderCell;
 });
-define("jriapp_ui/datagrid/columns/data", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrap", "jriapp_ui/datagrid/columns/base"], function (require, exports, jriapp_shared_20, dom_17, bootstrap_14, base_3) {
+define("jriapp_ui/datagrid/columns/data", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrapper", "jriapp_ui/datagrid/columns/base"], function (require, exports, jriapp_shared_20, dom_17, bootstrapper_14, base_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DataColumn = void 0;
-    var utils = jriapp_shared_20.Utils, _a = utils.core, Indexer = _a.Indexer, forEach = _a.forEach, dom = dom_17.DomUtils, boot = bootstrap_14.bootstrap;
+    var utils = jriapp_shared_20.Utils, _a = utils.core, Indexer = _a.Indexer, forEach = _a.forEach, dom = dom_17.DomUtils, boot = bootstrapper_14.bootstrapper;
     var DataColumn = (function (_super) {
         __extends(DataColumn, _super);
         function DataColumn(grid, options) {
@@ -4433,7 +4512,7 @@ define("jriapp_ui/datagrid/columns/rowselector", ["require", "exports", "jriapp_
             }, _this.uniqueID);
             dom.events.on(_this.grid.table, "click", function (e) {
                 var chk = e.target, cell = dom.getData(chk, "cell");
-                if (!!cell && !cell.getIsStateDirty()) {
+                if (!!cell && !cell.getIsStateDirty() && !cell.isDisabled) {
                     cell.row.isSelected = cell.checked;
                 }
             }, {
@@ -4510,13 +4589,30 @@ define("jriapp_ui/datagrid/cells/rowselector", ["require", "exports", "jriapp/ut
             dom.removeData(this._chk);
             _super.prototype.dispose.call(this);
         };
+        Object.defineProperty(RowSelectorCell.prototype, "isDisabled", {
+            get: function () {
+                return this._chk.disabled;
+            },
+            set: function (v) {
+                var el = this._chk;
+                if (v !== el.disabled) {
+                    el.disabled = v;
+                    if (v) {
+                        this.checked = false;
+                    }
+                    this.objEvents.raiseProp("isDisabled");
+                }
+            },
+            enumerable: false,
+            configurable: true
+        });
         Object.defineProperty(RowSelectorCell.prototype, "checked", {
             get: function () {
                 return this._chk.checked;
             },
             set: function (v) {
                 var bv = !!v;
-                if (bv !== this._chk.checked) {
+                if (!this.isDisabled && bv !== this._chk.checked) {
                     this._chk.checked = bv;
                 }
             },
@@ -4820,6 +4916,13 @@ define("jriapp_ui/datagrid/rows/row", ["require", "exports", "jriapp_shared", "j
             enumerable: false,
             configurable: true
         });
+        Object.defineProperty(Row.prototype, "rowSelectorCell", {
+            get: function () {
+                return this._rowSelectorCell;
+            },
+            enumerable: false,
+            configurable: true
+        });
         Object.defineProperty(Row.prototype, "isDeleted", {
             get: function () {
                 return this._isDeleted;
@@ -4864,11 +4967,11 @@ define("jriapp_ui/datagrid/rows/row", ["require", "exports", "jriapp_shared", "j
     }(jriapp_shared_23.BaseObject));
     exports.Row = Row;
 });
-define("jriapp_ui/datagrid/cells/base", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrap", "jriapp_ui/utils/dblclick"], function (require, exports, jriapp_shared_24, dom_24, bootstrap_15, dblclick_1) {
+define("jriapp_ui/datagrid/cells/base", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrapper", "jriapp_ui/utils/dblclick"], function (require, exports, jriapp_shared_24, dom_24, bootstrapper_15, dblclick_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BaseCell = void 0;
-    var utils = jriapp_shared_24.Utils, dom = dom_24.DomUtils, doc = dom.document, subscribeMap = bootstrap_15.subscribeWeakMap;
+    var utils = jriapp_shared_24.Utils, dom = dom_24.DomUtils, doc = dom.document, subscribeMap = bootstrapper_15.subscribeWeakMap;
     var BaseCell = (function (_super) {
         __extends(BaseCell, _super);
         function BaseCell(options) {
@@ -5380,7 +5483,7 @@ define("jriapp_ui/datagrid/rows/fillspace", ["require", "exports", "jriapp_share
     }(jriapp_shared_28.BaseObject));
     exports.FillSpaceRow = FillSpaceRow;
 });
-define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/utils/parser", "jriapp/bootstrap", "jriapp_ui/baseview", "jriapp_ui/content/int", "jriapp_ui/dialog", "jriapp_ui/datagrid/animation", "jriapp_ui/datagrid/rows/row", "jriapp_ui/datagrid/rows/details", "jriapp_ui/datagrid/rows/fillspace", "jriapp_ui/datagrid/columns/expander", "jriapp_ui/datagrid/columns/data", "jriapp_ui/datagrid/columns/actions", "jriapp_ui/datagrid/columns/rowselector", "jriapp_ui/datagrid/rows/row", "jriapp_ui/datagrid/columns/base", "jriapp_ui/datagrid/consts", "jriapp_ui/datagrid/animation", "jriapp_ui/utils/jquery"], function (require, exports, jriapp_shared_29, dom_29, parser_2, bootstrap_16, baseview_6, int_2, dialog_1, animation_1, row_1, details_2, fillspace_2, expander_3, data_2, actions_3, rowselector_3, row_2, base_9, consts_2, animation_2, jquery_5) {
+define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/utils/parser", "jriapp/bootstrapper", "jriapp_ui/baseview", "jriapp_ui/content/int", "jriapp_ui/dialog", "jriapp_ui/datagrid/animation", "jriapp_ui/datagrid/rows/row", "jriapp_ui/datagrid/rows/details", "jriapp_ui/datagrid/rows/fillspace", "jriapp_ui/datagrid/columns/expander", "jriapp_ui/datagrid/columns/data", "jriapp_ui/datagrid/columns/actions", "jriapp_ui/datagrid/columns/rowselector", "jriapp_ui/datagrid/rows/row", "jriapp_ui/datagrid/columns/base", "jriapp_ui/datagrid/consts", "jriapp_ui/datagrid/animation", "jriapp_ui/utils/jquery"], function (require, exports, jriapp_shared_29, dom_29, parser_2, bootstrapper_16, baseview_6, int_2, dialog_1, animation_1, row_1, details_2, fillspace_2, expander_3, data_2, actions_3, rowselector_3, row_2, base_9, consts_2, animation_2, jquery_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DataGridElView = exports.DataGrid = exports.findDataGrid = exports.getDataGrids = exports.DefaultAnimation = exports.ROW_ACTION = exports.COLUMN_TYPE = exports.ROW_POSITION = exports.DataGridColumn = exports.DataGridRow = void 0;
@@ -5390,7 +5493,7 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
     Object.defineProperty(exports, "COLUMN_TYPE", { enumerable: true, get: function () { return consts_2.COLUMN_TYPE; } });
     Object.defineProperty(exports, "ROW_ACTION", { enumerable: true, get: function () { return consts_2.ROW_ACTION; } });
     Object.defineProperty(exports, "DefaultAnimation", { enumerable: true, get: function () { return animation_2.DefaultAnimation; } });
-    var utils = jriapp_shared_29.Utils, format = utils.str.format, _a = utils.core, forEach = _a.forEach, merge = _a.merge, getNewID = _a.getNewID, extend = _a.extend, Indexer = _a.Indexer, ERROR = utils.err, sys = utils.sys, dom = dom_29.DomUtils, parser = parser_2.Parser, doc = dom.document, win = dom.window, boot = bootstrap_16.bootstrap;
+    var utils = jriapp_shared_29.Utils, format = utils.str.format, _a = utils.core, forEach = _a.forEach, merge = _a.merge, getNewID = _a.getNewID, extend = _a.extend, Indexer = _a.Indexer, ERROR = utils.err, sys = utils.sys, dom = dom_29.DomUtils, parser = parser_2.Parser, doc = dom.document, win = dom.window, boot = bootstrapper_16.bootstrapper;
     var _columnWidthInterval, _gridsCount = 0;
     var _createdGrids = Indexer();
     function getDataGrids() {
@@ -5555,7 +5658,7 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
                 }
             };
             _this._createColumns();
-            bootstrap_16.selectableProviderWeakMap.set(table, _this);
+            bootstrapper_16.selectableProviderWeakMap.set(table, _this);
             _gridCreated(_this);
             var ds = _this._options.dataSource;
             _this.setDataSource(ds);
@@ -5566,7 +5669,7 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
                 return;
             }
             this.setDisposing();
-            bootstrap_16.selectableProviderWeakMap.delete(this._table);
+            bootstrapper_16.selectableProviderWeakMap.delete(this._table);
             this._scrollDebounce.dispose();
             this._dsDebounce.dispose();
             this._pageDebounce.dispose();
@@ -6073,13 +6176,13 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
             this._wrapper = wrapper;
             this._header = header;
             this._contaner = container;
-            bootstrap_16.selectableProviderWeakMap.set(this._contaner, this);
+            bootstrapper_16.selectableProviderWeakMap.set(this._contaner, this);
         };
         DataGrid.prototype._unWrapTable = function () {
             if (!this._header) {
                 return;
             }
-            bootstrap_16.selectableProviderWeakMap.delete(this._contaner);
+            bootstrapper_16.selectableProviderWeakMap.delete(this._contaner);
             dom.removeNode(this._header);
             this._header = null;
             dom.unwrap(this.table);
@@ -6265,7 +6368,7 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
         DataGrid.prototype.sortByColumn = function (column) {
             var ds = this.dataSource;
             if (!ds) {
-                return utils.defer.reject("DataGrid's datasource is not set");
+                return utils.async.reject("DataGrid's datasource is not set");
             }
             var sorts = column.sortMemberName.split(";");
             var promise = ds.sort(sorts, column.sortOrder);
@@ -6274,7 +6377,8 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
         DataGrid.prototype.selectRows = function (isSelect) {
             for (var _i = 0, _a = this._rows; _i < _a.length; _i++) {
                 var row = _a[_i];
-                if (!row.isDeleted) {
+                var cell = row.rowSelectorCell;
+                if (!row.isDeleted && (!cell || !cell.isDisabled)) {
                     row.isSelected = isSelect;
                 }
             }
@@ -6754,11 +6858,11 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
     boot.registerElView("table", DataGridElView);
     boot.registerElView("datagrid", DataGridElView);
 });
-define("jriapp_ui/pager", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp_ui/baseview", "jriapp_ui/baseview", "jriapp/bootstrap"], function (require, exports, jriapp_shared_30, dom_30, baseview_7, baseview_8, bootstrap_17) {
+define("jriapp_ui/pager", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp_ui/baseview", "jriapp_ui/baseview", "jriapp/bootstrapper"], function (require, exports, jriapp_shared_30, dom_30, baseview_7, baseview_8, bootstrapper_17) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.PagerElView = exports.Pager = void 0;
-    var utils = jriapp_shared_30.Utils, dom = dom_30.DomUtils, doc = dom.document, sys = utils.sys, format = utils.str.format, _a = utils.core, getNewID = _a.getNewID, extend = _a.extend, boot = bootstrap_17.bootstrap;
+    var utils = jriapp_shared_30.Utils, dom = dom_30.DomUtils, doc = dom.document, sys = utils.sys, format = utils.str.format, _a = utils.core, getNewID = _a.getNewID, extend = _a.extend, boot = bootstrapper_17.bootstrapper;
     var _STRS = jriapp_shared_30.LocaleSTRS.PAGER;
     var css;
     (function (css) {
@@ -6823,7 +6927,7 @@ define("jriapp_ui/pager", ["require", "exports", "jriapp_shared", "jriapp/utils/
                 }
             });
             _this._bindDS();
-            bootstrap_17.selectableProviderWeakMap.set(el, _this);
+            bootstrapper_17.selectableProviderWeakMap.set(el, _this);
             return _this;
         }
         Pager.prototype.dispose = function () {
@@ -6831,7 +6935,7 @@ define("jriapp_ui/pager", ["require", "exports", "jriapp_shared", "jriapp/utils/
                 return;
             }
             this.setDisposing();
-            bootstrap_17.selectableProviderWeakMap.delete(this._el);
+            bootstrapper_17.selectableProviderWeakMap.delete(this._el);
             this.parentControl = null;
             this._pageDebounce.dispose();
             this._dsDebounce.dispose();
@@ -7411,11 +7515,11 @@ define("jriapp_ui/pager", ["require", "exports", "jriapp_shared", "jriapp/utils/
     exports.PagerElView = PagerElView;
     boot.registerElView("pager", PagerElView);
 });
-define("jriapp_ui/stackpanel", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/template", "jriapp_ui/baseview", "jriapp/bootstrap"], function (require, exports, jriapp_shared_31, dom_31, template_7, baseview_9, bootstrap_18) {
+define("jriapp_ui/stackpanel", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/template", "jriapp_ui/baseview", "jriapp/bootstrapper"], function (require, exports, jriapp_shared_31, dom_31, template_7, baseview_9, bootstrapper_18) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StackPanelElView = exports.StackPanel = void 0;
-    var utils = jriapp_shared_31.Utils, dom = dom_31.DomUtils, doc = dom.document, sys = utils.sys, format = utils.str.format, _a = utils.core, getNewID = _a.getNewID, extend = _a.extend, Indexer = _a.Indexer, boot = bootstrap_18.bootstrap;
+    var utils = jriapp_shared_31.Utils, dom = dom_31.DomUtils, doc = dom.document, sys = utils.sys, format = utils.str.format, _a = utils.core, getNewID = _a.getNewID, extend = _a.extend, Indexer = _a.Indexer, boot = bootstrapper_18.bootstrapper;
     var css;
     (function (css) {
         css["stackpanel"] = "ria-stackpanel";
@@ -7482,7 +7586,7 @@ define("jriapp_ui/stackpanel", ["require", "exports", "jriapp_shared", "jriapp/u
                     return self.uniqueID === attr && tag === self._itemTag;
                 }
             });
-            bootstrap_18.selectableProviderWeakMap.set(el, _this);
+            bootstrapper_18.selectableProviderWeakMap.set(el, _this);
             var ds = _this._options.dataSource;
             _this.setDataSource(ds);
             return _this;
@@ -7492,7 +7596,7 @@ define("jriapp_ui/stackpanel", ["require", "exports", "jriapp_shared", "jriapp/u
                 return;
             }
             this.setDisposing();
-            bootstrap_18.selectableProviderWeakMap.delete(this._el);
+            bootstrapper_18.selectableProviderWeakMap.delete(this._el);
             this._debounce.dispose();
             this._unbindDS();
             this._clearContent();
@@ -7913,7 +8017,7 @@ define("jriapp_ui/stackpanel", ["require", "exports", "jriapp_shared", "jriapp/u
     boot.registerElView("ul", StackPanelElView);
     boot.registerElView("ol", StackPanelElView);
 });
-define("jriapp_ui/tabs", ["require", "exports", "jriapp_shared", "jriapp_ui/utils/jquery", "jriapp/bootstrap", "jriapp_ui/baseview"], function (require, exports, jriapp_shared_32, jquery_6, bootstrap_19, baseview_10) {
+define("jriapp_ui/tabs", ["require", "exports", "jriapp_shared", "jriapp_ui/utils/jquery", "jriapp/bootstrapper", "jriapp_ui/baseview"], function (require, exports, jriapp_shared_32, jquery_6, bootstrapper_19, baseview_10) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TabsElView = void 0;
@@ -8011,13 +8115,13 @@ define("jriapp_ui/tabs", ["require", "exports", "jriapp_shared", "jriapp_ui/util
         return TabsElView;
     }(baseview_10.BaseElView));
     exports.TabsElView = TabsElView;
-    bootstrap_19.bootstrap.registerElView("tabs", TabsElView);
+    bootstrapper_19.bootstrapper.registerElView("tabs", TabsElView);
 });
-define("jriapp_ui/template", ["require", "exports", "jriapp_shared", "jriapp/utils/viewchecks", "jriapp/bootstrap", "jriapp_ui/baseview"], function (require, exports, jriapp_shared_33, viewchecks_2, bootstrap_20, baseview_11) {
+define("jriapp_ui/template", ["require", "exports", "jriapp_shared", "jriapp/utils/viewchecks", "jriapp/bootstrapper", "jriapp_ui/baseview"], function (require, exports, jriapp_shared_33, viewchecks_2, bootstrapper_20, baseview_11) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TemplateElView = void 0;
-    var utils = jriapp_shared_33.Utils, viewChecks = viewchecks_2.ViewChecks, boot = bootstrap_20.bootstrap, ERROR = utils.err;
+    var utils = jriapp_shared_33.Utils, viewChecks = viewchecks_2.ViewChecks, boot = bootstrapper_20.bootstrapper, ERROR = utils.err;
     viewChecks.isTemplateElView = function (obj) {
         return !!obj && obj instanceof TemplateElView;
     };
@@ -8081,11 +8185,11 @@ define("jriapp_ui/template", ["require", "exports", "jriapp_shared", "jriapp/uti
     ;
     boot.registerElView("template", TemplateElView);
 });
-define("jriapp_ui/dataform", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/utils/viewchecks", "jriapp/bootstrap", "jriapp_ui/baseview", "jriapp_ui/content/int"], function (require, exports, jriapp_shared_34, dom_32, viewchecks_3, bootstrap_21, baseview_12, int_3) {
+define("jriapp_ui/dataform", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/utils/viewchecks", "jriapp/bootstrapper", "jriapp_ui/baseview", "jriapp_ui/content/int"], function (require, exports, jriapp_shared_34, dom_32, viewchecks_3, bootstrapper_21, baseview_12, int_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DataFormElView = exports.DataForm = void 0;
-    var utils = jriapp_shared_34.Utils, dom = dom_32.DomUtils, isFunc = utils.check.isFunc, getNewID = utils.core.getNewID, format = utils.str.format, sys = utils.sys, boot = bootstrap_21.bootstrap, viewChecks = viewchecks_3.ViewChecks, _reject = utils.defer.reject;
+    var utils = jriapp_shared_34.Utils, dom = dom_32.DomUtils, isFunc = utils.check.isFunc, getNewID = utils.core.getNewID, format = utils.str.format, sys = utils.sys, boot = bootstrapper_21.bootstrapper, viewChecks = viewchecks_3.ViewChecks, _reject = utils.async.reject;
     viewChecks.isDataForm = function (el) {
         if (!el) {
             return false;
@@ -8508,11 +8612,11 @@ define("jriapp_ui/dataform", ["require", "exports", "jriapp_shared", "jriapp/uti
     exports.DataFormElView = DataFormElView;
     boot.registerElView("dataform", DataFormElView);
 });
-define("jriapp_ui/datepicker", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/textbox"], function (require, exports, bootstrap_22, textbox_4) {
+define("jriapp_ui/datepicker", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/textbox"], function (require, exports, bootstrapper_22, textbox_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DatePickerElView = void 0;
-    var boot = bootstrap_22.bootstrap;
+    var boot = bootstrapper_22.bootstrapper;
     var DatePickerElView = (function (_super) {
         __extends(DatePickerElView, _super);
         function DatePickerElView(el, options) {
@@ -8557,6 +8661,7 @@ define("jriapp_ui/command", ["require", "exports", "jriapp_shared", "jriapp/util
         CommandFlags[CommandFlags["PreventDefault"] = 0] = "PreventDefault";
         CommandFlags[CommandFlags["StopPropagation"] = 1] = "StopPropagation";
         CommandFlags[CommandFlags["Disabled"] = 2] = "Disabled";
+        CommandFlags[CommandFlags["NoCheckCanExecute"] = 3] = "NoCheckCanExecute";
     })(CommandFlags || (CommandFlags = {}));
     var CommandElView = (function (_super) {
         __extends(CommandElView, _super);
@@ -8572,6 +8677,7 @@ define("jriapp_ui/command", ["require", "exports", "jriapp_shared", "jriapp/util
             if (disabled) {
                 _this._setCommandFlag(disabled, 2);
             }
+            _this._setCommandFlag(!!options.noCheckCanExecute, 3);
             dom.setClass([el], "disabled", _this.isEnabled);
             return _this;
         }
@@ -8606,7 +8712,7 @@ define("jriapp_ui/command", ["require", "exports", "jriapp_shared", "jriapp/util
             return this._commandParam;
         };
         CommandElView.prototype._onCommandChanged = function () {
-            if (!!this._command) {
+            if (!!this._command && !this._getCommandFlag(3)) {
                 this.isEnabled = this._command.canExecute(this._getCommandParam());
             }
         };
@@ -8644,11 +8750,11 @@ define("jriapp_ui/command", ["require", "exports", "jriapp_shared", "jriapp/util
             set: function (v) {
                 var _this = this;
                 if (v !== this._command) {
-                    if (!!this._command) {
+                    if (!!this._command && !this._getCommandFlag(3)) {
                         this._command.offOnCanExecuteChanged(this.uniqueID);
                     }
                     this._command = v;
-                    if (!!this._command) {
+                    if (!!this._command && !this._getCommandFlag(3)) {
                         this._command.addOnCanExecuteChanged(this._onCanExecuteChanged, this.uniqueID, this);
                     }
                     this._debounce.enque(function () {
@@ -8722,11 +8828,11 @@ define("jriapp_ui/command", ["require", "exports", "jriapp_shared", "jriapp/util
     }(baseview_13.BaseElView));
     exports.CommandElView = CommandElView;
 });
-define("jriapp_ui/anchor", ["require", "exports", "jriapp/utils/dom", "jriapp/bootstrap", "jriapp_ui/command"], function (require, exports, dom_34, bootstrap_23, command_1) {
+define("jriapp_ui/anchor", ["require", "exports", "jriapp/utils/dom", "jriapp/bootstrapper", "jriapp_ui/command"], function (require, exports, dom_34, bootstrapper_23, command_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AnchorElView = void 0;
-    var dom = dom_34.DomUtils, boot = bootstrap_23.bootstrap, subscribeMap = bootstrap_23.subscribeWeakMap;
+    var dom = dom_34.DomUtils, boot = bootstrapper_23.bootstrapper, subscribeMap = bootstrapper_23.subscribeWeakMap;
     var AnchorElView = (function (_super) {
         __extends(AnchorElView, _super);
         function AnchorElView(el, options) {
@@ -8898,7 +9004,7 @@ define("jriapp_ui/anchor", ["require", "exports", "jriapp/utils/dom", "jriapp/bo
     boot.registerElView("a", AnchorElView);
     boot.registerElView("abutton", AnchorElView);
 });
-define("jriapp_ui/span", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/baseview"], function (require, exports, bootstrap_24, baseview_14) {
+define("jriapp_ui/span", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/baseview"], function (require, exports, bootstrapper_24, baseview_14) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SpanElView = void 0;
@@ -8954,13 +9060,13 @@ define("jriapp_ui/span", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/b
         return SpanElView;
     }(baseview_14.BaseElView));
     exports.SpanElView = SpanElView;
-    bootstrap_24.bootstrap.registerElView("span", SpanElView);
+    bootstrapper_24.bootstrapper.registerElView("span", SpanElView);
 });
-define("jriapp_ui/block", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/span"], function (require, exports, bootstrap_25, span_1) {
+define("jriapp_ui/block", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/span"], function (require, exports, bootstrapper_25, span_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BlockElView = void 0;
-    var boot = bootstrap_25.bootstrap;
+    var boot = bootstrapper_25.bootstrapper;
     var BlockElView = (function (_super) {
         __extends(BlockElView, _super);
         function BlockElView() {
@@ -9004,11 +9110,11 @@ define("jriapp_ui/block", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/
     boot.registerElView("div", BlockElView);
     boot.registerElView("section", BlockElView);
 });
-define("jriapp_ui/busy", ["require", "exports", "jriapp_shared", "jriapp_ui/utils/jquery", "jriapp/bootstrap", "jriapp/utils/dom", "jriapp_ui/baseview"], function (require, exports, jriapp_shared_36, jquery_7, bootstrap_26, dom_35, baseview_15) {
+define("jriapp_ui/busy", ["require", "exports", "jriapp_shared", "jriapp_ui/utils/jquery", "jriapp/bootstrapper", "jriapp/utils/dom", "jriapp_ui/baseview"], function (require, exports, jriapp_shared_36, jquery_7, bootstrapper_26, dom_35, baseview_15) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BusyElView = void 0;
-    var isNt = jriapp_shared_36.Utils.check.isNt, boot = bootstrap_26.bootstrap, dom = dom_35.DomUtils;
+    var isNt = jriapp_shared_36.Utils.check.isNt, boot = bootstrapper_26.bootstrapper, dom = dom_35.DomUtils;
     var BusyElView = (function (_super) {
         __extends(BusyElView, _super);
         function BusyElView(el, options) {
@@ -9025,7 +9131,7 @@ define("jriapp_ui/busy", ["require", "exports", "jriapp_shared", "jriapp_ui/util
             if (!isNt(options.delay)) {
                 _this._delay = parseInt("" + options.delay);
             }
-            _this._loaderPath = bootstrap_26.bootstrap.getImagePath(img);
+            _this._loaderPath = bootstrapper_26.bootstrapper.getImagePath(img);
             _this._img = new Image();
             _this._img.style.position = "absolute";
             _this._img.style.display = "none";
@@ -9101,11 +9207,11 @@ define("jriapp_ui/busy", ["require", "exports", "jriapp_shared", "jriapp_ui/util
     boot.registerElView("busy", BusyElView);
     boot.registerElView("busy_indicator", BusyElView);
 });
-define("jriapp_ui/button", ["require", "exports", "jriapp/utils/dom", "jriapp/bootstrap", "jriapp_ui/command"], function (require, exports, dom_36, bootstrap_27, command_2) {
+define("jriapp_ui/button", ["require", "exports", "jriapp/utils/dom", "jriapp/bootstrapper", "jriapp_ui/command"], function (require, exports, dom_36, bootstrapper_27, command_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ButtonElView = void 0;
-    var boot = bootstrap_27.bootstrap, dom = dom_36.DomUtils, subscribeMap = bootstrap_27.subscribeWeakMap;
+    var boot = bootstrapper_27.bootstrapper, dom = dom_36.DomUtils, subscribeMap = bootstrapper_27.subscribeWeakMap;
     var ButtonElView = (function (_super) {
         __extends(ButtonElView, _super);
         function ButtonElView(el, options) {
@@ -9201,11 +9307,11 @@ define("jriapp_ui/button", ["require", "exports", "jriapp/utils/dom", "jriapp/bo
     boot.registerElView("input:submit", ButtonElView);
     boot.registerElView("button", ButtonElView);
 });
-define("jriapp_ui/checkbox", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrap", "jriapp_ui/input"], function (require, exports, jriapp_shared_37, dom_37, bootstrap_28, input_2) {
+define("jriapp_ui/checkbox", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrapper", "jriapp_ui/input"], function (require, exports, jriapp_shared_37, dom_37, bootstrapper_28, input_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CheckBoxElView = void 0;
-    var dom = dom_37.DomUtils, isNt = jriapp_shared_37.Utils.check.isNt, boot = bootstrap_28.bootstrap, subscribeMap = bootstrap_28.subscribeWeakMap;
+    var dom = dom_37.DomUtils, isNt = jriapp_shared_37.Utils.check.isNt, boot = bootstrapper_28.bootstrapper, subscribeMap = bootstrapper_28.subscribeWeakMap;
     var CheckBoxElView = (function (_super) {
         __extends(CheckBoxElView, _super);
         function CheckBoxElView(chk, options) {
@@ -9286,11 +9392,11 @@ define("jriapp_ui/checkbox", ["require", "exports", "jriapp_shared", "jriapp/uti
     boot.registerElView("input:checkbox", CheckBoxElView);
     boot.registerElView("checkbox", CheckBoxElView);
 });
-define("jriapp_ui/checkbox3", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrap", "jriapp_ui/input"], function (require, exports, jriapp_shared_38, dom_38, bootstrap_29, input_3) {
+define("jriapp_ui/checkbox3", ["require", "exports", "jriapp_shared", "jriapp/utils/dom", "jriapp/bootstrapper", "jriapp_ui/input"], function (require, exports, jriapp_shared_38, dom_38, bootstrapper_29, input_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CheckBoxThreeStateElView = void 0;
-    var isNt = jriapp_shared_38.Utils.check.isNt, dom = dom_38.DomUtils, boot = bootstrap_29.bootstrap, subscribeMap = bootstrap_29.subscribeWeakMap;
+    var isNt = jriapp_shared_38.Utils.check.isNt, dom = dom_38.DomUtils, boot = bootstrapper_29.bootstrapper, subscribeMap = bootstrapper_29.subscribeWeakMap;
     var CheckBoxThreeStateElView = (function (_super) {
         __extends(CheckBoxThreeStateElView, _super);
         function CheckBoxThreeStateElView(chk, options) {
@@ -9375,72 +9481,7 @@ define("jriapp_ui/checkbox3", ["require", "exports", "jriapp_shared", "jriapp/ut
     boot.registerElView("threeState", CheckBoxThreeStateElView);
     boot.registerElView("checkbox3", CheckBoxThreeStateElView);
 });
-define("jriapp_ui/expander", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/anchor"], function (require, exports, bootstrap_30, anchor_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ExpanderElView = exports.PROP_NAME = void 0;
-    var PROP_NAME;
-    (function (PROP_NAME) {
-        PROP_NAME["isExpanded"] = "isExpanded";
-    })(PROP_NAME = exports.PROP_NAME || (exports.PROP_NAME = {}));
-    var COLLAPSE_IMG = "collapse.jpg", EXPAND_IMG = "expand.jpg";
-    var ExpanderElView = (function (_super) {
-        __extends(ExpanderElView, _super);
-        function ExpanderElView(el, options) {
-            var _this = this;
-            var expandedsrc = options.expandedsrc || bootstrap_30.bootstrap.getImagePath(COLLAPSE_IMG);
-            var collapsedsrc = options.collapsedsrc || bootstrap_30.bootstrap.getImagePath(EXPAND_IMG);
-            var isExpanded = !!options.isExpanded;
-            options.imageSrc = null;
-            _this = _super.call(this, el, options) || this;
-            _this._expandedsrc = expandedsrc;
-            _this._collapsedsrc = collapsedsrc;
-            _this.isExpanded = isExpanded;
-            return _this;
-        }
-        ExpanderElView.prototype.refresh = function () {
-            if (this.getIsStateDirty()) {
-                return;
-            }
-            this.imageSrc = this._isExpanded ? this._expandedsrc : this._collapsedsrc;
-        };
-        ExpanderElView.prototype._onCommandChanged = function () {
-            _super.prototype._onCommandChanged.call(this);
-            this.invokeCommand();
-        };
-        ExpanderElView.prototype.onClick = function () {
-            this.isExpanded = !this.isExpanded;
-        };
-        ExpanderElView.prototype._getCommandParam = function () {
-            return { isExpanded: this.isExpanded };
-        };
-        ExpanderElView.prototype.invokeCommand = function () {
-            this.refresh();
-            _super.prototype.invokeCommand.call(this);
-        };
-        ExpanderElView.prototype.toString = function () {
-            return "ExpanderElView";
-        };
-        Object.defineProperty(ExpanderElView.prototype, "isExpanded", {
-            get: function () {
-                return this._isExpanded;
-            },
-            set: function (v) {
-                if (this._isExpanded !== v) {
-                    this._isExpanded = v;
-                    this.invokeCommand();
-                    this.objEvents.raiseProp("isExpanded");
-                }
-            },
-            enumerable: false,
-            configurable: true
-        });
-        return ExpanderElView;
-    }(anchor_1.AnchorElView));
-    exports.ExpanderElView = ExpanderElView;
-    bootstrap_30.bootstrap.registerElView("expander", ExpanderElView);
-});
-define("jriapp_ui/hidden", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/input"], function (require, exports, bootstrap_31, input_4) {
+define("jriapp_ui/hidden", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/input"], function (require, exports, bootstrapper_30, input_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.HiddenElView = void 0;
@@ -9455,9 +9496,9 @@ define("jriapp_ui/hidden", ["require", "exports", "jriapp/bootstrap", "jriapp_ui
         return HiddenElView;
     }(input_4.InputElView));
     exports.HiddenElView = HiddenElView;
-    bootstrap_31.bootstrap.registerElView("input:hidden", HiddenElView);
+    bootstrapper_30.bootstrapper.registerElView("input:hidden", HiddenElView);
 });
-define("jriapp_ui/img", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/baseview"], function (require, exports, bootstrap_32, baseview_16) {
+define("jriapp_ui/img", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/baseview"], function (require, exports, bootstrapper_31, baseview_16) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ImgElView = void 0;
@@ -9486,9 +9527,9 @@ define("jriapp_ui/img", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/ba
         return ImgElView;
     }(baseview_16.BaseElView));
     exports.ImgElView = ImgElView;
-    bootstrap_32.bootstrap.registerElView("img", ImgElView);
+    bootstrapper_31.bootstrapper.registerElView("img", ImgElView);
 });
-define("jriapp_ui/radio", ["require", "exports", "jriapp_shared", "jriapp/bootstrap", "jriapp_ui/checkbox"], function (require, exports, jriapp_shared_39, bootstrap_33, checkbox_1) {
+define("jriapp_ui/radio", ["require", "exports", "jriapp_shared", "jriapp/bootstrapper", "jriapp_ui/checkbox"], function (require, exports, jriapp_shared_39, bootstrapper_32, checkbox_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RadioElView = void 0;
@@ -9525,7 +9566,7 @@ define("jriapp_ui/radio", ["require", "exports", "jriapp_shared", "jriapp/bootst
         return RadioElView;
     }(checkbox_1.CheckBoxElView));
     exports.RadioElView = RadioElView;
-    bootstrap_33.bootstrap.registerElView("input:radio", RadioElView);
+    bootstrapper_32.bootstrapper.registerElView("input:radio", RadioElView);
 });
 define("jriapp_ui/content/all", ["require", "exports", "jriapp_ui/content/basic", "jriapp_ui/content/template", "jriapp_ui/content/string", "jriapp_ui/content/multyline", "jriapp_ui/content/bool", "jriapp_ui/content/number", "jriapp_ui/content/date", "jriapp_ui/content/datetime", "jriapp_ui/content/lookup"], function (require, exports, basic_9, template_8, string_2, multyline_2, bool_2, number_2, date_2, datetime_2, lookup_2) {
     "use strict";
@@ -9541,10 +9582,10 @@ define("jriapp_ui/content/all", ["require", "exports", "jriapp_ui/content/basic"
     Object.defineProperty(exports, "DateTimeContent", { enumerable: true, get: function () { return datetime_2.DateTimeContent; } });
     Object.defineProperty(exports, "LookupContent", { enumerable: true, get: function () { return lookup_2.LookupContent; } });
 });
-define("jriapp_ui", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/content/factory", "jriapp_ui/utils/tooltip", "jriapp_ui/utils/datepicker", "jriapp_ui/utils/errors", "jriapp_ui/dialog", "jriapp_ui/dynacontent", "jriapp_ui/datagrid/datagrid", "jriapp_ui/pager", "jriapp_ui/listbox", "jriapp_ui/stackpanel", "jriapp_ui/tabs", "jriapp_ui/baseview", "jriapp_ui/template", "jriapp_ui/dataform", "jriapp_ui/datepicker", "jriapp_ui/anchor", "jriapp_ui/block", "jriapp_ui/busy", "jriapp_ui/button", "jriapp_ui/checkbox", "jriapp_ui/checkbox3", "jriapp_ui/command", "jriapp_ui/expander", "jriapp_ui/hidden", "jriapp_ui/img", "jriapp_ui/input", "jriapp_ui/radio", "jriapp_ui/span", "jriapp_ui/textarea", "jriapp_ui/textbox", "jriapp_ui/utils/dblclick", "jriapp_ui/utils/jquery", "jriapp_ui/content/all"], function (require, exports, bootstrap_34, factory_1, tooltip_1, datepicker_1, errors_3, dialog_2, dynacontent_1, datagrid_1, pager_1, listbox_2, stackpanel_1, tabs_1, baseview_17, template_9, dataform_1, datepicker_2, anchor_2, block_1, busy_1, button_1, checkbox_2, checkbox3_1, command_3, expander_4, hidden_1, img_1, input_5, radio_1, span_2, textarea_2, textbox_5, dblclick_2, jquery_8, all_1) {
+define("jriapp_ui", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/content/factory", "jriapp_ui/utils/tooltip", "jriapp_ui/utils/datepicker", "jriapp_ui/utils/errors", "jriapp_ui/dialog", "jriapp_ui/dynacontent", "jriapp_ui/datagrid/datagrid", "jriapp_ui/pager", "jriapp_ui/listbox", "jriapp_ui/stackpanel", "jriapp_ui/tabs", "jriapp_ui/baseview", "jriapp_ui/template", "jriapp_ui/dataform", "jriapp_ui/datepicker", "jriapp_ui/anchor", "jriapp_ui/block", "jriapp_ui/busy", "jriapp_ui/button", "jriapp_ui/checkbox", "jriapp_ui/checkbox3", "jriapp_ui/command", "jriapp_ui/hidden", "jriapp_ui/img", "jriapp_ui/input", "jriapp_ui/radio", "jriapp_ui/span", "jriapp_ui/textarea", "jriapp_ui/textbox", "jriapp_ui/utils/dblclick", "jriapp_ui/utils/jquery", "jriapp_ui/content/all"], function (require, exports, bootstrapper_33, factory_1, tooltip_1, datepicker_1, errors_3, dialog_2, dynacontent_1, datagrid_1, pager_1, listbox_2, stackpanel_1, tabs_1, baseview_17, template_9, dataform_1, datepicker_2, anchor_1, block_1, busy_1, button_1, checkbox_2, checkbox3_1, command_3, hidden_1, img_1, input_5, radio_1, span_2, textarea_2, textbox_5, dblclick_2, jquery_8, all_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.VERSION = exports.$ = exports.JQueryUtils = exports.DblClick = exports.TextBoxElView = exports.TextAreaElView = exports.SpanElView = exports.RadioElView = exports.InputElView = exports.ImgElView = exports.HiddenElView = exports.ExpanderElView = exports.CommandElView = exports.CheckBoxThreeStateElView = exports.CheckBoxElView = exports.ButtonElView = exports.BusyElView = exports.BlockElView = exports.AnchorElView = exports.DatePickerElView = exports.DataFormElView = exports.DataForm = exports.TemplateElView = exports.addToolTip = exports.BaseElView = exports.ListBoxElView = exports.ListBox = exports.getDataGrids = exports.findDataGrid = exports.ROW_POSITION = exports.DataGridElView = exports.DataGridRow = exports.DataGridColumn = exports.DataGrid = exports.DynaContentElView = exports.DialogVM = exports.DataEditDialog = exports.DIALOG_ACTION = void 0;
+    exports.VERSION = exports.$ = exports.JQueryUtils = exports.DblClick = exports.TextBoxElView = exports.TextAreaElView = exports.SpanElView = exports.RadioElView = exports.InputElView = exports.ImgElView = exports.HiddenElView = exports.CommandElView = exports.CheckBoxThreeStateElView = exports.CheckBoxElView = exports.ButtonElView = exports.BusyElView = exports.BlockElView = exports.AnchorElView = exports.DatePickerElView = exports.DataFormElView = exports.DataForm = exports.TemplateElView = exports.addToolTip = exports.BaseElView = exports.ListBoxElView = exports.ListBox = exports.getDataGrids = exports.findDataGrid = exports.ROW_POSITION = exports.DataGridElView = exports.DataGridRow = exports.DataGridColumn = exports.DataGrid = exports.DynaContentElView = exports.DialogVM = exports.DataEditDialog = exports.DIALOG_ACTION = void 0;
     Object.defineProperty(exports, "DIALOG_ACTION", { enumerable: true, get: function () { return dialog_2.DIALOG_ACTION; } });
     Object.defineProperty(exports, "DataEditDialog", { enumerable: true, get: function () { return dialog_2.DataEditDialog; } });
     Object.defineProperty(exports, "DialogVM", { enumerable: true, get: function () { return dialog_2.DialogVM; } });
@@ -9567,14 +9608,13 @@ define("jriapp_ui", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/conten
     Object.defineProperty(exports, "DataForm", { enumerable: true, get: function () { return dataform_1.DataForm; } });
     Object.defineProperty(exports, "DataFormElView", { enumerable: true, get: function () { return dataform_1.DataFormElView; } });
     Object.defineProperty(exports, "DatePickerElView", { enumerable: true, get: function () { return datepicker_2.DatePickerElView; } });
-    Object.defineProperty(exports, "AnchorElView", { enumerable: true, get: function () { return anchor_2.AnchorElView; } });
+    Object.defineProperty(exports, "AnchorElView", { enumerable: true, get: function () { return anchor_1.AnchorElView; } });
     Object.defineProperty(exports, "BlockElView", { enumerable: true, get: function () { return block_1.BlockElView; } });
     Object.defineProperty(exports, "BusyElView", { enumerable: true, get: function () { return busy_1.BusyElView; } });
     Object.defineProperty(exports, "ButtonElView", { enumerable: true, get: function () { return button_1.ButtonElView; } });
     Object.defineProperty(exports, "CheckBoxElView", { enumerable: true, get: function () { return checkbox_2.CheckBoxElView; } });
     Object.defineProperty(exports, "CheckBoxThreeStateElView", { enumerable: true, get: function () { return checkbox3_1.CheckBoxThreeStateElView; } });
     Object.defineProperty(exports, "CommandElView", { enumerable: true, get: function () { return command_3.CommandElView; } });
-    Object.defineProperty(exports, "ExpanderElView", { enumerable: true, get: function () { return expander_4.ExpanderElView; } });
     Object.defineProperty(exports, "HiddenElView", { enumerable: true, get: function () { return hidden_1.HiddenElView; } });
     Object.defineProperty(exports, "ImgElView", { enumerable: true, get: function () { return img_1.ImgElView; } });
     Object.defineProperty(exports, "InputElView", { enumerable: true, get: function () { return input_5.InputElView; } });
@@ -9586,8 +9626,8 @@ define("jriapp_ui", ["require", "exports", "jriapp/bootstrap", "jriapp_ui/conten
     Object.defineProperty(exports, "JQueryUtils", { enumerable: true, get: function () { return jquery_8.JQueryUtils; } });
     Object.defineProperty(exports, "$", { enumerable: true, get: function () { return jquery_8.$; } });
     __exportStar(all_1, exports);
-    exports.VERSION = "3.0.5";
-    var boot = bootstrap_34.bootstrap;
+    exports.VERSION = "4.0.8";
+    var boot = bootstrapper_33.bootstrapper;
     factory_1.initContentFactory();
     boot.registerSvc("ITooltipService", tooltip_1.createToolTipSvc());
     boot.registerSvc("IDatepicker", datepicker_1.createDatepickerSvc());

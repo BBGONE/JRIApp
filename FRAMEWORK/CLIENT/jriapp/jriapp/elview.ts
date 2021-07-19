@@ -7,7 +7,7 @@ import {
     IElViewStore, IElView, IViewType, IDataProvider, IViewOptions, IElViewInfo,
     IElViewFactory, IElViewRegister
 } from "./int";
-import { getObject, registerObject } from "./bootstrap";
+import { getObject, registerObject } from "./bootstrapper";
 import { Parser } from "./utils/parser";
 
 const utils = Utils, { Indexer } = utils.core, { format } = utils.str, parser = Parser, ERRS = LocaleERRS;
@@ -51,7 +51,7 @@ class ElViewRegister implements IElViewRegister, IDataProvider {
 }
 
 class ElViewStore implements IElViewStore {
-    private _weakmap: IWeakMap;
+    private readonly _weakmap: IWeakMap;
 
     constructor() {
         this._weakmap = createWeakMap();

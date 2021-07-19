@@ -1,6 +1,6 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
 import { IDisposable, TFunc } from "../int";
-import { getTaskQueue } from "./deferred";
+import { getTaskQueue } from "./promise";
 import { ERROR } from "./error";
 
 const error = ERROR, win = window;

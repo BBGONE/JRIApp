@@ -1,9 +1,7 @@
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
 };
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -13,6 +11,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -111,6 +111,7 @@ define("jriapp/consts", ["require", "exports"], function (require, exports) {
         SubscribeFlags[SubscribeFlags["keypress"] = 3] = "keypress";
         SubscribeFlags[SubscribeFlags["keydown"] = 4] = "keydown";
         SubscribeFlags[SubscribeFlags["keyup"] = 5] = "keyup";
+        SubscribeFlags[SubscribeFlags["input"] = 6] = "input";
     })(SubscribeFlags = exports.SubscribeFlags || (exports.SubscribeFlags = {}));
 });
 define("jriapp/int", ["require", "exports"], function (require, exports) {
@@ -173,7 +174,7 @@ define("jriapp/parsing/int", ["require", "exports"], function (require, exports)
     })(DATES = exports.DATES || (exports.DATES = {}));
     exports.THIS_LEN = "this.".length;
 });
-define("jriapp/parsing/helper", ["require", "exports", "jriapp_shared", "jriapp/parsing/int", "jriapp/bootstrap"], function (require, exports, jriapp_shared_1, int_1, bootstrap_1) {
+define("jriapp/parsing/helper", ["require", "exports", "jriapp_shared", "jriapp/parsing/int", "jriapp/bootstrapper"], function (require, exports, jriapp_shared_1, int_1, bootstrapper_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Helper = exports.Funcs = void 0;
@@ -431,10 +432,10 @@ define("jriapp/parsing/helper", ["require", "exports", "jriapp_shared", "jriapp/
             if (isBind) {
                 switch (parseType) {
                     case 2:
-                        var source = dataContext || bootstrap_1.bootstrap.app;
+                        var source = dataContext || bootstrapper_1.bootstrapper.app;
                         if (bindparts.length > 1) {
                             if (isString(bindparts[1])) {
-                                source = resolvePath(bootstrap_1.bootstrap.app, bindparts[1]);
+                                source = resolvePath(bootstrapper_1.bootstrapper.app, bindparts[1]);
                                 if (!source) {
                                     throw new Error("Invalid source in the bind expression, see key: " + kv.key + "   val: " + kv.val);
                                 }
@@ -480,7 +481,7 @@ define("jriapp/parsing/helper", ["require", "exports", "jriapp_shared", "jriapp/
                             var args = funcs.getExprArgs(kv.val);
                             var id = args[0], rest = args.slice(1);
                             if (isString(id)) {
-                                res[kv.key] = helper.getSvc.apply(helper, __spreadArrays([id], rest));
+                                res[kv.key] = helper.getSvc.apply(helper, __spreadArray([id], rest));
                             }
                             else {
                                 throw new Error("Invalid expression with key: " + kv.key + "   val: " + kv.val);
@@ -643,7 +644,7 @@ define("jriapp/parsing/helper", ["require", "exports", "jriapp_shared", "jriapp/
                     argsdata[i] = val;
                 }
             }
-            return (_a = bootstrap_1.bootstrap.app).getSvc.apply(_a, __spreadArrays([trimQuotes(id)], argsdata));
+            return (_a = bootstrapper_1.bootstrapper.app).getSvc.apply(_a, __spreadArray([trimQuotes(id)], argsdata));
         };
         Helper.isGetExpr = function (val) {
             return !!val && int_1.getRX.test(val);
@@ -658,7 +659,7 @@ define("jriapp/parsing/helper", ["require", "exports", "jriapp_shared", "jriapp/
             });
         };
         Helper.getOptions = function (id) {
-            return bootstrap_1.bootstrap.app.getOptions(trimQuotes(id));
+            return bootstrapper_1.bootstrapper.app.getOptions(trimQuotes(id));
         };
         Helper.parseGetExpr = function (parseType, strExpr, dataContext) {
             var parts = helper.getGetParts(strExpr);
@@ -773,7 +774,7 @@ define("jriapp/utils/parser", ["require", "exports", "jriapp_shared", "jriapp/pa
     }());
     exports.Parser = Parser;
 });
-define("jriapp/elview", ["require", "exports", "jriapp_shared", "jriapp/bootstrap", "jriapp/utils/parser"], function (require, exports, jriapp_shared_3, bootstrap_2, parser_1) {
+define("jriapp/elview", ["require", "exports", "jriapp_shared", "jriapp/bootstrapper", "jriapp/utils/parser"], function (require, exports, jriapp_shared_3, bootstrapper_2, parser_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createElViewRegister = exports.createElViewFactory = void 0;
@@ -795,15 +796,15 @@ define("jriapp/elview", ["require", "exports", "jriapp_shared", "jriapp/bootstra
             this._exports = Indexer();
         };
         ElViewRegister.prototype.registerElView = function (name, vwType) {
-            if (!bootstrap_2.getObject(this, name)) {
-                bootstrap_2.registerObject(this, name, vwType);
+            if (!bootstrapper_2.getObject(this, name)) {
+                bootstrapper_2.registerObject(this, name, vwType);
             }
             else {
                 throw new Error(utils.str.format(ERRS.ERR_OBJ_ALREADY_REGISTERED, name));
             }
         };
         ElViewRegister.prototype.getElViewType = function (name) {
-            var res = bootstrap_2.getObject(this, name);
+            var res = bootstrapper_2.getObject(this, name);
             if (!res && !!this._next) {
                 res = this._next.getElViewType(name);
             }
@@ -1097,7 +1098,7 @@ define("jriapp/utils/tloader", ["require", "exports", "jriapp_shared"], function
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TemplateLoader = exports.registerTemplateGroup = exports.registerLoader = exports.getLoader = void 0;
-    var utils = jriapp_shared_6.Utils, isFunc = utils.check.isFunc, _a = utils.core, getValue = _a.getValue, setValue = _a.setValue, format = utils.str.format, _b = utils.defer, createDeferred = _b.createDeferred, reject = _b.reject, ERRS = jriapp_shared_6.LocaleERRS, DEBUG = utils.debug, LOG = utils.log;
+    var utils = jriapp_shared_6.Utils, isFunc = utils.check.isFunc, _a = utils.core, getValue = _a.getValue, setValue = _a.setValue, format = utils.str.format, _b = utils.async, createDeferred = _b.createDeferred, reject = _b.reject, ERRS = jriapp_shared_6.LocaleERRS, DEBUG = utils.debug, LOG = utils.log;
     var LOADER_EVENTS;
     (function (LOADER_EVENTS) {
         LOADER_EVENTS["loaded"] = "loaded";
@@ -1975,11 +1976,11 @@ define("jriapp/utils/path", ["require", "exports", "jriapp_shared", "jriapp/util
     }());
     exports.PathHelper = PathHelper;
 });
-define("jriapp/utils/sloader", ["require", "exports", "jriapp_shared", "jriapp_shared/utils/async", "jriapp/utils/dom", "jriapp/utils/path"], function (require, exports, jriapp_shared_10, async_1, dom_2, path_1) {
+define("jriapp/utils/sloader", ["require", "exports", "jriapp_shared", "jriapp_shared/utils/asyncutils", "jriapp/utils/dom", "jriapp/utils/path"], function (require, exports, jriapp_shared_10, asyncutils_1, dom_2, path_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createCssLoader = exports.frameworkCss = void 0;
-    var _resolve = async_1.AsyncUtils.resolve, _whenAll = async_1.AsyncUtils.whenAll, createDeferred = async_1.AsyncUtils.createDeferred, utils = jriapp_shared_10.Utils, dom = dom_2.DomUtils, arrHelper = utils.arr, doc = dom.document, head = doc.head || doc.getElementsByTagName("head")[0];
+    var _resolve = asyncutils_1.AsyncUtils.resolve, _whenAll = asyncutils_1.AsyncUtils.whenAll, createDeferred = asyncutils_1.AsyncUtils.createDeferred, utils = jriapp_shared_10.Utils, dom = dom_2.DomUtils, arrHelper = utils.arr, doc = dom.document, head = doc.head || doc.getElementsByTagName("head")[0];
     var _stylesLoader = null;
     exports.frameworkCss = "jriapp.css";
     function createCssLoader() {
@@ -2083,19 +2084,20 @@ define("jriapp/utils/sloader", ["require", "exports", "jriapp_shared", "jriapp_s
         };
         StylesLoader.prototype.whenAllLoaded = function () {
             var obj = this._loadedCSS, names = Object.keys(obj), promises = [];
-            for (var i = 0; i < names.length; i += 1) {
-                promises.push(obj[names[i]]);
+            for (var _i = 0, names_1 = names; _i < names_1.length; _i++) {
+                var name_1 = names_1[_i];
+                promises.push(obj[name_1]);
             }
             return whenAll(promises);
         };
         return StylesLoader;
     }());
 });
-define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elview", "jriapp/content", "jriapp/defaults", "jriapp/utils/tloader", "jriapp/utils/sloader", "jriapp/utils/path", "jriapp/utils/dom", "jriapp_shared/utils/queue", "jriapp/parsing/helper"], function (require, exports, jriapp_shared_11, elview_1, content_1, defaults_1, tloader_1, sloader_1, path_2, dom_3, queue_1, helper_2) {
+define("jriapp/bootstrapper", ["require", "exports", "jriapp_shared", "jriapp/elview", "jriapp/content", "jriapp/defaults", "jriapp/utils/tloader", "jriapp/utils/sloader", "jriapp/utils/path", "jriapp/utils/dom", "jriapp_shared/utils/queue", "jriapp/parsing/helper"], function (require, exports, jriapp_shared_11, elview_1, content_1, defaults_1, tloader_1, sloader_1, path_2, dom_3, queue_1, helper_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.bootstrap = exports.Bootstrap = exports.getObject = exports.unregisterObject = exports.registerObject = exports.getOptions = exports.getSvc = exports.unregisterSvc = exports.registerSvc = exports.getConverter = exports.registerConverter = exports.BootstrapState = exports.selectableProviderWeakMap = exports.subscribeWeakMap = void 0;
-    var utils = jriapp_shared_11.Utils, dom = dom_3.DomUtils, win = dom.window, doc = win.document, isFunc = utils.check.isFunc, _a = utils.defer, createDeferred = _a.createDeferred, delay = _a.delay, resolve = _a.resolve, _b = utils.core, forEach = _b.forEach, getNewID = _b.getNewID, getValue = _b.getValue, setValue = _b.setValue, removeValue = _b.removeValue, Indexer = _b.Indexer, fromList = utils.arr.fromList, _c = utils.str, format = _c.format, fastTrim = _c.fastTrim, ERROR = utils.err, ERRS = jriapp_shared_11.LocaleERRS, isGetExpr = helper_2.Helper.isGetExpr, getGetParts = helper_2.Helper.getGetParts, getBraceContent = helper_2.Helper.getBraceContent;
+    exports.bootstrapper = exports.Bootstrapper = exports.getObject = exports.unregisterObject = exports.registerObject = exports.getOptions = exports.getSvc = exports.unregisterSvc = exports.registerSvc = exports.getConverter = exports.registerConverter = exports.StartupState = exports.selectableProviderWeakMap = exports.subscribeWeakMap = void 0;
+    var utils = jriapp_shared_11.Utils, dom = dom_3.DomUtils, win = dom.window, doc = win.document, isFunc = utils.check.isFunc, _a = utils.async, createDeferred = _a.createDeferred, delay = _a.delay, resolve = _a.resolve, _b = utils.core, forEach = _b.forEach, getNewID = _b.getNewID, getValue = _b.getValue, setValue = _b.setValue, removeValue = _b.removeValue, Indexer = _b.Indexer, fromList = utils.arr.fromList, _c = utils.str, format = _c.format, fastTrim = _c.fastTrim, ERROR = utils.err, ERRS = jriapp_shared_11.LocaleERRS, isGetExpr = helper_2.Helper.isGetExpr, getGetParts = helper_2.Helper.getGetParts, getBraceContent = helper_2.Helper.getBraceContent;
     exports.subscribeWeakMap = jriapp_shared_11.createWeakMap(), exports.selectableProviderWeakMap = jriapp_shared_11.createWeakMap();
     (function () {
         var win = dom.window;
@@ -2125,7 +2127,8 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
         change: 2,
         keypress: 3,
         keydown: 4,
-        keyup: 5
+        keyup: 5,
+        input: 6
     };
     var GLOB_EVENTS;
     (function (GLOB_EVENTS) {
@@ -2133,15 +2136,15 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
         GLOB_EVENTS["unload"] = "unload";
         GLOB_EVENTS["initialized"] = "initialize";
     })(GLOB_EVENTS || (GLOB_EVENTS = {}));
-    var BootstrapState;
-    (function (BootstrapState) {
-        BootstrapState[BootstrapState["None"] = 0] = "None";
-        BootstrapState[BootstrapState["Initializing"] = 1] = "Initializing";
-        BootstrapState[BootstrapState["Initialized"] = 2] = "Initialized";
-        BootstrapState[BootstrapState["Ready"] = 3] = "Ready";
-        BootstrapState[BootstrapState["Error"] = 4] = "Error";
-        BootstrapState[BootstrapState["Disposed"] = 5] = "Disposed";
-    })(BootstrapState = exports.BootstrapState || (exports.BootstrapState = {}));
+    var StartupState;
+    (function (StartupState) {
+        StartupState[StartupState["None"] = 0] = "None";
+        StartupState[StartupState["Initializing"] = 1] = "Initializing";
+        StartupState[StartupState["Initialized"] = 2] = "Initialized";
+        StartupState[StartupState["Ready"] = 3] = "Ready";
+        StartupState[StartupState["Error"] = 4] = "Error";
+        StartupState[StartupState["Disposed"] = 5] = "Disposed";
+    })(StartupState = exports.StartupState || (exports.StartupState = {}));
     var _ObjectEvents = (function (_super) {
         __extends(_ObjectEvents, _super);
         function _ObjectEvents() {
@@ -2247,9 +2250,9 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
         }
         var hashMap = Indexer();
         for (var _a = 0, result_1 = result; _a < result_1.length; _a++) {
-            var name_1 = result_1[_a];
-            if (!!name_1) {
-                var _name = fastTrim(name_1);
+            var name_2 = result_1[_a];
+            if (!!name_2) {
+                var _name = fastTrim(name_2);
                 if (!!_name) {
                     hashMap[_name] = _name;
                 }
@@ -2257,12 +2260,12 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
         }
         return Object.keys(hashMap);
     }
-    var Bootstrap = (function (_super) {
-        __extends(Bootstrap, _super);
-        function Bootstrap() {
+    var Bootstrapper = (function (_super) {
+        __extends(Bootstrapper, _super);
+        function Bootstrapper() {
             var _this = _super.call(this) || this;
             var self = _this;
-            if (!!exports.bootstrap) {
+            if (!!exports.bootstrapper) {
                 throw new Error(ERRS.ERR_GLOBAL_SINGLTON);
             }
             _this._bootState = 0;
@@ -2298,12 +2301,12 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
             ERROR.addHandler("*", _this);
             return _this;
         }
-        Bootstrap._initFramework = function () {
+        Bootstrapper._initFramework = function () {
             dom.ready(function () {
-                exports.bootstrap._getInternal().initialize();
+                exports.bootstrapper._getInternal().initialize();
             });
         };
-        Bootstrap.prototype.dispose = function () {
+        Bootstrapper.prototype.dispose = function () {
             if (this.getIsDisposed()) {
                 return;
             }
@@ -2327,7 +2330,7 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
             this._bootState = 5;
             _super.prototype.dispose.call(this);
         };
-        Bootstrap.prototype._bindGlobalEvents = function () {
+        Bootstrapper.prototype._bindGlobalEvents = function () {
             var _this = this;
             var self = this, subscribeMap = exports.subscribeWeakMap, selectableMap = exports.selectableProviderWeakMap;
             dom.events.on(doc, "click", function (e) {
@@ -2384,44 +2387,44 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
                 return false;
             };
         };
-        Bootstrap.prototype._onTemplateLoaded = function (html, owner) {
+        Bootstrapper.prototype._onTemplateLoaded = function (html, owner) {
             var divEl = doc.createElement("div");
             divEl.innerHTML = html;
             this._processOptions(owner, divEl);
             this._processTemplates(owner, divEl);
         };
-        Bootstrap.prototype._processOptions = function (owner, root) {
+        Bootstrapper.prototype._processOptions = function (owner, root) {
             var jsons = dom.queryAll(root, _OPTION_SELECTOR);
             for (var _i = 0, jsons_1 = jsons; _i < jsons_1.length; _i++) {
                 var el = jsons_1[_i];
-                var name_2 = el.getAttribute("id");
-                if (!name_2) {
+                var name_3 = el.getAttribute("id");
+                if (!name_3) {
                     throw new Error(ERRS.ERR_OPTIONS_HAS_NO_ID);
                 }
-                registerOptions(owner, name_2, el.innerHTML);
+                registerOptions(owner, name_3, el.innerHTML);
             }
         };
-        Bootstrap.prototype._processTemplates = function (owner, root) {
+        Bootstrapper.prototype._processTemplates = function (owner, root) {
             var self = this, templates = dom.queryAll(root, _TEMPLATE_SELECTOR);
             for (var _i = 0, templates_1 = templates; _i < templates_1.length; _i++) {
                 var el = templates_1[_i];
-                var name_3 = el.getAttribute("id");
-                if (!name_3) {
+                var name_4 = el.getAttribute("id");
+                if (!name_4) {
                     throw new Error(ERRS.ERR_TEMPLATE_HAS_NO_ID);
                 }
                 var html = el.innerHTML;
-                self._processTemplate(owner, name_3, html);
+                self._processTemplate(owner, name_4, html);
             }
         };
-        Bootstrap.prototype._processTemplate = function (owner, name, html) {
+        Bootstrapper.prototype._processTemplate = function (owner, name, html) {
             var frag = dom.getDocFragment(fastTrim(html)), required = getRequiredModules(frag);
             var res = resolve({ doc: frag, required: required }, true), loader = function () { return res; };
             tloader_1.registerLoader(owner, name, loader);
         };
-        Bootstrap.prototype._createObjEvents = function () {
+        Bootstrapper.prototype._createObjEvents = function () {
             return new _ObjectEvents(this);
         };
-        Bootstrap.prototype._init = function () {
+        Bootstrapper.prototype._init = function () {
             var self = this;
             var promise = self.stylesLoader.whenAllLoaded().then(function () {
                 if (self._bootState !== 0) {
@@ -2453,7 +2456,7 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
             });
             return res;
         };
-        Bootstrap.prototype._initialize = function () {
+        Bootstrapper.prototype._initialize = function () {
             var _this = this;
             var self = this;
             return self._init().then(function (_) {
@@ -2463,14 +2466,14 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
                 return ERROR.reThrow(err, _this.handleError(err, self));
             });
         };
-        Bootstrap.prototype._registerApp = function (app) {
+        Bootstrapper.prototype._registerApp = function (app) {
             if (!!this._app) {
                 throw new Error("Application already registered");
             }
             this._app = app;
             ERROR.addHandler(app.appName, app);
         };
-        Bootstrap.prototype._unregisterApp = function (app) {
+        Bootstrapper.prototype._unregisterApp = function (app) {
             if (!this._app || this._app.appName !== app.appName) {
                 throw new Error("Invalid operation");
             }
@@ -2481,13 +2484,13 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
                 this._app = null;
             }
         };
-        Bootstrap.prototype._destroyApp = function () {
+        Bootstrapper.prototype._destroyApp = function () {
             var self = this, app = self._app;
             if (!!app && !app.getIsStateDirty()) {
                 app.dispose();
             }
         };
-        Bootstrap.prototype._waitLoaded = function (onLoad) {
+        Bootstrapper.prototype._waitLoaded = function (onLoad) {
             var self = this;
             self.init(function () {
                 self.addOnLoad(function () {
@@ -2502,41 +2505,41 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
                 });
             });
         };
-        Bootstrap.prototype._getInternal = function () {
+        Bootstrapper.prototype._getInternal = function () {
             return this._internal;
         };
-        Bootstrap.prototype.addOnDisposed = function (handler, nmspace, context) {
+        Bootstrapper.prototype.addOnDisposed = function (handler, nmspace, context) {
             this.objEvents.addOnDisposed(handler, nmspace, context);
         };
-        Bootstrap.prototype.offOnDisposed = function (nmspace) {
+        Bootstrapper.prototype.offOnDisposed = function (nmspace) {
             this.objEvents.offOnDisposed(nmspace);
         };
-        Bootstrap.prototype.addOnError = function (handler, nmspace, context) {
+        Bootstrapper.prototype.addOnError = function (handler, nmspace, context) {
             this.objEvents.addOnError(handler, nmspace, context);
         };
-        Bootstrap.prototype.offOnError = function (nmspace) {
+        Bootstrapper.prototype.offOnError = function (nmspace) {
             this.objEvents.offOnError(nmspace);
         };
-        Bootstrap.prototype.addOnLoad = function (fn, nmspace, context) {
+        Bootstrapper.prototype.addOnLoad = function (fn, nmspace, context) {
             this.objEvents.on("load", fn, nmspace, context);
         };
-        Bootstrap.prototype.addOnUnLoad = function (fn, nmspace, context) {
+        Bootstrapper.prototype.addOnUnLoad = function (fn, nmspace, context) {
             this.objEvents.on("unload", fn, nmspace, context);
         };
-        Bootstrap.prototype.addOnInitialize = function (fn, nmspace, context) {
+        Bootstrapper.prototype.addOnInitialize = function (fn, nmspace, context) {
             this.objEvents.on("initialize", fn, nmspace, context);
         };
-        Bootstrap.prototype.addModuleInit = function (fn) {
+        Bootstrapper.prototype.addModuleInit = function (fn) {
             if (this._moduleInits.filter(function (val) { return val === fn; }).length === 0) {
                 this._moduleInits.push(fn);
                 return true;
             }
             return false;
         };
-        Bootstrap.prototype.getData = function () {
+        Bootstrapper.prototype.getData = function () {
             return this._extraData;
         };
-        Bootstrap.prototype.init = function (onInit) {
+        Bootstrapper.prototype.init = function (onInit) {
             var self = this;
             self.addOnInitialize(function () {
                 setTimeout(function () {
@@ -2549,7 +2552,7 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
                 }, 0);
             });
         };
-        Bootstrap.prototype.startApp = function (appFactory, onStartUp) {
+        Bootstrapper.prototype.startApp = function (appFactory, onStartUp) {
             var self = this, deferred = createDeferred(), promise = deferred.promise();
             self._waitLoaded(function () {
                 try {
@@ -2567,82 +2570,82 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
             });
             return res;
         };
-        Bootstrap.prototype.registerSvc = function (name, obj) {
+        Bootstrapper.prototype.registerSvc = function (name, obj) {
             registerSvc(this, name, obj);
         };
-        Bootstrap.prototype.unregisterSvc = function (name) {
+        Bootstrapper.prototype.unregisterSvc = function (name) {
             unregisterSvc(this, name);
         };
-        Bootstrap.prototype.getSvc = function (name) {
+        Bootstrapper.prototype.getSvc = function (name) {
             var args = [];
             for (var _i = 1; _i < arguments.length; _i++) {
                 args[_i - 1] = arguments[_i];
             }
-            var obj = getSvc.apply(void 0, __spreadArrays([this, name], args));
+            var obj = getSvc.apply(void 0, __spreadArray([this, name], args));
             if (!obj) {
                 throw new Error("The service: " + name + " is not registered");
             }
             return obj;
         };
-        Bootstrap.prototype.getOptions = function (name) {
+        Bootstrapper.prototype.getOptions = function (name) {
             var res = getOptions(this, name);
             if (!res) {
                 throw new Error(format(ERRS.ERR_OPTIONS_NOTREGISTERED, name));
             }
             return res;
         };
-        Bootstrap.prototype.registerConverter = function (name, obj) {
+        Bootstrapper.prototype.registerConverter = function (name, obj) {
             registerConverter(this, name, obj);
         };
-        Bootstrap.prototype.registerElView = function (name, elViewType) {
+        Bootstrapper.prototype.registerElView = function (name, elViewType) {
             this._elViewRegister.registerElView(name, elViewType);
         };
-        Bootstrap.prototype.getImagePath = function (imageName) {
+        Bootstrapper.prototype.getImagePath = function (imageName) {
             var images = this.defaults.imagesPath;
             return images + imageName;
         };
-        Bootstrap.prototype.loadOwnStyle = function (name) {
+        Bootstrapper.prototype.loadOwnStyle = function (name) {
             return this.stylesLoader.loadOwnStyle(name);
         };
-        Bootstrap.prototype.toString = function () {
+        Bootstrapper.prototype.toString = function () {
             return "JRIApp Bootstrap";
         };
-        Object.defineProperty(Bootstrap.prototype, "app", {
+        Object.defineProperty(Bootstrapper.prototype, "app", {
             get: function () {
                 return this._app;
             },
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(Bootstrap.prototype, "stylesLoader", {
+        Object.defineProperty(Bootstrapper.prototype, "stylesLoader", {
             get: function () {
                 return _stylesLoader;
             },
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(Bootstrap.prototype, "elViewRegister", {
+        Object.defineProperty(Bootstrapper.prototype, "elViewRegister", {
             get: function () {
                 return this._elViewRegister;
             },
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(Bootstrap.prototype, "contentFactory", {
+        Object.defineProperty(Bootstrapper.prototype, "contentFactory", {
             get: function () {
                 return this._contentFactory;
             },
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(Bootstrap.prototype, "templateLoader", {
+        Object.defineProperty(Bootstrapper.prototype, "templateLoader", {
             get: function () {
                 return this._templateLoader;
             },
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(Bootstrap.prototype, "selectedControl", {
+        Object.defineProperty(Bootstrapper.prototype, "selectedControl", {
             get: function () {
                 return this._selectedControl;
             },
@@ -2655,31 +2658,31 @@ define("jriapp/bootstrap", ["require", "exports", "jriapp_shared", "jriapp/elvie
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(Bootstrap.prototype, "defaults", {
+        Object.defineProperty(Bootstrapper.prototype, "defaults", {
             get: function () {
                 return this._defaults;
             },
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(Bootstrap.prototype, "isReady", {
+        Object.defineProperty(Bootstrapper.prototype, "isReady", {
             get: function () {
                 return this._bootState === 3;
             },
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(Bootstrap.prototype, "state", {
+        Object.defineProperty(Bootstrapper.prototype, "state", {
             get: function () {
                 return this._bootState;
             },
             enumerable: false,
             configurable: true
         });
-        return Bootstrap;
+        return Bootstrapper;
     }(jriapp_shared_11.BaseObject));
-    exports.Bootstrap = Bootstrap;
-    exports.bootstrap = new Bootstrap();
+    exports.Bootstrapper = Bootstrapper;
+    exports.bootstrapper = new Bootstrapper();
 });
 define("jriapp/utils/viewchecks", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -2704,11 +2707,11 @@ define("jriapp/utils/viewchecks", ["require", "exports"], function (require, exp
     }());
     exports.ViewChecks = ViewChecks;
 });
-define("jriapp/converter", ["require", "exports", "jriapp_shared", "jriapp/bootstrap"], function (require, exports, jriapp_shared_12, bootstrap_3) {
+define("jriapp/converter", ["require", "exports", "jriapp_shared", "jriapp/bootstrapper"], function (require, exports, jriapp_shared_12, bootstrapper_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NotConverter = exports.FloatConverter = exports.DecimalConverter = exports.SmallIntConverter = exports.IntegerConverter = exports.NumberConverter = exports.DateTimeConverter = exports.DateConverter = exports.baseConverter = exports.BaseConverter = exports.NUM_CONV = void 0;
-    var utils = jriapp_shared_12.Utils, _a = utils.check, isNt = _a.isNt, isNumber = _a.isNumber, _b = utils.str, format = _b.format, stripNonNumeric = _b.stripNonNumeric, formatNumber = _b.formatNumber, round = utils.core.round, _c = utils.dates, strToDate = _c.strToDate, dateToStr = _c.dateToStr, boot = bootstrap_3.bootstrap, ERRS = jriapp_shared_12.LocaleERRS;
+    var utils = jriapp_shared_12.Utils, _a = utils.check, isNt = _a.isNt, isNumber = _a.isNumber, _b = utils.str, format = _b.format, stripNonNumeric = _b.stripNonNumeric, formatNumber = _b.formatNumber, round = utils.core.round, _c = utils.dates, strToDate = _c.strToDate, dateToStr = _c.dateToStr, boot = bootstrapper_3.bootstrapper, ERRS = jriapp_shared_12.LocaleERRS;
     exports.NUM_CONV = { None: 0, Integer: 1, Decimal: 2, Float: 3, SmallInt: 4 };
     var BaseConverter = (function () {
         function BaseConverter() {
@@ -2770,7 +2773,7 @@ define("jriapp/converter", ["require", "exports", "jriapp_shared", "jriapp/boots
             if (isNt(val)) {
                 return null;
             }
-            var defaults = bootstrap_3.bootstrap.defaults, dp = defaults.decimalPoint, thousandSep = defaults.thousandSep;
+            var defaults = bootstrapper_3.bootstrapper.defaults, dp = defaults.decimalPoint, thousandSep = defaults.thousandSep;
             var prec = 4;
             var value = val.replace(thousandSep, "");
             value = value.replace(dp, ".");
@@ -2806,7 +2809,7 @@ define("jriapp/converter", ["require", "exports", "jriapp_shared", "jriapp/boots
             if (isNt(val)) {
                 return "";
             }
-            var defaults = bootstrap_3.bootstrap.defaults, dp = defaults.decimalPoint, thousandSep = defaults.thousandSep;
+            var defaults = bootstrapper_3.bootstrapper.defaults, dp = defaults.decimalPoint, thousandSep = defaults.thousandSep;
             var prec;
             switch (param) {
                 case exports.NUM_CONV.Integer:
@@ -2918,12 +2921,12 @@ define("jriapp/converter", ["require", "exports", "jriapp_shared", "jriapp/boots
     boot.registerConverter("floatConverter", floatConverter);
     boot.registerConverter("notConverter", notConverter);
 });
-define("jriapp/binding", ["require", "exports", "jriapp_shared", "jriapp/bootstrap"], function (require, exports, jriapp_shared_13, bootstrap_4) {
+define("jriapp/binding", ["require", "exports", "jriapp_shared", "jriapp/bootstrapper"], function (require, exports, jriapp_shared_13, bootstrapper_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Binding = exports.getBindingOptions = void 0;
     var utils = jriapp_shared_13.Utils, _a = utils.check, isString = _a.isString, isUndefined = _a.isUndefined, isNt = _a.isNt, _undefined = _a._undefined, isHasProp = _a.isHasProp, format = utils.str.format, _b = utils.core, getNewID = _b.getNewID, forEach = _b.forEach, Indexer = _b.Indexer, sys = utils.sys, debug = utils.debug, log = utils.log, ERRS = jriapp_shared_13.LocaleERRS;
-    var resolvePath = sys.resolvePath, getPathParts = sys.getPathParts, getErrorNotification = sys.getErrorNotification, getProp = sys.getProp, setProp = sys.setProp, boot = bootstrap_4.bootstrap;
+    var resolvePath = sys.resolvePath, getPathParts = sys.getPathParts, getErrorNotification = sys.getErrorNotification, getProp = sys.getProp, setProp = sys.setProp, boot = bootstrapper_4.bootstrapper;
     sys.isBinding = function (obj) {
         return (!!obj && obj instanceof Binding);
     };
@@ -3639,11 +3642,11 @@ define("jriapp/binding", ["require", "exports", "jriapp_shared", "jriapp/bootstr
     }(jriapp_shared_13.BaseObject));
     exports.Binding = Binding;
 });
-define("jriapp/template", ["require", "exports", "jriapp_shared", "jriapp/bootstrap", "jriapp/utils/viewchecks", "jriapp/utils/dom"], function (require, exports, jriapp_shared_14, bootstrap_5, viewchecks_1, dom_4) {
+define("jriapp/template", ["require", "exports", "jriapp_shared", "jriapp/bootstrapper", "jriapp/utils/viewchecks", "jriapp/utils/dom"], function (require, exports, jriapp_shared_14, bootstrapper_5, viewchecks_1, dom_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createTemplate = exports.css = void 0;
-    var utils = jriapp_shared_14.Utils, reject = utils.defer.reject, dom = dom_4.DomUtils, viewChecks = viewchecks_1.ViewChecks, _a = utils.check, isFunc = _a.isFunc, isThenable = _a.isThenable, format = utils.str.format, arrHelper = utils.arr, sys = utils.sys, boot = bootstrap_5.bootstrap, ERRS = jriapp_shared_14.LocaleERRS, ERROR = utils.err, doc = dom.document;
+    var utils = jriapp_shared_14.Utils, reject = utils.async.reject, dom = dom_4.DomUtils, viewChecks = viewchecks_1.ViewChecks, _a = utils.check, isFunc = _a.isFunc, isThenable = _a.isThenable, format = utils.str.format, arrHelper = utils.arr, sys = utils.sys, boot = bootstrapper_5.bootstrapper, ERRS = jriapp_shared_14.LocaleERRS, ERROR = utils.err, doc = dom.document;
     var css;
     (function (css) {
         css["templateContainer"] = "ria-template-container";
@@ -3903,7 +3906,7 @@ define("jriapp/template", ["require", "exports", "jriapp_shared", "jriapp/bootst
         });
         Object.defineProperty(Template.prototype, "app", {
             get: function () {
-                return bootstrap_5.bootstrap.app;
+                return bootstrapper_5.bootstrapper.app;
             },
             enumerable: false,
             configurable: true
@@ -4172,7 +4175,7 @@ define("jriapp/utils/mloader", ["require", "exports", "jriapp_shared", "jriapp/i
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.create = void 0;
-    var utils = jriapp_shared_18.Utils, _a = utils.core, forEach = _a.forEach, Indexer = _a.Indexer, startsWith = utils.str.startsWith, _b = utils.defer, _reject = _b.reject, _resolve = _b.resolve, _whenAll = _b.whenAll, createDeferred = _b.createDeferred, arrHelper = utils.arr, CSSPrefix = "css!";
+    var utils = jriapp_shared_18.Utils, _a = utils.core, forEach = _a.forEach, Indexer = _a.Indexer, startsWith = utils.str.startsWith, _b = utils.async, _reject = _b.reject, _resolve = _b.resolve, _whenAll = _b.whenAll, createDeferred = _b.createDeferred, arrHelper = utils.arr, CSSPrefix = "css!";
     var _moduleLoader = null;
     function create() {
         if (!_moduleLoader) {
@@ -4308,7 +4311,7 @@ define("jriapp/databindsvc", ["require", "exports", "jriapp_shared", "jriapp/uti
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createDataBindSvc = void 0;
-    var utils = jriapp_shared_19.Utils, createDeferred = utils.defer.createDeferred, viewChecks = viewchecks_2.ViewChecks, dom = dom_5.DomUtils, startsWith = utils.str.startsWith, parser = parser_2.Parser, forEach = utils.core.forEach, toMap = utils.arr.toMap;
+    var utils = jriapp_shared_19.Utils, createDeferred = utils.async.createDeferred, viewChecks = viewchecks_2.ViewChecks, dom = dom_5.DomUtils, startsWith = utils.str.startsWith, parser = parser_2.Parser, forEach = utils.core.forEach, toMap = utils.arr.toMap;
     function createDataBindSvc(app) {
         return new DataBindingService(app);
     }
@@ -4391,14 +4394,20 @@ define("jriapp/databindsvc", ["require", "exports", "jriapp_shared", "jriapp/uti
             }
         };
         DataBindingService.prototype._bindElView = function (args) {
-            var self = this;
-            var bindings = args.bind.bindings;
-            if (!!bindings && bindings.length > 0) {
-                var bindInfos = parser.parseBindings(bindings), len = bindInfos.length;
-                for (var j = 0; j < len; j += 1) {
-                    var op = binding_1.getBindingOptions(bindInfos[j], args.bind.elView, args.dataContext);
-                    var binding = self.bind(op);
-                    args.lftm.addObj(binding);
+            var self = this, _a = args.bind, elView = _a.elView, bindings = _a.bindings, dataContext = args.dataContext;
+            if ((bindings === null || bindings === void 0 ? void 0 : bindings.length) > 0) {
+                var bindInfos = parser.parseBindings(bindings);
+                try {
+                    elView.bindingState = 1;
+                    for (var _i = 0, bindInfos_1 = bindInfos; _i < bindInfos_1.length; _i++) {
+                        var bindInfo = bindInfos_1[_i];
+                        var op = binding_1.getBindingOptions(bindInfo, elView, dataContext);
+                        var binding = self.bind(op);
+                        args.lftm.addObj(binding);
+                    }
+                }
+                finally {
+                    elView.bindingState = 0;
                 }
             }
         };
@@ -4487,11 +4496,11 @@ define("jriapp/databindsvc", ["require", "exports", "jriapp_shared", "jriapp/uti
         return DataBindingService;
     }(jriapp_shared_19.BaseObject));
 });
-define("jriapp/app", ["require", "exports", "jriapp_shared", "jriapp/bootstrap", "jriapp/utils/dom", "jriapp/utils/tloader", "jriapp/elview", "jriapp/databindsvc"], function (require, exports, jriapp_shared_20, bootstrap_6, dom_6, tloader_2, elview_2, databindsvc_1) {
+define("jriapp/app", ["require", "exports", "jriapp_shared", "jriapp/bootstrapper", "jriapp/utils/dom", "jriapp/utils/tloader", "jriapp/elview", "jriapp/databindsvc"], function (require, exports, jriapp_shared_20, bootstrapper_6, dom_6, tloader_2, elview_2, databindsvc_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Application = void 0;
-    var utils = jriapp_shared_20.Utils, dom = dom_6.DomUtils, doc = dom.document, format = utils.str.format, isThenable = utils.check.isThenable, boot = bootstrap_6.bootstrap, sys = utils.sys, ERRS = jriapp_shared_20.LocaleERRS, _a = utils.core, forEach = _a.forEach, getNewID = _a.getNewID, memoize = _a.memoize, Indexer = _a.Indexer, _b = utils.defer, createDeferred = _b.createDeferred, resolve = _b.resolve, reject = _b.reject, http = utils.http;
+    var utils = jriapp_shared_20.Utils, dom = dom_6.DomUtils, doc = dom.document, format = utils.str.format, isThenable = utils.check.isThenable, boot = bootstrapper_6.bootstrapper, sys = utils.sys, ERRS = jriapp_shared_20.LocaleERRS, _a = utils.core, forEach = _a.forEach, getNewID = _a.getNewID, memoize = _a.memoize, Indexer = _a.Indexer, _b = utils.async, createDeferred = _b.createDeferred, resolve = _b.resolve, reject = _b.reject, http = utils.http;
     var APP_EVENTS;
     (function (APP_EVENTS) {
         APP_EVENTS["startup"] = "startup";
@@ -4627,12 +4636,12 @@ define("jriapp/app", ["require", "exports", "jriapp_shared", "jriapp/bootstrap",
             return this._dataBindingService.bind(opts);
         };
         Application.prototype.registerConverter = function (name, obj) {
-            bootstrap_6.registerConverter(this, name, obj);
+            bootstrapper_6.registerConverter(this, name, obj);
         };
         Application.prototype.getConverter = function (name) {
-            var res = bootstrap_6.getConverter(this, name);
+            var res = bootstrapper_6.getConverter(this, name);
             if (!res) {
-                res = bootstrap_6.getConverter(boot, name);
+                res = bootstrapper_6.getConverter(boot, name);
             }
             if (!res) {
                 throw new Error(format(ERRS.ERR_CONVERTER_NOTREGISTERED, name));
@@ -4640,19 +4649,19 @@ define("jriapp/app", ["require", "exports", "jriapp_shared", "jriapp/bootstrap",
             return res;
         };
         Application.prototype.registerSvc = function (name, obj) {
-            bootstrap_6.registerSvc(this, name, obj);
+            bootstrapper_6.registerSvc(this, name, obj);
         };
         Application.prototype.unregisterSvc = function (name) {
-            bootstrap_6.unregisterSvc(this, name);
+            bootstrapper_6.unregisterSvc(this, name);
         };
         Application.prototype.getSvc = function (name) {
             var args = [];
             for (var _i = 1; _i < arguments.length; _i++) {
                 args[_i - 1] = arguments[_i];
             }
-            var obj = bootstrap_6.getSvc.apply(void 0, __spreadArrays([this, name], args));
+            var obj = bootstrapper_6.getSvc.apply(void 0, __spreadArray([this, name], args));
             if (!obj) {
-                obj = bootstrap_6.getSvc.apply(void 0, __spreadArrays([boot, name], args));
+                obj = bootstrapper_6.getSvc.apply(void 0, __spreadArray([boot, name], args));
             }
             if (!obj) {
                 throw new Error("The service: " + name + " is not registered");
@@ -4666,16 +4675,16 @@ define("jriapp/app", ["require", "exports", "jriapp_shared", "jriapp/bootstrap",
             var self = this, name2 = "obj." + name;
             if (sys.isBaseObj(obj)) {
                 obj.objEvents.addOnDisposed(function () {
-                    bootstrap_6.unregisterObject(self, name2);
+                    bootstrapper_6.unregisterObject(self, name2);
                 }, self.uniqueID);
             }
-            var objMap = bootstrap_6.registerObject(self, name2, obj);
+            var objMap = bootstrapper_6.registerObject(self, name2, obj);
             if (this._objMaps.indexOf(objMap) < 0) {
                 this._objMaps.push(objMap);
             }
         };
         Application.prototype.getObject = function (name) {
-            var name2 = "obj." + name, res = bootstrap_6.getObject(this, name2);
+            var name2 = "obj." + name, res = bootstrapper_6.getObject(this, name2);
             return res;
         };
         Application.prototype.startUp = function (onStartUp) {
@@ -4779,9 +4788,9 @@ define("jriapp/app", ["require", "exports", "jriapp_shared", "jriapp/bootstrap",
             tloader_2.registerTemplateGroup(this, name, group);
         };
         Application.prototype.getOptions = function (name) {
-            var res = bootstrap_6.getOptions(this, name);
+            var res = bootstrapper_6.getOptions(this, name);
             if (!res) {
-                res = bootstrap_6.getOptions(boot, name);
+                res = bootstrapper_6.getOptions(boot, name);
             }
             if (!res) {
                 throw new Error(format(ERRS.ERR_OPTIONS_NOTREGISTERED, name));
@@ -4844,15 +4853,15 @@ define("jriapp/app", ["require", "exports", "jriapp_shared", "jriapp/bootstrap",
     }(jriapp_shared_20.BaseObject));
     exports.Application = Application;
 });
-define("jriapp", ["require", "exports", "jriapp/bootstrap", "jriapp_shared", "jriapp_shared/collection/const", "jriapp_shared/collection/int", "jriapp_shared/utils/jsonbag", "jriapp_shared/utils/deferred", "jriapp/consts", "jriapp/utils/dom", "jriapp/utils/viewchecks", "jriapp/converter", "jriapp/bootstrap", "jriapp/binding", "jriapp/template", "jriapp/utils/lifetime", "jriapp/utils/propwatcher", "jriapp/mvvm", "jriapp/app"], function (require, exports, bootstrap_7, jriapp_shared_21, const_1, int_5, jsonbag_1, deferred_1, consts_1, dom_7, viewchecks_3, converter_1, bootstrap_8, binding_2, template_1, lifetime_2, propwatcher_1, mvvm_1, app_1) {
+define("jriapp", ["require", "exports", "jriapp/bootstrapper", "jriapp_shared", "jriapp_shared/collection/const", "jriapp_shared/collection/int", "jriapp_shared/utils/jsonbag", "jriapp_shared/utils/promise", "jriapp/consts", "jriapp/utils/dom", "jriapp/utils/viewchecks", "jriapp/converter", "jriapp/bootstrapper", "jriapp/binding", "jriapp/template", "jriapp/utils/lifetime", "jriapp/utils/propwatcher", "jriapp/mvvm", "jriapp/app"], function (require, exports, bootstrapper_7, jriapp_shared_21, const_1, int_5, jsonbag_1, promise_2, consts_1, dom_7, viewchecks_3, converter_1, bootstrapper_8, binding_2, template_1, lifetime_2, propwatcher_1, mvvm_1, app_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.VERSION = exports.Application = exports.Command = exports.BaseCommand = exports.ViewModel = exports.PropWatcher = exports.LifeTimeScope = exports.createTemplate = exports.Binding = exports.selectableProviderWeakMap = exports.subscribeWeakMap = exports.bootstrap = exports.BaseConverter = exports.ViewChecks = exports.DOM = exports.SubscribeFlags = exports.BindTo = exports.BINDING_MODE = exports.KEYS = exports.StatefulPromise = void 0;
+    exports.VERSION = exports.Application = exports.Command = exports.BaseCommand = exports.ViewModel = exports.PropWatcher = exports.LifeTimeScope = exports.createTemplate = exports.Binding = exports.selectableProviderWeakMap = exports.subscribeWeakMap = exports.bootstrapper = exports.BaseConverter = exports.ViewChecks = exports.DOM = exports.SubscribeFlags = exports.BindTo = exports.BINDING_MODE = exports.KEYS = exports.StatefulPromise = void 0;
     __exportStar(jriapp_shared_21, exports);
     __exportStar(const_1, exports);
     __exportStar(int_5, exports);
     __exportStar(jsonbag_1, exports);
-    Object.defineProperty(exports, "StatefulPromise", { enumerable: true, get: function () { return deferred_1.StatefulPromise; } });
+    Object.defineProperty(exports, "StatefulPromise", { enumerable: true, get: function () { return promise_2.StatefulPromise; } });
     Object.defineProperty(exports, "KEYS", { enumerable: true, get: function () { return consts_1.KEYS; } });
     Object.defineProperty(exports, "BINDING_MODE", { enumerable: true, get: function () { return consts_1.BINDING_MODE; } });
     Object.defineProperty(exports, "BindTo", { enumerable: true, get: function () { return consts_1.BindTo; } });
@@ -4860,9 +4869,9 @@ define("jriapp", ["require", "exports", "jriapp/bootstrap", "jriapp_shared", "jr
     Object.defineProperty(exports, "DOM", { enumerable: true, get: function () { return dom_7.DomUtils; } });
     Object.defineProperty(exports, "ViewChecks", { enumerable: true, get: function () { return viewchecks_3.ViewChecks; } });
     Object.defineProperty(exports, "BaseConverter", { enumerable: true, get: function () { return converter_1.BaseConverter; } });
-    Object.defineProperty(exports, "bootstrap", { enumerable: true, get: function () { return bootstrap_8.bootstrap; } });
-    Object.defineProperty(exports, "subscribeWeakMap", { enumerable: true, get: function () { return bootstrap_8.subscribeWeakMap; } });
-    Object.defineProperty(exports, "selectableProviderWeakMap", { enumerable: true, get: function () { return bootstrap_8.selectableProviderWeakMap; } });
+    Object.defineProperty(exports, "bootstrapper", { enumerable: true, get: function () { return bootstrapper_8.bootstrapper; } });
+    Object.defineProperty(exports, "subscribeWeakMap", { enumerable: true, get: function () { return bootstrapper_8.subscribeWeakMap; } });
+    Object.defineProperty(exports, "selectableProviderWeakMap", { enumerable: true, get: function () { return bootstrapper_8.selectableProviderWeakMap; } });
     Object.defineProperty(exports, "Binding", { enumerable: true, get: function () { return binding_2.Binding; } });
     Object.defineProperty(exports, "createTemplate", { enumerable: true, get: function () { return template_1.createTemplate; } });
     Object.defineProperty(exports, "LifeTimeScope", { enumerable: true, get: function () { return lifetime_2.LifeTimeScope; } });
@@ -4871,6 +4880,6 @@ define("jriapp", ["require", "exports", "jriapp/bootstrap", "jriapp_shared", "jr
     Object.defineProperty(exports, "BaseCommand", { enumerable: true, get: function () { return mvvm_1.BaseCommand; } });
     Object.defineProperty(exports, "Command", { enumerable: true, get: function () { return mvvm_1.Command; } });
     Object.defineProperty(exports, "Application", { enumerable: true, get: function () { return app_1.Application; } });
-    exports.VERSION = "3.0.4";
-    bootstrap_7.Bootstrap._initFramework();
+    exports.VERSION = "4.0.0";
+    bootstrapper_7.Bootstrapper._initFramework();
 });

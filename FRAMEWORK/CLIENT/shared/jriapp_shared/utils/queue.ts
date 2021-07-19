@@ -1,8 +1,7 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
 import { IIndexer } from "../int";
 import { ERROR } from "./error";
-import { IPromise } from "./ideferred";
-import { createDefer } from "./deferred";
+import { IPromise , createDefer } from "./promise";
 import { CoreUtils } from "./coreutils";
 
 

@@ -2,7 +2,7 @@
 import { IViewOptions } from "jriapp/int";
 import { DomUtils } from "jriapp/utils/dom";
 import { SubscribeFlags } from "jriapp/consts";
-import { bootstrap, subscribeWeakMap } from "jriapp/bootstrap";
+import { bootstrapper, subscribeWeakMap } from "jriapp/bootstrapper";
 import { InputElView } from "./input";
 
 const dom = DomUtils, subscribeMap = subscribeWeakMap;
@@ -13,6 +13,7 @@ const enum TXTBOX_EVENTS {
 
 export interface ITextBoxOptions extends IViewOptions {
     updateOnKeyUp?: boolean;
+    updateOnInput?: boolean;
 }
 
 export type TKeyPressArgs = {
@@ -27,19 +28,39 @@ export class TextBoxElView<TElement extends HTMLInputElement | HTMLTextAreaEleme
         const self = this;
         if (this.isDelegationOn) {
             subscribeMap.set(el, this);
-            this._setIsSubcribed(SubscribeFlags.change);
+
+            if (!!options.updateOnInput) {
+                dom.events.on(el, "input", (e) => {
+                    e.stopPropagation();
+                    self.handle_change(e);
+                }, this.uniqueID);
+            } else {
+                this._setIsSubcribed(SubscribeFlags.change);
+            }
+
             this._setIsSubcribed(SubscribeFlags.keypress);
             if (!!options.updateOnKeyUp) {
                 this._setIsSubcribed(SubscribeFlags.keyup);
             }
         } else {
-            dom.events.on(el, "change", (e) => {
-                e.stopPropagation();
-                self.handle_change(e);
-            }, this.uniqueID);
             dom.events.on(el, "keypress", (e) => {
                 self.handle_keypress(e);
             }, this.uniqueID);
+
+            if (!!options.updateOnInput) {
+                dom.events.on(el, "input", (e) => {
+                    e.stopPropagation();
+                    self.handle_change(e);
+                }, this.uniqueID);
+            }
+            else
+            {
+                dom.events.on(el, "change", (e) => {
+                    e.stopPropagation();
+                    self.handle_change(e);
+                }, this.uniqueID);
+            }
+
             if (!!options.updateOnKeyUp) {
                 dom.events.on(el, "keyup", (e) => {
                     self.handle_keyup(e);
@@ -89,4 +110,4 @@ export class TextBoxElView<TElement extends HTMLInputElement | HTMLTextAreaEleme
     }
 }
 
-bootstrap.registerElView("input:text", TextBoxElView);
+bootstrapper.registerElView("input:text", TextBoxElView);

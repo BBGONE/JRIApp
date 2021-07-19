@@ -258,6 +258,9 @@ export class Row extends BaseObject {
     get actionsCell(): ActionsCell {
         return this._actionsCell;
     }
+    get rowSelectorCell(): RowSelectorCell {
+        return this._rowSelectorCell;
+    }
     get isDeleted(): boolean {
         return this._isDeleted;
     }

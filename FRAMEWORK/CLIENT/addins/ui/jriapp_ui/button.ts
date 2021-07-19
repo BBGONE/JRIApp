@@ -1,10 +1,10 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
 import { DomUtils } from "jriapp/utils/dom";
 import { SubscribeFlags } from "jriapp/consts";
-import { bootstrap, subscribeWeakMap } from "jriapp/bootstrap";
+import { bootstrapper, subscribeWeakMap } from "jriapp/bootstrapper";
 import { CommandElView, ICommandViewOptions } from "./command";
 
-const boot = bootstrap, dom = DomUtils, subscribeMap = subscribeWeakMap;
+const boot = bootstrapper, dom = DomUtils, subscribeMap = subscribeWeakMap;
 
 export class ButtonElView extends CommandElView<HTMLButtonElement | HTMLInputElement> {
     private _isButton: boolean;

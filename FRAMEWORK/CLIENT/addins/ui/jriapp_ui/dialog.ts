@@ -1,17 +1,17 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
 import {
-    Utils, IBaseObject, IVoidPromise, IEditable, TEventHandler, IDeferred, IPromise, LocaleSTRS as STRS, BaseObject
+    Utils, IBaseObject, IPromise, IEditable, TEventHandler, IDeferred, LocaleSTRS as STRS, BaseObject
 } from "jriapp_shared";
 import { $ } from "./utils/jquery";
 import { DomUtils } from "jriapp/utils/dom";
 import { ITemplate, ITemplateEvents, IApplication, ISelectableProvider } from "jriapp/int";
 import { createTemplate } from "jriapp/template";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { ViewModel } from "jriapp/mvvm";
 
 const utils = Utils, { _undefined, isFunc } = utils.check, { format } = utils.str,
-    { extend, getNewID } = utils.core, sys = utils.sys, _async = utils.defer, dom = DomUtils, doc = dom.document,
-    ERROR = utils.err, boot = bootstrap;
+    { extend, getNewID, Indexer } = utils.core, sys = utils.sys, _async = utils.async, dom = DomUtils, doc = dom.document,
+    ERROR = utils.err, boot = bootstrapper;
 
 export const enum DIALOG_ACTION { Default = 0, StayOpen = 1 };
 
@@ -66,7 +66,7 @@ class SubmitInfo {
         this._submitError = false;
         this._editable = sys.getEditable(this._dataContext);
     }
-    submit(): IVoidPromise {
+    submit(): IPromise {
         const self = this, submittable = sys.getSubmittable(this._dataContext);
         if (!submittable || !submittable.isCanSubmit) {
             // signals immediatly
@@ -129,7 +129,7 @@ export class DataEditDialog extends BaseObject implements ITemplateEvents {
     private _result: TResult;
     private _options: IDialogOptions;
     private _submitInfo: SubmitInfo;
-    // saves the bootstrap's selectedControl  before showing and restore it on dialog's closing
+    // saves the bootstrapper's selectedControl  before showing and restore it on dialog's closing
     private _selectedControl: ISelectableProvider;
     private _deferredTemplate: IDeferred<ITemplate>;
 
@@ -186,7 +186,7 @@ export class DataEditDialog extends BaseObject implements ITemplateEvents {
             },
             buttons: self._getButtons()
         };
-        this._deferredTemplate = utils.defer.createDeferred<ITemplate>();
+        this._deferredTemplate = utils.async.createDeferred<ITemplate>();
         this._createDialog();
     }
     addOnClose(fn: TEventHandler<DataEditDialog, any>, nmspace?: string, context?: IBaseObject): void {
@@ -249,7 +249,8 @@ export class DataEditDialog extends BaseObject implements ITemplateEvents {
             {
                 "id": self._uniqueID + "_Refresh",
                 "text": STRS.TEXT.txtRefresh,
-                "class": "btn btn-info",
+                "icon": "fas fa-retweet",
+                "class": "btn btn-info btn-sm",
                 "click": () => {
                     self._onRefresh();
                 }
@@ -257,7 +258,8 @@ export class DataEditDialog extends BaseObject implements ITemplateEvents {
             {
                 "id": self._uniqueID + "_Ok",
                 "text": STRS.TEXT.txtOk,
-                "class": "btn btn-info",
+                "icon": "fas fa-check",
+                "class": "btn btn-info btn-sm",
                 "click": () => {
                     self._onOk();
                 }
@@ -265,7 +267,8 @@ export class DataEditDialog extends BaseObject implements ITemplateEvents {
             {
                 "id": self._uniqueID + "_Cancel",
                 "text": STRS.TEXT.txtCancel,
-                "class": "btn btn-info",
+                "icon": "fas fa-times",
+                "class": "btn btn-info btn-sm",
                 "click": () => {
                     self._onCancel();
                 }
@@ -292,13 +295,11 @@ export class DataEditDialog extends BaseObject implements ITemplateEvents {
         return [this._getOkButton(), this._getCancelButton(), this._getRefreshButton()];
     }
     protected _updateStyles(): void {
-        /*
         const btns = this._getAllButtons();
         btns.forEach(($btn) => {
             $btn.removeClass("ui-button");
             $btn.find("span.ui-button-icon").removeClass("ui-button-icon ui-icon");
         });
-        */
     }
     protected _disableButtons(isDisable: boolean): void {
         const btns = this._getAllButtons();
@@ -404,7 +405,7 @@ export class DataEditDialog extends BaseObject implements ITemplateEvents {
     show(): IPromise<DataEditDialog> {
         const self = this;
         if (self.getIsStateDirty()) {
-            return utils.defer.createDeferred<DataEditDialog>().reject();
+            return utils.async.createDeferred<DataEditDialog>().reject();
         }
         self._result = null;
         return this._deferredTemplate.promise().then((template) => {
@@ -537,8 +538,8 @@ export class DialogVM extends ViewModel<IApplication> {
 
     constructor(app: IApplication) {
         super(app);
-        this._factories = {};
-        this._dialogs = {};
+        this._factories = Indexer();
+        this._dialogs = Indexer();
     }
     createDialog(name: string, options: IDialogConstructorOptions): () => DataEditDialog {
         const self = this;
@@ -577,12 +578,11 @@ export class DialogVM extends ViewModel<IApplication> {
             return;
         }
         this.setDisposing();
-        const self = this, keys = Object.keys(this._dialogs);
-        keys.forEach((key: string) => {
-            self._dialogs[key].dispose();
-        });
-        this._factories = {};
-        this._dialogs = {};
+        for (let key in this._dialogs) {
+            this._dialogs[key].dispose();
+        };
+        this._factories = Indexer();
+        this._dialogs = Indexer();
         super.dispose();
     }
 }

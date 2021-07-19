@@ -1,6 +1,6 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
 import { DEBUG_LEVEL } from "./consts";
-import { IVoidPromise } from "./utils/ideferred";
+import { IVoidPromise } from "./utils/ipromise";
 
 // config global variable can be used using this interface
 export interface IConfig {
@@ -15,7 +15,7 @@ export type TEventHandler<T = any, U = any> = (sender: T, args: U) => void;
 export type TErrorArgs = { error: any; source: any; isHandled: boolean; };
 export type TErrorHandler<T = any> = (sender: T, args: TErrorArgs) => void;
 export type TPropChangedHandler<T = any> = (sender: T, args: { property: string; }) => void;
-export type TFunc = { (...args: any[]): void; };
+export type TFunc<T = any> = { (...args: any[]): T; };
 export type TAnyConstructor<T> = new (...args: any[]) => T;
 
 export interface IDisposable {

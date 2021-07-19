@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -2445,7 +2447,7 @@ define("jriapp_db/dbcontext", ["require", "exports", "jriapp_shared", "jriapp_sh
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DbContext = void 0;
-    var utils = jriapp_shared_7.Utils, http = utils.http, _a = utils.check, isArray = _a.isArray, isNt = _a.isNt, isFunc = _a.isFunc, isString = _a.isString, _b = utils.str, format = _b.format, endsWith = _b.endsWith, _c = utils.core, getTimeZoneOffset = _c.getTimeZoneOffset, merge = _c.merge, Indexer = _c.Indexer, ERROR = utils.err, stringifyValue = utils_3.ValueUtils.stringifyValue, _d = utils.defer, delay = _d.delay, createDeferred = _d.createDeferred;
+    var utils = jriapp_shared_7.Utils, http = utils.http, _a = utils.check, isArray = _a.isArray, isNt = _a.isNt, isFunc = _a.isFunc, isString = _a.isString, _b = utils.str, format = _b.format, endsWith = _b.endsWith, _c = utils.core, getTimeZoneOffset = _c.getTimeZoneOffset, merge = _c.merge, Indexer = _c.Indexer, ERROR = utils.err, stringifyValue = utils_3.ValueUtils.stringifyValue, _d = utils.async, delay = _d.delay, createDeferred = _d.createDeferred;
     var DATA_SVC_METH;
     (function (DATA_SVC_METH) {
         DATA_SVC_METH["Invoke"] = "invoke";
@@ -4323,7 +4325,7 @@ define("jriapp_db/dataview", ["require", "exports", "jriapp_shared", "jriapp_sha
         DataView.prototype.sortLocal = function (fieldNames, sortOrder) {
             var _this = this;
             this._fn_sort = this._getSortFn(fieldNames, sortOrder);
-            return utils.defer.delay(function () { return _this._refreshSync(2); });
+            return utils.async.delay(function () { return _this._refreshSync(2); });
         };
         DataView.prototype.clear = function () {
             this._clear(3, 0);
@@ -4479,7 +4481,7 @@ define("jriapp_db/child_dataview", ["require", "exports", "jriapp_shared", "jria
             };
             _this._association = assoc;
             if (!!parentItem && !options.explicitRefresh) {
-                var queue = utils.defer.getTaskQueue();
+                var queue = utils.async.getTaskQueue();
                 queue.enque(function () {
                     self._refreshSync(0);
                 });

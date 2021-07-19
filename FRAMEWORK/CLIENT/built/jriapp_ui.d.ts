@@ -153,7 +153,7 @@ declare module "jriapp_ui/utils/cssbag" {
     }
 }
 declare module "jriapp_ui/baseview" {
-    import { BaseObject, IPropertyBag, IValidationInfo, IValidatable } from "jriapp_shared";
+    import { BaseObject, IPropertyBag, IValidationInfo, IValidatable, TFunc } from "jriapp_shared";
     import { SubscribeFlags } from "jriapp/consts";
     import { IElView, IApplication, IViewOptions, ISubscriber } from "jriapp/int";
     import { ICommand } from "jriapp/mvvm";
@@ -165,15 +165,19 @@ declare module "jriapp_ui/baseview" {
         private _el;
         private _subscribeFlags;
         private _viewState;
+        private _bindingState;
+        private _bindCompleteList;
         constructor(el: TElement, options?: IViewOptions);
         dispose(): void;
         private _getStore;
+        private _onBindCompleted;
         protected _onEventChanged(args: IEventChangedArgs): void;
         protected _onEventAdded(name: string, _newVal: ICommand): void;
         protected _onEventDeleted(name: string, _oldVal: ICommand): void;
         protected _applyToolTip(): void;
         protected _setIsSubcribed(flag: SubscribeFlags): void;
         protected _setErrors(el: HTMLElement, errors: IValidationInfo[]): void;
+        protected _registerOnBindCompleted(fn: TFunc): void;
         isSubscribed(flag: SubscribeFlags): boolean;
         toString(): string;
         get el(): TElement;
@@ -191,6 +195,8 @@ declare module "jriapp_ui/baseview" {
         get isDelegationOn(): boolean;
         get css(): string;
         set css(v: string);
+        get bindingState(): number;
+        set bindingState(v: number);
         get app(): IApplication;
     }
 }
@@ -198,6 +204,8 @@ declare module "jriapp_ui/input" {
     import { BaseElView } from "jriapp_ui/baseview";
     export class InputElView<TElement extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement> extends BaseElView<TElement> {
         toString(): string;
+        get isDisabled(): boolean;
+        set isDisabled(v: boolean);
         get isEnabled(): boolean;
         set isEnabled(v: boolean);
         get value(): string;
@@ -209,6 +217,7 @@ declare module "jriapp_ui/textbox" {
     import { InputElView } from "jriapp_ui/input";
     export interface ITextBoxOptions extends IViewOptions {
         updateOnKeyUp?: boolean;
+        updateOnInput?: boolean;
     }
     export type TKeyPressArgs = {
         keyCode: number;
@@ -330,6 +339,7 @@ declare module "jriapp_ui/listbox" {
         textPath: string;
         statePath?: string;
         emptyOptionText?: string;
+        noEmptyOption?: boolean;
         syncSetDatasource?: boolean;
         nodelegate?: boolean;
     }
@@ -498,7 +508,7 @@ declare module "jriapp_ui/utils/jquery" {
 declare module "jriapp_ui/utils/tooltip" {
     import { ITooltipService } from "jriapp/int";
     export const enum css {
-        toolTip = "qtip",
+        toolTip = "qtip-light",
         toolTipError = "qtip-red"
     }
     export function createToolTipSvc(): ITooltipService;
@@ -512,7 +522,7 @@ declare module "jriapp_ui/utils/errors" {
     export function createUIErrorsSvc(): IUIErrorsService;
 }
 declare module "jriapp_ui/dialog" {
-    import { IBaseObject, TEventHandler, IPromise, BaseObject } from "jriapp_shared";
+    import { IBaseObject, IPromise, TEventHandler, BaseObject } from "jriapp_shared";
     import { ITemplate, ITemplateEvents, IApplication } from "jriapp/int";
     import { ViewModel } from "jriapp/mvvm";
     export const enum DIALOG_ACTION {
@@ -929,6 +939,8 @@ declare module "jriapp_ui/datagrid/cells/rowselector" {
         private _chk;
         constructor(options: ICellOptions);
         dispose(): void;
+        get isDisabled(): boolean;
+        set isDisabled(v: boolean);
         get checked(): boolean;
         set checked(v: boolean);
         toString(): string;
@@ -941,6 +953,7 @@ declare module "jriapp_ui/datagrid/rows/row" {
     import { BaseCell } from "jriapp_ui/datagrid/cells/base";
     import { ExpanderCell } from "jriapp_ui/datagrid/cells/expander";
     import { ActionsCell } from "jriapp_ui/datagrid/cells/actions";
+    import { RowSelectorCell } from "jriapp_ui/datagrid/cells/rowselector";
     import { BaseColumn } from "jriapp_ui/datagrid/columns/base";
     import { DataGrid } from "jriapp_ui/datagrid/datagrid";
     export class Row extends BaseObject {
@@ -992,6 +1005,7 @@ declare module "jriapp_ui/datagrid/rows/row" {
         set isExpanded(v: boolean);
         get expanderCell(): ExpanderCell;
         get actionsCell(): ActionsCell;
+        get rowSelectorCell(): RowSelectorCell;
         get isDeleted(): boolean;
         set isDeleted(v: boolean);
         get isDetached(): boolean;
@@ -1675,6 +1689,7 @@ declare module "jriapp_ui/command" {
     export interface ICommandViewOptions extends IViewOptions {
         preventDefault?: boolean;
         stopPropagation?: boolean;
+        noCheckCanExecute?: boolean;
     }
     export class CommandElView<TElement extends HTMLElement = HTMLElement> extends BaseElView<TElement> {
         private _command;
@@ -1831,31 +1846,6 @@ declare module "jriapp_ui/checkbox3" {
         set checked(v: boolean);
     }
 }
-declare module "jriapp_ui/expander" {
-    import { AnchorElView, IAncorOptions } from "jriapp_ui/anchor";
-    export interface IExpanderOptions extends IAncorOptions {
-        expandedsrc?: string;
-        collapsedsrc?: string;
-        isExpanded?: boolean;
-    }
-    export const enum PROP_NAME {
-        isExpanded = "isExpanded"
-    }
-    export class ExpanderElView extends AnchorElView {
-        private _expandedsrc;
-        private _collapsedsrc;
-        private _isExpanded;
-        constructor(el: HTMLAnchorElement, options: IExpanderOptions);
-        protected refresh(): void;
-        protected _onCommandChanged(): void;
-        protected onClick(): void;
-        protected _getCommandParam(): any;
-        invokeCommand(): void;
-        toString(): string;
-        get isExpanded(): boolean;
-        set isExpanded(v: boolean);
-    }
-}
 declare module "jriapp_ui/hidden" {
     import { InputElView } from "jriapp_ui/input";
     export class HiddenElView extends InputElView<HTMLInputElement> {
@@ -1909,7 +1899,6 @@ declare module "jriapp_ui" {
     export { CheckBoxElView } from "jriapp_ui/checkbox";
     export { CheckBoxThreeStateElView } from "jriapp_ui/checkbox3";
     export { CommandElView } from "jriapp_ui/command";
-    export { ExpanderElView, IExpanderOptions } from "jriapp_ui/expander";
     export { HiddenElView } from "jriapp_ui/hidden";
     export { ImgElView } from "jriapp_ui/img";
     export { InputElView } from "jriapp_ui/input";
@@ -1920,5 +1909,5 @@ declare module "jriapp_ui" {
     export { DblClick } from "jriapp_ui/utils/dblclick";
     export { JQueryUtils, $ } from "jriapp_ui/utils/jquery";
     export * from "jriapp_ui/content/all";
-    export const VERSION = "3.0.5";
+    export const VERSION = "4.0.8";
 }

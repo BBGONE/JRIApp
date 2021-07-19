@@ -5,7 +5,7 @@ import { STORE_KEY } from "../consts";
 
 
 const utils = Utils, { isFunc } = utils.check, { getValue, setValue } = utils.core,
-    { format } = utils.str, { createDeferred, reject } = utils.defer, ERRS = LocaleERRS, DEBUG = utils.debug,
+    { format } = utils.str, { createDeferred, reject } = utils.async, ERRS = LocaleERRS, DEBUG = utils.debug,
     LOG = utils.log;
 
 const enum LOADER_EVENTS {

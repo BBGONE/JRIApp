@@ -2,7 +2,7 @@
 import { DATA_TYPE } from "jriapp_shared/collection/const";
 import { KEYS } from "jriapp/consts";
 import { IConverter } from "jriapp/int";
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { TextBoxElView } from "../textbox";
 
 import { BasicContent } from "./basic";
@@ -38,7 +38,7 @@ export class NumberContent extends BasicContent {
         }
     }
     protected previewKeyPress(keyCode: number, value: string) {
-        const ch = String.fromCharCode(keyCode), digits = "1234567890", defaults = bootstrap.defaults, notAllowedChars = "~@#$%^&*()+=_";
+        const ch = String.fromCharCode(keyCode), digits = "1234567890", defaults = bootstrapper.defaults, notAllowedChars = "~@#$%^&*()+=_";
         if (notAllowedChars.indexOf(ch) > -1) {
             return false;
         }

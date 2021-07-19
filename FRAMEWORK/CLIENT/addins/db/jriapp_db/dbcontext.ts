@@ -21,7 +21,7 @@ import {
 
 const utils = Utils, http = utils.http, { isArray, isNt, isFunc, isString } = utils.check,
     { format, endsWith } = utils.str, { getTimeZoneOffset, merge, Indexer } = utils.core, ERROR = utils.err,
-    { stringifyValue } = ValueUtils, { delay, createDeferred } = utils.defer;
+    { stringifyValue } = ValueUtils, { delay, createDeferred } = utils.async;
 
 const enum DATA_SVC_METH {
     Invoke = "invoke",
