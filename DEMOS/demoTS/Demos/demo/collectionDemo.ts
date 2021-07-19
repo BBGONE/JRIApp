@@ -2,7 +2,7 @@
 import * as DEMODB from "./demoDB";
 import * as COMMON from "common";
 
-let bootstrap = RIAPP.bootstrap;
+let bootstrapper = RIAPP.bootstrapper;
 
 export class RadioValueConverter extends RIAPP.BaseConverter {
     convertToSource(val: any, param: any, dataContext: any) {
@@ -139,8 +139,8 @@ export class DemoApplication extends RIAPP.Application {
     get demoVM() { return this._demoVM; }
 }
 
-//bootstrap error handler - the last resort (typically display message to the user)
-bootstrap.objEvents.addOnError(function (_s, args) {
+//bootstrapper error handler - the last resort (typically display message to the user)
+bootstrapper.objEvents.addOnError(function (_s, args) {
     debugger;
     alert(args.error.message);
 });

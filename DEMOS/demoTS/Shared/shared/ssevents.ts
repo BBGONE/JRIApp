@@ -1,7 +1,7 @@
 ﻿import * as RIAPP from "jriapp";
 
 //server side events client
-const bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils;
+const bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils;
 
 export class SSEventsVM extends RIAPP.BaseObject {
     private _es: EventSource;
@@ -40,7 +40,7 @@ export class SSEventsVM extends RIAPP.BaseObject {
             return !!this._es;
         });
 
-        bootstrap.addOnUnLoad(() => self.close());
+        bootstrapper.addOnUnLoad(() => self.close());
     }
     static isSupported(): boolean {
         try {
@@ -97,7 +97,7 @@ export class SSEventsVM extends RIAPP.BaseObject {
         const self = this;
         if (!!this._deffered)
             return this._deffered.promise();
-        this._deffered = utils.defer.createDeferred<any>();
+        this._deffered = utils.async.createDeferred<any>();
         this._timeOut = setTimeout(function () {
             self._timeOut = null;
             if (!!self._deffered) {

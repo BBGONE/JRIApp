@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -15,7 +17,7 @@ define(["require", "exports", "jriapp", "./demoDB", "common", "monthpicker"], fu
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.appOptions = exports.DemoApplication = exports.TestObject = exports.NotConverter = exports.YearMonthConverter = exports.UppercaseConverter = void 0;
-    var bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils, dates = utils.dates;
+    var bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils, dates = utils.dates;
     var UppercaseConverter = (function (_super) {
         __extends(UppercaseConverter, _super);
         function UppercaseConverter() {
@@ -305,7 +307,7 @@ define(["require", "exports", "jriapp", "./demoDB", "common", "monthpicker"], fu
         return DemoApplication;
     }(RIAPP.Application));
     exports.DemoApplication = DemoApplication;
-    bootstrap.objEvents.addOnError(function (_s, args) {
+    bootstrapper.objEvents.addOnError(function (_s, args) {
         debugger;
         alert(args.error.message);
     });

@@ -7,11 +7,11 @@ import * as AUTOCOMPLETE from "autocomplete";
 import * as PRODAUTOCOMPLETE from "./prodAutocomplete";
 import { IMainOptions, DemoApplication } from "./app";
 
-let bootstrap = RIAPP.bootstrap;
+let bootstrapper = RIAPP.bootstrapper;
 
 
-//bootstrap error handler - the last resort (typically display message to the user)
-bootstrap.objEvents.addOnError(function (_s, args) {
+//bootstrapper error handler - the last resort (typically display message to the user)
+bootstrapper.objEvents.addOnError(function (_s, args) {
     debugger;
     alert(args.error.message);
 });
@@ -24,7 +24,7 @@ export function start(options: IMainOptions) {
     };
 
     //create and start application here
-    return bootstrap.startApp(() => {
+    return bootstrapper.startApp(() => {
         return new DemoApplication(options);
     }).then((app) => {
         return app.customerVM.load();

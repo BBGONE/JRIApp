@@ -1869,6 +1869,31 @@ declare module "jriapp_ui/radio" {
         get name(): string;
     }
 }
+declare module "jriapp_ui/expander" {
+    import { AnchorElView, IAncorOptions } from "jriapp_ui/anchor";
+    export interface IExpanderOptions extends IAncorOptions {
+        expandedsrc?: string;
+        collapsedsrc?: string;
+        isExpanded?: boolean;
+    }
+    export const enum PROP_NAME {
+        isExpanded = "isExpanded"
+    }
+    export class ExpanderElView extends AnchorElView {
+        private _expandedsrc;
+        private _collapsedsrc;
+        private _isExpanded;
+        constructor(el: HTMLAnchorElement, options: IExpanderOptions);
+        protected refresh(): void;
+        protected _onCommandChanged(): void;
+        protected onClick(): void;
+        protected _getCommandParam(): any;
+        invokeCommand(): void;
+        toString(): string;
+        get isExpanded(): boolean;
+        set isExpanded(v: boolean);
+    }
+}
 declare module "jriapp_ui/content/all" {
     export { BasicContent } from "jriapp_ui/content/basic";
     export { TemplateContent } from "jriapp_ui/content/template";
@@ -1906,8 +1931,9 @@ declare module "jriapp_ui" {
     export { SpanElView } from "jriapp_ui/span";
     export { TextAreaElView, ITextAreaOptions } from "jriapp_ui/textarea";
     export { TextBoxElView, ITextBoxOptions, TKeyPressArgs } from "jriapp_ui/textbox";
+    export { ExpanderElView, IExpanderOptions } from "jriapp_ui/expander";
     export { DblClick } from "jriapp_ui/utils/dblclick";
     export { JQueryUtils, $ } from "jriapp_ui/utils/jquery";
     export * from "jriapp_ui/content/all";
-    export const VERSION = "4.0.8";
+    export const VERSION = "4.0.9";
 }

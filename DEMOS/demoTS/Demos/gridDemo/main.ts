@@ -5,7 +5,7 @@ import * as DROPDBOX from "dropdownbox";
 import { IMainOptions, DemoApplication } from "./app";
 import * as  ResizableGrid from "./resizableGrid";
 
-const bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils;
+const bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils;
 const styles = ["lsize", 'msize', 'ssize', 'nsize'];
 
 /*
@@ -48,8 +48,8 @@ export class SizeConverter extends RIAPP.BaseConverter {
     }
 }
 
-// bootstrap error handler - the last resort (typically display message to the user)
-bootstrap.objEvents.addOnError(function (_s, args) {
+// bootstrapper error handler - the last resort (typically display message to the user)
+bootstrapper.objEvents.addOnError(function (_s, args) {
     debugger;
     alert(args.error.message);
     args.isHandled = true;
@@ -63,9 +63,9 @@ export function start(options: IMainOptions) {
         "ResizableGrid": ResizableGrid.initModule
     };
 
-    bootstrap.init((bootstrap) => {
+    bootstrapper.init((bootstrapper) => {
         // replace default buttons styles with something custom
-        const ButtonsCSS = bootstrap.defaults.ButtonsCSS;
+        const ButtonsCSS = bootstrapper.defaults.ButtonsCSS;
         ButtonsCSS.Edit = 'icon icon-pencil';
         ButtonsCSS.Delete = 'icon icon-trash';
         ButtonsCSS.OK = 'icon icon-ok';
@@ -75,7 +75,7 @@ export function start(options: IMainOptions) {
     const convertArg = (p2: any) => RIAPP.Utils.check.isPlainObject(p2) ? JSON.stringify(p2, null, 2) : p2;
 
     // create and start application here
-    return bootstrap.startApp(() => {
+    return bootstrapper.startApp(() => {
         return new DemoApplication(options);
     }, (app) => {
         app.registerConverter('sizeConverter', new SizeConverter());

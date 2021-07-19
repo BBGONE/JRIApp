@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -1653,7 +1655,7 @@ define("gridDemo/filters", ["require", "exports", "jriapp", "jriapp_db", "demo/d
                 _this._prodModDic.fillItems(res.prodModel, true);
                 _this._prodDescDic.fillItems(res.prodDescription, true);
             }), promise2 = this._loadCategories(), promise3 = this._loadProductModels();
-            return utils.defer.whenAll([promise1, promise2, promise3]).then(function () {
+            return utils.async.whenAll([promise1, promise2, promise3]).then(function () {
                 _this._loaded = true;
                 _this.objEvents.raise('loaded', {});
                 _this.reset();
@@ -1962,8 +1964,7 @@ define("gridDemo/productVM", ["require", "exports", "jriapp", "jriapp_db", "jria
                     }
                 },
                 {
-                    fieldName: "Weight",
-                    fn: function (item, errors) {
+                    fieldName: "Weight", fn: function (item, errors) {
                         if (item.Weight > 20000) {
                             errors.push('Weight must be less than 20000');
                         }
@@ -2686,11 +2687,6 @@ define("gridDemo/app", ["require", "exports", "jriapp", "demo/demoDB", "common",
                 _super.prototype.dispose.call(this);
             }
         };
-        Object.defineProperty(DemoApplication.prototype, "options", {
-            get: function () { return this._options; },
-            enumerable: false,
-            configurable: true
-        });
         Object.defineProperty(DemoApplication.prototype, "dbContext", {
             get: function () { return this._dbContext; },
             enumerable: false,
@@ -3096,7 +3092,7 @@ define("gridDemo/main", ["require", "exports", "jriapp", "common", "dropdownbox"
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.start = exports.SizeConverter = void 0;
-    var bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils;
+    var bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils;
     var styles = ["lsize", 'msize', 'ssize', 'nsize'];
     var SizeConverter = (function (_super) {
         __extends(SizeConverter, _super);
@@ -3129,7 +3125,7 @@ define("gridDemo/main", ["require", "exports", "jriapp", "common", "dropdownbox"
         return SizeConverter;
     }(RIAPP.BaseConverter));
     exports.SizeConverter = SizeConverter;
-    bootstrap.objEvents.addOnError(function (_s, args) {
+    bootstrapper.objEvents.addOnError(function (_s, args) {
         debugger;
         alert(args.error.message);
         args.isHandled = true;
@@ -3140,15 +3136,15 @@ define("gridDemo/main", ["require", "exports", "jriapp", "common", "dropdownbox"
             "DROPDBOX": DROPDBOX.initModule,
             "ResizableGrid": ResizableGrid.initModule
         };
-        bootstrap.init(function (bootstrap) {
-            var ButtonsCSS = bootstrap.defaults.ButtonsCSS;
+        bootstrapper.init(function (bootstrapper) {
+            var ButtonsCSS = bootstrapper.defaults.ButtonsCSS;
             ButtonsCSS.Edit = 'icon icon-pencil';
             ButtonsCSS.Delete = 'icon icon-trash';
             ButtonsCSS.OK = 'icon icon-ok';
             ButtonsCSS.Cancel = 'icon icon-remove';
         });
         var convertArg = function (p2) { return RIAPP.Utils.check.isPlainObject(p2) ? JSON.stringify(p2, null, 2) : p2; };
-        return bootstrap.startApp(function () {
+        return bootstrapper.startApp(function () {
             return new app_1.DemoApplication(options);
         }, function (app) {
             app.registerConverter('sizeConverter', new SizeConverter());

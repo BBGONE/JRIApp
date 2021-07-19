@@ -117,7 +117,7 @@ export class OrderVM extends RIAPP.ViewModel<DemoApplication> implements uiMOD.I
         //explicitly clear before every load
         this.clear();
         if (!this.currentCustomer || this.currentCustomer._aspect.isNew) {
-            let deferred = utils.defer.createDeferred<dbMOD.IQueryResult<DEMODB.SalesOrderHeader>>();
+            let deferred = utils.async.createDeferred<dbMOD.IQueryResult<DEMODB.SalesOrderHeader>>();
             deferred.reject();
             return deferred.promise();
         }

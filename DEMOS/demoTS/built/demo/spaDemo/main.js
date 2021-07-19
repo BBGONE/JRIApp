@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -1711,7 +1713,7 @@ define("orderDetVM", ["require", "exports", "jriapp", "productVM"], function (re
         OrderDetailVM.prototype.load = function () {
             this.clear();
             if (!this.currentOrder || this.currentOrder._aspect.isNew) {
-                var deferred = utils.defer.createDeferred();
+                var deferred = utils.async.createDeferred();
                 deferred.reject();
                 return deferred.promise();
             }
@@ -1861,7 +1863,7 @@ define("orderVM", ["require", "exports", "jriapp", "domainModel", "gridEvents", 
         OrderVM.prototype.load = function () {
             this.clear();
             if (!this.currentCustomer || this.currentCustomer._aspect.isNew) {
-                var deferred = utils.defer.createDeferred();
+                var deferred = utils.async.createDeferred();
                 deferred.reject();
                 return deferred.promise();
             }
@@ -2057,7 +2059,7 @@ define("animation", ["require", "exports", "jriapp"], function (require, exports
             this.stop();
             this._$animatedEl = $(template.el.parentElement);
             this._$animatedEl.hide();
-            var deffered = utils.defer.createDeferred();
+            var deffered = utils.async.createDeferred();
             this._$animatedEl.show(this._effect, this._duration, function () {
                 deffered.resolve();
             });
@@ -2068,7 +2070,7 @@ define("animation", ["require", "exports", "jriapp"], function (require, exports
             this._$animatedEl = $(template.el.parentElement);
         };
         FadeAnimation.prototype.hide = function (template) {
-            var deffered = utils.defer.createDeferred();
+            var deffered = utils.async.createDeferred();
             this._$animatedEl.hide(this._effect, this._duration, function () {
                 deffered.resolve();
             });
@@ -2114,7 +2116,7 @@ define("animation", ["require", "exports", "jriapp"], function (require, exports
         SlideAnimation.prototype.show = function (template, isFirstShow) {
             this.stop();
             this._$animatedEl = $(template.el.parentElement);
-            var deffered = utils.defer.createDeferred();
+            var deffered = utils.async.createDeferred();
             this._$animatedEl.show(this._effect, this._duration, function () {
                 deffered.resolve();
             });
@@ -2125,7 +2127,7 @@ define("animation", ["require", "exports", "jriapp"], function (require, exports
             this._$animatedEl = $(template.el.parentElement);
         };
         SlideAnimation.prototype.hide = function (template) {
-            var deffered = utils.defer.createDeferred();
+            var deffered = utils.async.createDeferred();
             this._$animatedEl.hide(this._effect, this._duration, function () {
                 deffered.resolve();
             });
@@ -2485,7 +2487,7 @@ define("addAddressVM", ["require", "exports", "jriapp", "jriapp_db", "jriapp_ui"
         };
         AddAddressVM.prototype._addAddressRP = function (addressID) {
             if (this._checkAddressInRP(addressID)) {
-                var deferred = utils.defer.createDeferred();
+                var deferred = utils.async.createDeferred();
                 deferred.reject();
                 return deferred.promise();
             }
@@ -3121,11 +3123,6 @@ define("app", ["require", "exports", "jriapp", "domainModel", "common", "custome
                 _super.prototype.dispose.call(this);
             }
         };
-        Object.defineProperty(DemoApplication.prototype, "options", {
-            get: function () { return this._options; },
-            enumerable: false,
-            configurable: true
-        });
         Object.defineProperty(DemoApplication.prototype, "dbContext", {
             get: function () { return this._dbContext; },
             enumerable: false,
@@ -3316,7 +3313,7 @@ define("main", ["require", "exports", "jriapp", "app", "common", "autocomplete",
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.start = void 0;
-    RIAPP.bootstrap.objEvents.addOnError(function (_, args) {
+    RIAPP.bootstrapper.objEvents.addOnError(function (_, args) {
         debugger;
         alert(args.error.message);
     });
@@ -3327,7 +3324,7 @@ define("main", ["require", "exports", "jriapp", "app", "common", "autocomplete",
             "GRIDELVIEW": GRIDELVIEW.initModule,
             "PRODAUTOCOMPLETE": PRODAUTOCOMPLETE.initModule
         };
-        return RIAPP.bootstrap.startApp(function () {
+        return RIAPP.bootstrapper.startApp(function () {
             return new app_1.DemoApplication(options);
         }, function (app) {
             app.registerTemplateGroup('custGroup', options.spa_template1_url);

@@ -4,7 +4,7 @@ import * as uiMOD from "jriapp_ui";
 import * as FOLDERBROWSER_SVC from "./folderBrowserSvc";
 import * as COMMON from "common";
 
-let bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils, coreUtils = RIAPP.Utils.core, $ = uiMOD.$;
+let bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils, coreUtils = RIAPP.Utils.core, $ = uiMOD.$;
 declare let DTNodeStatus_Ok: any;
 
 export interface IMainOptions extends RIAPP.IAppOptions {
@@ -241,7 +241,7 @@ export class FolderBrowserVM extends RIAPP.ViewModel<DemoApplication> {
     set infotype(v) { if (this._infotype !== v) { this._infotype = v; this.objEvents.raiseProp('infotype'); } }
 }
 
-export class DemoApplication extends RIAPP.Application {
+export class DemoApplication extends RIAPP.Application<IMainOptions> {
     private _errorVM: COMMON.ErrorViewModel;
     private _fbrowserVM1: FolderBrowserVM;
     private _fbrowserVM2: FolderBrowserVM;
@@ -326,7 +326,6 @@ export class DemoApplication extends RIAPP.Application {
             super.dispose();
         }
     }
-    get options() { return <IMainOptions>this._options; }
     get errorVM() { return this._errorVM; }
     get TEXT() { return RIAPP.LocaleSTRS.TEXT; }
     get fbrowserVM1() { return this._fbrowserVM1; }
@@ -335,8 +334,8 @@ export class DemoApplication extends RIAPP.Application {
     get dbContext() { return this._dbContext; }
 }
 
-//bootstrap error handler - the last resort (typically display message to the user)
-RIAPP.bootstrap.objEvents.addOnError(function (_s, args) {
+//bootstrapper error handler - the last resort (typically display message to the user)
+RIAPP.bootstrapper.objEvents.addOnError(function (_s, args) {
     debugger;
     alert(args.error.message);
 });
@@ -347,7 +346,7 @@ export function start(mainOptions: IMainOptions) {
     };
 
     //create and start application here
-    bootstrap.startApp(() => {
+    bootstrapper.startApp(() => {
         return new DemoApplication(mainOptions);
     }, (thisApp) => { });
 }

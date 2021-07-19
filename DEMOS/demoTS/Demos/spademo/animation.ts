@@ -21,7 +21,7 @@ export class FadeAnimation extends RIAPP.BaseObject implements uiMOD.IDynaConten
         this.stop();
         this._$animatedEl = $(template.el.parentElement);
         this._$animatedEl.hide();
-        let deffered = utils.defer.createDeferred<void>();
+        let deffered = utils.async.createDeferred<void>();
         (<any>this._$animatedEl).show(this._effect, this._duration, () => {
             deffered.resolve();
         });
@@ -32,7 +32,7 @@ export class FadeAnimation extends RIAPP.BaseObject implements uiMOD.IDynaConten
         this._$animatedEl = $(template.el.parentElement);
     }
     hide(template: RIAPP.ITemplate): RIAPP.IVoidPromise {
-        let deffered = utils.defer.createDeferred<void>();
+        let deffered = utils.async.createDeferred<void>();
         (<any>this._$animatedEl).hide(this._effect, this._duration, () => {
             deffered.resolve();
         });
@@ -75,7 +75,7 @@ export class SlideAnimation extends RIAPP.BaseObject implements uiMOD.IDynaConte
     show(template: RIAPP.ITemplate, isFirstShow: boolean): RIAPP.IVoidPromise {
         this.stop();
         this._$animatedEl = $(template.el.parentElement);
-        let deffered = utils.defer.createDeferred<void>();
+        let deffered = utils.async.createDeferred<void>();
         (<any>this._$animatedEl).show(this._effect, this._duration, () => {
             deffered.resolve();
         });
@@ -86,7 +86,7 @@ export class SlideAnimation extends RIAPP.BaseObject implements uiMOD.IDynaConte
         this._$animatedEl = $(template.el.parentElement);
     }
     hide(template: RIAPP.ITemplate): RIAPP.IVoidPromise {
-        let deffered = utils.defer.createDeferred<void>();
+        let deffered = utils.async.createDeferred<void>();
         (<any>this._$animatedEl).hide(this._effect, this._duration, () => {
             deffered.resolve();
         });

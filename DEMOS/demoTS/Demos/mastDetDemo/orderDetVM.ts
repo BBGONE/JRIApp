@@ -41,7 +41,7 @@ export class OrderDetailVM extends RIAPP.ViewModel<DemoApplication> {
         this.clear();
 
         if (!this.currentOrder || this.currentOrder._aspect.isNew) {
-            let deferred = utils.defer.createDeferred<dbMOD.IQueryResult<DEMODB.SalesOrderDetail>>();
+            let deferred = utils.async.createDeferred<dbMOD.IQueryResult<DEMODB.SalesOrderDetail>>();
             deferred.reject();
             return deferred.promise();
         }

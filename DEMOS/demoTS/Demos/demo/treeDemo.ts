@@ -4,7 +4,7 @@ import * as FOLDERBROWSER_SVC from "./folderBrowserSvc";
 import * as COMMON from "common";
 import { ExProps, infoType } from "./ExProps";
 
-let bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils;
+let bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils;
 
 export interface IMainOptions extends RIAPP.IAppOptions {
     service_url: string;
@@ -148,7 +148,7 @@ export class FolderBrowser extends RIAPP.ViewModel<DemoApplication> {
     get rootView() { return this._rootView; }
 }
 
-export class DemoApplication extends RIAPP.Application {
+export class DemoApplication extends RIAPP.Application<IMainOptions> {
     private _errorVM: COMMON.ErrorViewModel;
     private _fbrowserVM: FolderBrowser;
     private _dbContext: FOLDERBROWSER_SVC.DbContext;
@@ -191,15 +191,14 @@ export class DemoApplication extends RIAPP.Application {
             super.dispose();
         }
     }
-    get options() { return <IMainOptions>this._options; }
     get errorVM() { return this._errorVM; }
     get TEXT() { return RIAPP.LocaleSTRS.TEXT; }
     get fbrowserVM() { return this._fbrowserVM; }
     get dbContext() { return this._dbContext; }
 }
 
-//bootstrap error handler - the last resort (typically display message to the user)
-RIAPP.bootstrap.objEvents.addOnError(function (_s, args) {
+//bootstrapper error handler - the last resort (typically display message to the user)
+RIAPP.bootstrapper.objEvents.addOnError(function (_s, args) {
     debugger;
     alert(args.error.message);
 });
@@ -210,9 +209,9 @@ export function start(mainOptions: IMainOptions): RIAPP.IPromise<DemoApplication
     };
     //an example  how to load styles dynamically
     //we could load  them statically but it is for example.
-    bootstrap.stylesLoader.loadStyles(mainOptions.styles);
+    bootstrapper.stylesLoader.loadStyles(mainOptions.styles);
     //create and start application here
-    return bootstrap.startApp(() => {
+    return bootstrapper.startApp(() => {
         return new DemoApplication(mainOptions);
     }, (thisApp) => { });
 }

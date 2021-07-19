@@ -1,6 +1,6 @@
 ﻿import * as RIAPP from "jriapp";
 
-const bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils;
+const bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils;
 
 export class WebSocketsVM extends RIAPP.BaseObject {
     private _ws: WebSocket;
@@ -35,7 +35,7 @@ export class WebSocketsVM extends RIAPP.BaseObject {
         }, () => {
             return !!this._ws;
         });
-        bootstrap.addOnUnLoad((s, a) => self.close());
+        bootstrapper.addOnUnLoad((s, a) => self.close());
     }
     static isSupported(): boolean {
         try {
@@ -94,7 +94,7 @@ export class WebSocketsVM extends RIAPP.BaseObject {
         const self = this;
         if (!!this._deffered)
             return this._deffered.promise();
-        this._deffered = utils.defer.createDeferred<any>();
+        this._deffered = utils.async.createDeferred<any>();
         if (!!this._ws && !!this._clientID) {
             this._deffered.resolve(this._clientID);
             let promise = this._deffered.promise();

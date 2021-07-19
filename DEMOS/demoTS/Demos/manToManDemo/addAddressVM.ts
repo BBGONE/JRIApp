@@ -229,7 +229,7 @@ export class AddAddressVM extends RIAPP.ViewModel<DemoApplication> implements RI
     _addAddressRP(addressID: number) {
         //if address already on client, just make it be displayed in the view
         if (this._checkAddressInRP(addressID)) {
-            let deferred = utils.defer.createDeferred<dbMOD.IQueryResult<DEMODB.AddressInfo>>();
+            let deferred = utils.async.createDeferred<dbMOD.IQueryResult<DEMODB.AddressInfo>>();
             deferred.reject();
             return deferred.promise();
         }

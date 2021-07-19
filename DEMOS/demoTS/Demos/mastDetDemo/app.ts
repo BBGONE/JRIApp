@@ -11,7 +11,7 @@ export interface IMainOptions extends RIAPP.IAppOptions {
     permissionInfo?: dbMOD.IPermissionsInfo;
 }
 
-export class DemoApplication extends RIAPP.Application {
+export class DemoApplication extends RIAPP.Application<IMainOptions> {
     private _dbContext: DEMODB.DbContext;
     private _errorVM: COMMON.ErrorViewModel;
     private _customerVM: CustomerVM;
@@ -51,7 +51,7 @@ export class DemoApplication extends RIAPP.Application {
 
         //testing returning  a promise from this method
         /*
-        let deferred = RIAPP.Utils.defer.createDeferred();
+        let deferred = RIAPP.Utils.async.createDeferred();
         setTimeout(() => {
             deferred.resolve();
             //deferred.reject(new Error("TEST ERROR"));
@@ -79,7 +79,6 @@ export class DemoApplication extends RIAPP.Application {
             super.dispose();
         }
     }
-    get options() { return <IMainOptions>this._options; }
     get dbContext() { return this._dbContext; }
     get errorVM() { return this._errorVM; }
     get customerVM() { return this._customerVM; }

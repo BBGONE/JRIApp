@@ -1,7 +1,7 @@
 ﻿import * as RIAPP from "jriapp";
 import * as uiMOD from "jriapp_ui";
 
-const bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils, $ = uiMOD.$, dom = RIAPP.DOM;
+const bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils, $ = uiMOD.$, dom = RIAPP.DOM;
 
 function findElemViewInTemplate(template: RIAPP.ITemplate, name: string) {
     //look by data-name attribute value
@@ -176,7 +176,7 @@ export class DropDownBoxElView extends uiMOD.InputElView implements RIAPP.ITempl
     }
     protected _hideAsync(): RIAPP.IPromise<void> {
         const self = this;
-        return utils.defer.delay(() => {
+        return utils.async.delay(() => {
             self._hide();
         }, 100);
     }
@@ -216,10 +216,10 @@ export class DropDownBoxElView extends uiMOD.InputElView implements RIAPP.ITempl
                 self.onRowSelected(args.row);
             }, this.uniqueID, this);
 
-            bootstrap.selectedControl = self._grid;
+            bootstrapper.selectedControl = self._grid;
 
             $(dom.document).on('keyup.' + this.uniqueID, function (e) {
-                if (bootstrap.selectedControl === self._grid) {
+                if (bootstrapper.selectedControl === self._grid) {
                     if (self._onKeyPress(e.which))
                         e.stopPropagation();
                 }

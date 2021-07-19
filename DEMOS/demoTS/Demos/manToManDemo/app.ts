@@ -9,7 +9,7 @@ export interface IMainOptions extends RIAPP.IAppOptions {
     permissionInfo?: dbMOD.IPermissionsInfo;
 }
 
-export class DemoApplication extends RIAPP.Application {
+export class DemoApplication extends RIAPP.Application<IMainOptions> {
     private _dbContext: DEMODB.DbContext;
     private _errorVM: COMMON.ErrorViewModel;
     private _customerVM: CustomerVM;
@@ -69,9 +69,6 @@ export class DemoApplication extends RIAPP.Application {
         } finally {
             super.dispose();
         }
-    }
-    get options() {
-        return <IMainOptions>this._options;
     }
     get dbContext() {
         return this._dbContext;

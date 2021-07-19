@@ -7,8 +7,8 @@ import * as GRIDELVIEW from "./gridElView";
 import * as PRODAUTOCOMPLETE from "./prodAutocomplete";
 
 
-//bootstrap error handler - the last resort (typically display message to the user)
-RIAPP.bootstrap.objEvents.addOnError(function (_, args) {
+//bootstrapper error handler - the last resort (typically display message to the user)
+RIAPP.bootstrapper.objEvents.addOnError(function (_, args) {
     debugger;
     alert(args.error.message);
 });
@@ -22,7 +22,7 @@ export function start(options: IMainOptions) {
     };
 
     //create and start application here
-    return RIAPP.bootstrap.startApp(() => {
+    return RIAPP.bootstrapper.startApp(() => {
         return new DemoApplication(options);
     }, (app) => {
         app.registerTemplateGroup('custGroup', options.spa_template1_url);

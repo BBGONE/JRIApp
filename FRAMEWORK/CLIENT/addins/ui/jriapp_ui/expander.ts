@@ -1,5 +1,5 @@
 ﻿/** The MIT License (MIT) Copyright(c) 2016-present Maxim V.Tsapov */
-import { bootstrap } from "jriapp/bootstrap";
+import { bootstrapper } from "jriapp/bootstrapper";
 import { AnchorElView, IAncorOptions } from "./anchor";
 
 export interface IExpanderOptions extends IAncorOptions {
@@ -21,8 +21,8 @@ export class ExpanderElView extends AnchorElView {
     private _isExpanded: boolean;
 
     constructor(el: HTMLAnchorElement, options: IExpanderOptions) {
-        const expandedsrc = options.expandedsrc || bootstrap.getImagePath(COLLAPSE_IMG);
-        const collapsedsrc = options.collapsedsrc || bootstrap.getImagePath(EXPAND_IMG);
+        const expandedsrc = options.expandedsrc || bootstrapper.getImagePath(COLLAPSE_IMG);
+        const collapsedsrc = options.collapsedsrc || bootstrapper.getImagePath(EXPAND_IMG);
         const isExpanded = !!options.isExpanded;
         options.imageSrc = null;
         super(el, options);
@@ -68,4 +68,4 @@ export class ExpanderElView extends AnchorElView {
     }
 }
 
-bootstrap.registerElView("expander", ExpanderElView);
+bootstrapper.registerElView("expander", ExpanderElView);

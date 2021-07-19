@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -1703,7 +1705,7 @@ define("mastDetDemo/orderDetVM", ["require", "exports", "jriapp", "jriapp_ui", "
         OrderDetailVM.prototype.load = function () {
             this.clear();
             if (!this.currentOrder || this.currentOrder._aspect.isNew) {
-                var deferred = utils.defer.createDeferred();
+                var deferred = utils.async.createDeferred();
                 deferred.reject();
                 return deferred.promise();
             }
@@ -1956,7 +1958,7 @@ define("mastDetDemo/orderVM", ["require", "exports", "jriapp", "jriapp_ui", "dem
         OrderVM.prototype.load = function () {
             this.clear();
             if (!this.currentCustomer || this.currentCustomer._aspect.isNew) {
-                var deferred = utils.defer.createDeferred();
+                var deferred = utils.async.createDeferred();
                 deferred.reject();
                 return deferred.promise();
             }
@@ -2308,11 +2310,6 @@ define("mastDetDemo/app", ["require", "exports", "jriapp", "demo/demoDB", "commo
                 _super.prototype.dispose.call(this);
             }
         };
-        Object.defineProperty(DemoApplication.prototype, "options", {
-            get: function () { return this._options; },
-            enumerable: false,
-            configurable: true
-        });
         Object.defineProperty(DemoApplication.prototype, "dbContext", {
             get: function () { return this._dbContext; },
             enumerable: false,
@@ -2341,8 +2338,8 @@ define("mastDetDemo/main", ["require", "exports", "jriapp", "common", "autocompl
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.start = void 0;
-    var bootstrap = RIAPP.bootstrap;
-    bootstrap.objEvents.addOnError(function (_s, args) {
+    var bootstrapper = RIAPP.bootstrapper;
+    bootstrapper.objEvents.addOnError(function (_s, args) {
         debugger;
         alert(args.error.message);
     });
@@ -2352,7 +2349,7 @@ define("mastDetDemo/main", ["require", "exports", "jriapp", "common", "autocompl
             "AUTOCOMPLETE": AUTOCOMPLETE.initModule,
             "PRODAUTOCOMPLETE": PRODAUTOCOMPLETE.initModule
         };
-        return bootstrap.startApp(function () {
+        return bootstrapper.startApp(function () {
             return new app_1.DemoApplication(options);
         }).then(function (app) {
             return app.customerVM.load();

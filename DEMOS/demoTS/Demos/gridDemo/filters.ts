@@ -96,7 +96,7 @@ export class ProductsFilter extends RIAPP.BaseObject {
         }), promise2 = this._loadCategories(), promise3 = this._loadProductModels();
 
         // combine them into one promise - which resolves when all requests are completed
-        return utils.defer.whenAll<any>([promise1, promise2, promise3]).then(() => {
+        return utils.async.whenAll<any>([promise1, promise2, promise3]).then(() => {
             this._loaded = true;
             this.objEvents.raise('loaded', {});
             this.reset();

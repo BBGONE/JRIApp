@@ -3,7 +3,7 @@ import * as dbMOD from "jriapp_db";
 import * as uiMOD from "jriapp_ui";
 import * as COMMON from "./common";
 
-const bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils, $ = uiMOD.$, dom = RIAPP.DOM;
+const bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils, $ = uiMOD.$, dom = RIAPP.DOM;
 
 function findElemViewInTemplate(template: RIAPP.ITemplate, name: string) {
     //look by data-name attribute value
@@ -177,7 +177,7 @@ export class AutoCompleteElView extends uiMOD.InputElView<HTMLInputElement> impl
     }
     protected _hideAsync(): RIAPP.IPromise<void> {
         const self = this;
-        return utils.defer.delay(() => {
+        return utils.async.delay(() => {
             self._hide();
         }, 100);
     }
@@ -218,10 +218,10 @@ export class AutoCompleteElView extends uiMOD.InputElView<HTMLInputElement> impl
                 self._hide();
             }, this.uniqueID);
 
-            bootstrap.selectedControl = self._grid;
+            bootstrapper.selectedControl = self._grid;
 
             $(dom.document).on('keyup.' + this.uniqueID, function (e) {
-                if (bootstrap.selectedControl === self._grid) {
+                if (bootstrapper.selectedControl === self._grid) {
                     if (self._onKeyPress(e.which))
                         e.stopPropagation();
                 }

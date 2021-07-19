@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -15,7 +17,7 @@ define(["require", "exports", "jriapp", "./demoDB", "common"], function (require
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.appOptions = exports.DemoApplication = exports.RadioDemo2VM = exports.RadioDemoVM = exports.RadioValueConverter = void 0;
-    var bootstrap = RIAPP.bootstrap;
+    var bootstrapper = RIAPP.bootstrapper;
     var RadioValueConverter = (function (_super) {
         __extends(RadioValueConverter, _super);
         function RadioValueConverter() {
@@ -171,7 +173,7 @@ define(["require", "exports", "jriapp", "./demoDB", "common"], function (require
         return DemoApplication;
     }(RIAPP.Application));
     exports.DemoApplication = DemoApplication;
-    bootstrap.objEvents.addOnError(function (_s, args) {
+    bootstrapper.objEvents.addOnError(function (_s, args) {
         debugger;
         alert(args.error.message);
     });

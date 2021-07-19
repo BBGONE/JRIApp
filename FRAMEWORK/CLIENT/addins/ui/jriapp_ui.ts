@@ -36,12 +36,13 @@ export { RadioElView } from "./jriapp_ui/radio";
 export { SpanElView } from "./jriapp_ui/span";
 export { TextAreaElView, ITextAreaOptions } from "./jriapp_ui/textarea";
 export { TextBoxElView, ITextBoxOptions, TKeyPressArgs } from "./jriapp_ui/textbox";
+export { ExpanderElView, IExpanderOptions } from "./jriapp_ui/expander";
 
 export { DblClick } from "./jriapp_ui/utils/dblclick";
 export { JQueryUtils, $ } from "./jriapp_ui/utils/jquery";
 export * from "./jriapp_ui/content/all";
 
-export const VERSION = "4.0.8";
+export const VERSION = "4.0.9";
 
 const boot = bootstrapper;
 

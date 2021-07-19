@@ -6,10 +6,10 @@ import { initModule as initTemplatedView } from "./views/templated";
 import { initModule as initTabsView } from "./views/tabs";
 import { initModule as initTabs2View } from "./views/tabs-old";
 
-const bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils;
+const bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils;
 
-//bootstrap error handler - the last resort (typically display message to the user)
-bootstrap.objEvents.addOnError(function (_s, args) {
+//bootstrapper error handler - the last resort (typically display message to the user)
+bootstrapper.objEvents.addOnError(function (_s, args) {
     debugger;
     alert(args.error.message);
     args.isHandled = true;
@@ -25,7 +25,7 @@ export function start(options: RIAPP.IAppOptions) {
     });
    
     //create and start application here
-    return bootstrap.startApp(() => {
+    return bootstrapper.startApp(() => {
         return new DemoApplication(options);
     });
 }

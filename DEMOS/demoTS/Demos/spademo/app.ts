@@ -14,7 +14,7 @@ export interface IMainOptions extends RIAPP.IAppOptions {
     spa_template3_url: string;
 }
 
-export class DemoApplication extends RIAPP.Application {
+export class DemoApplication extends RIAPP.Application<IMainOptions> {
     private _dbContext: DEMODB.DbContext;
     private _errorVM: ErrorViewModel;
     private _customerVM: CustomerVM;
@@ -73,7 +73,6 @@ export class DemoApplication extends RIAPP.Application {
             super.dispose();
         }
     }
-    get options() { return <IMainOptions>this._options; }
     get dbContext() { return this._dbContext; }
     get errorVM() { return this._errorVM; }
     get customerVM() { return this._customerVM; }

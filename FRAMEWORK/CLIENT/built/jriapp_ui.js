@@ -9568,6 +9568,71 @@ define("jriapp_ui/radio", ["require", "exports", "jriapp_shared", "jriapp/bootst
     exports.RadioElView = RadioElView;
     bootstrapper_32.bootstrapper.registerElView("input:radio", RadioElView);
 });
+define("jriapp_ui/expander", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/anchor"], function (require, exports, bootstrapper_33, anchor_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ExpanderElView = exports.PROP_NAME = void 0;
+    var PROP_NAME;
+    (function (PROP_NAME) {
+        PROP_NAME["isExpanded"] = "isExpanded";
+    })(PROP_NAME = exports.PROP_NAME || (exports.PROP_NAME = {}));
+    var COLLAPSE_IMG = "collapse.jpg", EXPAND_IMG = "expand.jpg";
+    var ExpanderElView = (function (_super) {
+        __extends(ExpanderElView, _super);
+        function ExpanderElView(el, options) {
+            var _this = this;
+            var expandedsrc = options.expandedsrc || bootstrapper_33.bootstrapper.getImagePath(COLLAPSE_IMG);
+            var collapsedsrc = options.collapsedsrc || bootstrapper_33.bootstrapper.getImagePath(EXPAND_IMG);
+            var isExpanded = !!options.isExpanded;
+            options.imageSrc = null;
+            _this = _super.call(this, el, options) || this;
+            _this._expandedsrc = expandedsrc;
+            _this._collapsedsrc = collapsedsrc;
+            _this.isExpanded = isExpanded;
+            return _this;
+        }
+        ExpanderElView.prototype.refresh = function () {
+            if (this.getIsStateDirty()) {
+                return;
+            }
+            this.imageSrc = this._isExpanded ? this._expandedsrc : this._collapsedsrc;
+        };
+        ExpanderElView.prototype._onCommandChanged = function () {
+            _super.prototype._onCommandChanged.call(this);
+            this.invokeCommand();
+        };
+        ExpanderElView.prototype.onClick = function () {
+            this.isExpanded = !this.isExpanded;
+        };
+        ExpanderElView.prototype._getCommandParam = function () {
+            return { isExpanded: this.isExpanded };
+        };
+        ExpanderElView.prototype.invokeCommand = function () {
+            this.refresh();
+            _super.prototype.invokeCommand.call(this);
+        };
+        ExpanderElView.prototype.toString = function () {
+            return "ExpanderElView";
+        };
+        Object.defineProperty(ExpanderElView.prototype, "isExpanded", {
+            get: function () {
+                return this._isExpanded;
+            },
+            set: function (v) {
+                if (this._isExpanded !== v) {
+                    this._isExpanded = v;
+                    this.invokeCommand();
+                    this.objEvents.raiseProp("isExpanded");
+                }
+            },
+            enumerable: false,
+            configurable: true
+        });
+        return ExpanderElView;
+    }(anchor_1.AnchorElView));
+    exports.ExpanderElView = ExpanderElView;
+    bootstrapper_33.bootstrapper.registerElView("expander", ExpanderElView);
+});
 define("jriapp_ui/content/all", ["require", "exports", "jriapp_ui/content/basic", "jriapp_ui/content/template", "jriapp_ui/content/string", "jriapp_ui/content/multyline", "jriapp_ui/content/bool", "jriapp_ui/content/number", "jriapp_ui/content/date", "jriapp_ui/content/datetime", "jriapp_ui/content/lookup"], function (require, exports, basic_9, template_8, string_2, multyline_2, bool_2, number_2, date_2, datetime_2, lookup_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -9582,10 +9647,10 @@ define("jriapp_ui/content/all", ["require", "exports", "jriapp_ui/content/basic"
     Object.defineProperty(exports, "DateTimeContent", { enumerable: true, get: function () { return datetime_2.DateTimeContent; } });
     Object.defineProperty(exports, "LookupContent", { enumerable: true, get: function () { return lookup_2.LookupContent; } });
 });
-define("jriapp_ui", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/content/factory", "jriapp_ui/utils/tooltip", "jriapp_ui/utils/datepicker", "jriapp_ui/utils/errors", "jriapp_ui/dialog", "jriapp_ui/dynacontent", "jriapp_ui/datagrid/datagrid", "jriapp_ui/pager", "jriapp_ui/listbox", "jriapp_ui/stackpanel", "jriapp_ui/tabs", "jriapp_ui/baseview", "jriapp_ui/template", "jriapp_ui/dataform", "jriapp_ui/datepicker", "jriapp_ui/anchor", "jriapp_ui/block", "jriapp_ui/busy", "jriapp_ui/button", "jriapp_ui/checkbox", "jriapp_ui/checkbox3", "jriapp_ui/command", "jriapp_ui/hidden", "jriapp_ui/img", "jriapp_ui/input", "jriapp_ui/radio", "jriapp_ui/span", "jriapp_ui/textarea", "jriapp_ui/textbox", "jriapp_ui/utils/dblclick", "jriapp_ui/utils/jquery", "jriapp_ui/content/all"], function (require, exports, bootstrapper_33, factory_1, tooltip_1, datepicker_1, errors_3, dialog_2, dynacontent_1, datagrid_1, pager_1, listbox_2, stackpanel_1, tabs_1, baseview_17, template_9, dataform_1, datepicker_2, anchor_1, block_1, busy_1, button_1, checkbox_2, checkbox3_1, command_3, hidden_1, img_1, input_5, radio_1, span_2, textarea_2, textbox_5, dblclick_2, jquery_8, all_1) {
+define("jriapp_ui", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/content/factory", "jriapp_ui/utils/tooltip", "jriapp_ui/utils/datepicker", "jriapp_ui/utils/errors", "jriapp_ui/dialog", "jriapp_ui/dynacontent", "jriapp_ui/datagrid/datagrid", "jriapp_ui/pager", "jriapp_ui/listbox", "jriapp_ui/stackpanel", "jriapp_ui/tabs", "jriapp_ui/baseview", "jriapp_ui/template", "jriapp_ui/dataform", "jriapp_ui/datepicker", "jriapp_ui/anchor", "jriapp_ui/block", "jriapp_ui/busy", "jriapp_ui/button", "jriapp_ui/checkbox", "jriapp_ui/checkbox3", "jriapp_ui/command", "jriapp_ui/hidden", "jriapp_ui/img", "jriapp_ui/input", "jriapp_ui/radio", "jriapp_ui/span", "jriapp_ui/textarea", "jriapp_ui/textbox", "jriapp_ui/expander", "jriapp_ui/utils/dblclick", "jriapp_ui/utils/jquery", "jriapp_ui/content/all"], function (require, exports, bootstrapper_34, factory_1, tooltip_1, datepicker_1, errors_3, dialog_2, dynacontent_1, datagrid_1, pager_1, listbox_2, stackpanel_1, tabs_1, baseview_17, template_9, dataform_1, datepicker_2, anchor_2, block_1, busy_1, button_1, checkbox_2, checkbox3_1, command_3, hidden_1, img_1, input_5, radio_1, span_2, textarea_2, textbox_5, expander_4, dblclick_2, jquery_8, all_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.VERSION = exports.$ = exports.JQueryUtils = exports.DblClick = exports.TextBoxElView = exports.TextAreaElView = exports.SpanElView = exports.RadioElView = exports.InputElView = exports.ImgElView = exports.HiddenElView = exports.CommandElView = exports.CheckBoxThreeStateElView = exports.CheckBoxElView = exports.ButtonElView = exports.BusyElView = exports.BlockElView = exports.AnchorElView = exports.DatePickerElView = exports.DataFormElView = exports.DataForm = exports.TemplateElView = exports.addToolTip = exports.BaseElView = exports.ListBoxElView = exports.ListBox = exports.getDataGrids = exports.findDataGrid = exports.ROW_POSITION = exports.DataGridElView = exports.DataGridRow = exports.DataGridColumn = exports.DataGrid = exports.DynaContentElView = exports.DialogVM = exports.DataEditDialog = exports.DIALOG_ACTION = void 0;
+    exports.VERSION = exports.$ = exports.JQueryUtils = exports.DblClick = exports.ExpanderElView = exports.TextBoxElView = exports.TextAreaElView = exports.SpanElView = exports.RadioElView = exports.InputElView = exports.ImgElView = exports.HiddenElView = exports.CommandElView = exports.CheckBoxThreeStateElView = exports.CheckBoxElView = exports.ButtonElView = exports.BusyElView = exports.BlockElView = exports.AnchorElView = exports.DatePickerElView = exports.DataFormElView = exports.DataForm = exports.TemplateElView = exports.addToolTip = exports.BaseElView = exports.ListBoxElView = exports.ListBox = exports.getDataGrids = exports.findDataGrid = exports.ROW_POSITION = exports.DataGridElView = exports.DataGridRow = exports.DataGridColumn = exports.DataGrid = exports.DynaContentElView = exports.DialogVM = exports.DataEditDialog = exports.DIALOG_ACTION = void 0;
     Object.defineProperty(exports, "DIALOG_ACTION", { enumerable: true, get: function () { return dialog_2.DIALOG_ACTION; } });
     Object.defineProperty(exports, "DataEditDialog", { enumerable: true, get: function () { return dialog_2.DataEditDialog; } });
     Object.defineProperty(exports, "DialogVM", { enumerable: true, get: function () { return dialog_2.DialogVM; } });
@@ -9608,7 +9673,7 @@ define("jriapp_ui", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/con
     Object.defineProperty(exports, "DataForm", { enumerable: true, get: function () { return dataform_1.DataForm; } });
     Object.defineProperty(exports, "DataFormElView", { enumerable: true, get: function () { return dataform_1.DataFormElView; } });
     Object.defineProperty(exports, "DatePickerElView", { enumerable: true, get: function () { return datepicker_2.DatePickerElView; } });
-    Object.defineProperty(exports, "AnchorElView", { enumerable: true, get: function () { return anchor_1.AnchorElView; } });
+    Object.defineProperty(exports, "AnchorElView", { enumerable: true, get: function () { return anchor_2.AnchorElView; } });
     Object.defineProperty(exports, "BlockElView", { enumerable: true, get: function () { return block_1.BlockElView; } });
     Object.defineProperty(exports, "BusyElView", { enumerable: true, get: function () { return busy_1.BusyElView; } });
     Object.defineProperty(exports, "ButtonElView", { enumerable: true, get: function () { return button_1.ButtonElView; } });
@@ -9622,12 +9687,13 @@ define("jriapp_ui", ["require", "exports", "jriapp/bootstrapper", "jriapp_ui/con
     Object.defineProperty(exports, "SpanElView", { enumerable: true, get: function () { return span_2.SpanElView; } });
     Object.defineProperty(exports, "TextAreaElView", { enumerable: true, get: function () { return textarea_2.TextAreaElView; } });
     Object.defineProperty(exports, "TextBoxElView", { enumerable: true, get: function () { return textbox_5.TextBoxElView; } });
+    Object.defineProperty(exports, "ExpanderElView", { enumerable: true, get: function () { return expander_4.ExpanderElView; } });
     Object.defineProperty(exports, "DblClick", { enumerable: true, get: function () { return dblclick_2.DblClick; } });
     Object.defineProperty(exports, "JQueryUtils", { enumerable: true, get: function () { return jquery_8.JQueryUtils; } });
     Object.defineProperty(exports, "$", { enumerable: true, get: function () { return jquery_8.$; } });
     __exportStar(all_1, exports);
-    exports.VERSION = "4.0.8";
-    var boot = bootstrapper_33.bootstrapper;
+    exports.VERSION = "4.0.9";
+    var boot = bootstrapper_34.bootstrapper;
     factory_1.initContentFactory();
     boot.registerSvc("ITooltipService", tooltip_1.createToolTipSvc());
     boot.registerSvc("IDatepicker", datepicker_1.createDatepickerSvc());
