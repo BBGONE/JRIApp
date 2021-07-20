@@ -11,7 +11,7 @@ namespace RIAppDemo.BLL.DataServices.Config
         {
             services.AddDomainService<FolderBrowserService>((options) =>
             {
-                var svcOptions = new SvcOptions();
+                SvcOptions svcOptions = new SvcOptions();
                 configure?.Invoke(svcOptions);
 
                 options.UserFactory = svcOptions.GetUser;

@@ -34,7 +34,7 @@ namespace Pipeline.Extensions
             // Create and configure the branch builder right away; otherwise,
             // we would end up running our branch after all the components
             // that were subsequently added to the main builder.
-            var branchBuilder = app.New();
+            PipelineBuilder<TService, TContext> branchBuilder = app.New();
             configuration(branchBuilder);
 
             return app.Use(main =>
@@ -42,7 +42,7 @@ namespace Pipeline.Extensions
                 // This is called only when the main application builder 
                 // is built, not per request.
                 branchBuilder.Run(main);
-                var branch = branchBuilder.Build();
+                RequestDelegate<TContext> branch = branchBuilder.Build();
 
                 return context =>
                 {

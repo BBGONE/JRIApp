@@ -52,8 +52,8 @@ namespace System.Linq.Dynamic.Core
         /// <returns>T</returns>
         public T GetDynamicPropertyValue<T>(string propertyName)
         {
-            var type = GetType();
-            var propInfo = type.GetProperty(propertyName);
+            Type type = GetType();
+            PropertyInfo propInfo = type.GetProperty(propertyName);
 
             return (T)propInfo.GetValue(this, null);
         }
@@ -76,8 +76,8 @@ namespace System.Linq.Dynamic.Core
         /// <param name="value">The value.</param>
         public void SetDynamicPropertyValue<T>(string propertyName, T value)
         {
-            var type = GetType();
-            var propInfo = type.GetProperty(propertyName);
+            Type type = GetType();
+            PropertyInfo propInfo = type.GetProperty(propertyName);
 
             propInfo.SetValue(this, value, null);
         }

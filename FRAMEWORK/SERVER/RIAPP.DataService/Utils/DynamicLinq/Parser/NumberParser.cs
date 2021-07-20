@@ -25,7 +25,7 @@
         {
             try
             {
-                var tp = TypeHelper.GetNonNullableType(type);
+                Type tp = TypeHelper.GetNonNullableType(type);
                 if (tp == typeof(sbyte))
                 {
                     return sbyte.Parse(text, _config.NumberParseCulture);

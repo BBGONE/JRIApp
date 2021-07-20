@@ -54,12 +54,12 @@ namespace Pipeline.Extensions
             }
 
             // create branch
-            var branchBuilder = app.New();
+            PipelineBuilder<TService, TContext> branchBuilder = app.New();
             configuration(branchBuilder);
-            var branch = branchBuilder.Build();
+            RequestDelegate<TContext> branch = branchBuilder.Build();
 
             // put middleware in pipeline
-            var options = new MapWhenOptions<TContext>
+            MapWhenOptions<TContext> options = new MapWhenOptions<TContext>
             {
                 Predicate = predicate,
                 Branch = branch,

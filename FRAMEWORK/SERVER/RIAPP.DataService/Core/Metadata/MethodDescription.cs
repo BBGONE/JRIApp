@@ -27,8 +27,8 @@ namespace RIAPP.DataService.Core.Metadata
         {
             get
             {
-                var returnType = _methodData.MethodInfo.ReturnType;
-                var isVoid = returnType == typeof(void) || returnType == typeof(Task);
+                System.Type returnType = _methodData.MethodInfo.ReturnType;
+                bool isVoid = returnType == typeof(void) || returnType == typeof(Task);
                 return !isVoid;
             }
         }
@@ -46,12 +46,12 @@ namespace RIAPP.DataService.Core.Metadata
         /// </summary>
         public static MethodDescription FromMethodInfo(MethodInfoData data, IValueConverter valueConverter)
         {
-            var methDescription = new MethodDescription(data);
+            MethodDescription methDescription = new MethodDescription(data);
             //else Result is Converted to JSON
-            var paramsInfo = data.MethodInfo.GetParameters();
+            System.Reflection.ParameterInfo[] paramsInfo = data.MethodInfo.GetParameters();
             for (int i = 0; i < paramsInfo.Length; ++i)
             {
-                var param = ParamMetadata.FromParamInfo(paramsInfo[i], valueConverter);
+                ParamMetadata param = ParamMetadata.FromParamInfo(paramsInfo[i], valueConverter);
                 param.ordinal = i;
                 methDescription.parameters.Add(param);
             }

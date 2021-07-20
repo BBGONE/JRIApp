@@ -16,8 +16,8 @@ namespace RIAPP.DataService.Core.UseCases.InvokeMiddleware
 
         public async Task Invoke(InvokeContext<TService> ctx)
         {
-            var authorizer = ctx.ServiceContainer.GetAuthorizer();
-            var metadata = ctx.Service.GetMetadata();
+            Security.IAuthorizer<TService> authorizer = ctx.ServiceContainer.GetAuthorizer();
+            RunTimeMetadata metadata = ctx.Service.GetMetadata();
 
             MethodDescription method = metadata.GetInvokeMethod(ctx.Request.methodName);
             await authorizer.CheckUserRightsToExecute(method.GetMethodData());

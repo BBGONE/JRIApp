@@ -8,8 +8,8 @@ namespace RIAPP.DataService.Utils
     {
         public static int GetTimezoneOffset()
         {
-            var uval = DATEZERO.ToUniversalTime();
-            var tspn = uval - DATEZERO;
+            DateTime uval = DATEZERO.ToUniversalTime();
+            TimeSpan tspn = uval - DATEZERO;
             return (int)tspn.TotalMinutes;
         }
 

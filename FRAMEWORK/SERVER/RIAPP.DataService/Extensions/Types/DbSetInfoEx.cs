@@ -61,7 +61,7 @@ namespace RIAPP.DataService.Core.Types
         public static void Initialize(this DbSetInfo dbSetInfo, IDataHelper dataHelper)
         {
             dbSetInfo._fieldsByNames = new Dictionary<string, Field>();
-            var fieldInfos = dbSetInfo.fieldInfos.ToArray();
+            Field[] fieldInfos = dbSetInfo.fieldInfos.ToArray();
             int cnt = fieldInfos.Length;
 
             for (int i = 0; i < cnt; ++i)
@@ -73,12 +73,12 @@ namespace RIAPP.DataService.Core.Types
                 });
             }
             SetOrdinal(fieldInfos);
-            var pkFields = dbSetInfo.GetPKFields();
+            Field[] pkFields = dbSetInfo.GetPKFields();
             if (pkFields.Length < 1)
             {
                 throw new DomainServiceException(string.Format(ErrorStrings.ERR_DBSET_HAS_NO_PK, dbSetInfo.dbSetName));
             }
-            var fbn = dbSetInfo.GetFieldByNames();
+            Dictionary<string, Field> fbn = dbSetInfo.GetFieldByNames();
         }
 
         public static FieldsList GetFieldInfos(this DbSetInfo dbSetInfo)

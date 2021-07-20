@@ -17,7 +17,7 @@
 
         public void Handle(TUseCaseResponse response)
         {
-            this.Response = response;
+            Response = response;
         }
     }
 }

@@ -13,7 +13,7 @@ namespace RIAppDemo.BLL.Validators
         public override Task<IEnumerable<ValidationErrorInfo>> ValidateModelAsync(Product product,
             string[] modifiedField)
         {
-            var errors = new LinkedList<ValidationErrorInfo>();
+            LinkedList<ValidationErrorInfo> errors = new LinkedList<ValidationErrorInfo>();
             if (Array.IndexOf(modifiedField, "Name") > -1 &&
                 product.Name.StartsWith("Ugly", StringComparison.OrdinalIgnoreCase))
             {

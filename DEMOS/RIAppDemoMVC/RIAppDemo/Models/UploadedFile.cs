@@ -10,7 +10,7 @@ namespace RIAppDemo.Models
     {
         private static UploadedFile RetrieveFileFromRequest(Controller controller)
         {
-            var Request = controller.Request;
+            System.Web.HttpRequestBase Request = controller.Request;
             int? chunkSize = Request.Headers.Keys.OfType<string>().Contains("X-Chunk-Size") ? int.Parse(Request.Headers["X-Chunk-Size"]) : (int?)null;
             int fileSize = chunkSize.HasValue ? int.Parse(Request.Headers["X-File-Size"]) : Request.ContentLength;
             string filename = Uri.UnescapeDataString(Request.Headers["X-File-Name"]);
@@ -39,7 +39,7 @@ namespace RIAppDemo.Models
                 System.IO.Directory.CreateDirectory(dir);
             }
 
-            using (var fileStream = (file.ChunkNum == 1) ? System.IO.File.Create(filepath) : System.IO.File.Open(filepath, FileMode.Append))
+            using (FileStream fileStream = (file.ChunkNum == 1) ? System.IO.File.Create(filepath) : System.IO.File.Open(filepath, FileMode.Append))
             {
                 file.Content.CopyTo(fileStream);
             }
@@ -83,8 +83,8 @@ namespace RIAppDemo.Models
 
         public int? ChunkTotal { get; set; }
 
-        public bool IsLastChunk { get { return ChunkTotal.HasValue && ChunkTotal.Value == ChunkNum.Value; } }
+        public bool IsLastChunk => ChunkTotal.HasValue && ChunkTotal.Value == ChunkNum.Value;
 
-        public bool IsChunked { get { return ChunkTotal.HasValue; } }
+        public bool IsChunked => ChunkTotal.HasValue;
     }
 }

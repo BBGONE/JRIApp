@@ -16,8 +16,8 @@ namespace RIAPP.DataService.Core.UseCases.QueryMiddleware
 
         public async Task Invoke(QueryContext<TService> ctx)
         {
-            var authorizer = ctx.ServiceContainer.GetAuthorizer();
-            var metadata = ctx.Service.GetMetadata();
+            Security.IAuthorizer<TService> authorizer = ctx.ServiceContainer.GetAuthorizer();
+            RunTimeMetadata metadata = ctx.Service.GetMetadata();
 
             MethodDescription method = metadata.GetQueryMethod(ctx.Request.dbSetName, ctx.Request.queryName);
             await authorizer.CheckUserRightsToExecute(method.GetMethodData());

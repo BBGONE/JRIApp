@@ -8,16 +8,16 @@ namespace RIAppDemo.BLL.Utils
     {
         public static string GetResourceString(string ID)
         {
-            var a = typeof(ResourceHelper).Assembly;
+            System.Reflection.Assembly a = typeof(ResourceHelper).Assembly;
             //string[] resNames = a.GetManifestResourceNames();
-            using (var stream = a.GetManifestResourceStream(ID))
+            using (Stream stream = a.GetManifestResourceStream(ID))
             {
                 if (null == stream)
                 {
                     throw new Exception("Can not find resource: \"" + ID + "\"");
                 }
-                var rd = new StreamReader(stream, Encoding.UTF8);
-                var txt = rd.ReadToEnd();
+                StreamReader rd = new StreamReader(stream, Encoding.UTF8);
+                string txt = rd.ReadToEnd();
                 return txt;
             }
         }

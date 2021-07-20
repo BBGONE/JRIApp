@@ -21,7 +21,7 @@ namespace RIAPP.DataService.Utils
                     throw new InvalidOperationException("The MultyMap is ReadOnly");
                 }
 
-                var list = GetListByKey(key) as IProducerConsumerCollection<V>;
+                IProducerConsumerCollection<V> list = GetListByKey(key) as IProducerConsumerCollection<V>;
                 if (list == null)
                 {
                     throw new InvalidOperationException("The MultyMap is ReadOnly");
@@ -37,11 +37,11 @@ namespace RIAPP.DataService.Utils
         {
             get
             {
-                var lists = _dictionary.Values;
-                var res = new List<V>();
-                foreach (var list in lists)
+                ICollection<IEnumerable<V>> lists = _dictionary.Values;
+                List<V> res = new List<V>();
+                foreach (IEnumerable<V> list in lists)
                 {
-                    foreach (var val in list)
+                    foreach (V val in list)
                     {
                         res.Add(val);
                     }
@@ -68,10 +68,10 @@ namespace RIAPP.DataService.Utils
                 }
 
                 _isReadOnly = true;
-                var keys = Keys.ToList();
+                List<K> keys = Keys.ToList();
                 keys.ForEach(k =>
                 {
-                    var vals = _dictionary[k].ToArray();
+                    V[] vals = _dictionary[k].ToArray();
                     _dictionary[k] = vals;
                 });
             }

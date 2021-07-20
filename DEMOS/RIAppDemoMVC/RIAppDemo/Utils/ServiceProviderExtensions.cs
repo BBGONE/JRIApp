@@ -8,7 +8,7 @@ namespace RIAppDemo.Utils
     {
         public static IServiceCollection AddControllersAsServices(this IServiceCollection services, IEnumerable<Type> controllerTypes)
         {
-            foreach (var type in controllerTypes)
+            foreach (Type type in controllerTypes)
             {
                 services.AddTransient(type);
             }

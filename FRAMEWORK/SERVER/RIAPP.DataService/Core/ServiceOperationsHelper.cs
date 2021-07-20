@@ -273,7 +273,7 @@ namespace RIAPP.DataService.Core
 
         public bool isEntityValueChanged(RowInfo rowInfo, string fullName, Field fieldInfo, out string newVal)
         {
-            var changeState = rowInfo.GetChangeState();
+            EntityChangeState changeState = rowInfo.GetChangeState();
             string oldVal = null;
             newVal = _dataHelper.SerializeField(changeState.Entity, fullName, fieldInfo);
             if (changeState.OriginalEntity != null)
@@ -311,7 +311,7 @@ namespace RIAPP.DataService.Core
 
         public object GetOriginalEntity(object entity, RowInfo rowInfo)
         {
-            var dbEntity = Activator.CreateInstance(entity.GetType());
+            object dbEntity = Activator.CreateInstance(entity.GetType());
             UpdateEntityFromRowInfo(dbEntity, rowInfo, true);
             return dbEntity;
         }
@@ -322,7 +322,7 @@ namespace RIAPP.DataService.Core
             {
                 throw new DomainServiceException(ErrorStrings.ERR_METH_APPLY_INVALID);
             }
-            var parents = rowInfo.GetChangeState().ParentRows;
+            ParentChildNode[] parents = rowInfo.GetChangeState().ParentRows;
             if (parents.Length == 0)
             {
                 return null;
@@ -357,11 +357,11 @@ namespace RIAPP.DataService.Core
                     dbSetInfo.GetEntityType().Name, GetType().Name));
             }
 
-            var dbEntity = Activator.CreateInstance(dbSetInfo.GetEntityType());
+            object dbEntity = Activator.CreateInstance(dbSetInfo.GetEntityType());
             UpdateEntityFromRowInfo(dbEntity, rowInfo, false);
             rowInfo.GetChangeState().Entity = dbEntity;
-            var instance = GetMethodOwner(methodData);
-            var res = methodData.MethodInfo.Invoke(instance, new[] { dbEntity });
+            object instance = GetMethodOwner(methodData);
+            object res = methodData.MethodInfo.Invoke(instance, new[] { dbEntity });
             if (res is Task)
             {
                 await (res as Task);
@@ -384,14 +384,14 @@ namespace RIAPP.DataService.Core
                     dbSetInfo.GetEntityType().Name, GetType().Name));
             }
 
-            var dbEntity = Activator.CreateInstance(dbSetInfo.GetEntityType());
+            object dbEntity = Activator.CreateInstance(dbSetInfo.GetEntityType());
             UpdateEntityFromRowInfo(dbEntity, rowInfo, false);
-            var original = GetOriginalEntity(dbEntity, rowInfo);
+            object original = GetOriginalEntity(dbEntity, rowInfo);
             rowInfo.GetChangeState().Entity = dbEntity;
             rowInfo.GetChangeState().OriginalEntity = original;
-            var instance = GetMethodOwner(methodData);
+            object instance = GetMethodOwner(methodData);
             //apply this changes to entity that is in the database (this is done in user domain service method)
-            var res = methodData.MethodInfo.Invoke(instance, new[] { dbEntity });
+            object res = methodData.MethodInfo.Invoke(instance, new[] { dbEntity });
             if (res is Task)
             {
                 await (res as Task);
@@ -414,12 +414,12 @@ namespace RIAPP.DataService.Core
                     dbSetInfo.GetEntityType().Name, GetType().Name));
             }
 
-            var dbEntity = Activator.CreateInstance(dbSetInfo.GetEntityType());
+            object dbEntity = Activator.CreateInstance(dbSetInfo.GetEntityType());
             UpdateEntityFromRowInfo(dbEntity, rowInfo, true);
             rowInfo.GetChangeState().Entity = dbEntity;
             rowInfo.GetChangeState().OriginalEntity = dbEntity;
-            var instance = GetMethodOwner(methodData);
-            var res = methodData.MethodInfo.Invoke(instance, new[] { dbEntity });
+            object instance = GetMethodOwner(methodData);
+            object res = methodData.MethodInfo.Invoke(instance, new[] { dbEntity });
             if (res is Task)
             {
                 await (res as Task);
@@ -493,8 +493,8 @@ namespace RIAPP.DataService.Core
             MethodInfoData methodData = metadata.GetOperationMethodInfo(dbSetInfo.dbSetName, MethodType.Validate);
             if (methodData != null)
             {
-                var instance = GetMethodOwner(methodData);
-                var invokeRes = methodData.MethodInfo.Invoke(instance,
+                object instance = GetMethodOwner(methodData);
+                object invokeRes = methodData.MethodInfo.Invoke(instance,
                     new[] { rowInfo.GetChangeState().Entity, rowInfo.GetChangeState().ChangedFieldNames });
                 errs1 = (IEnumerable<ValidationErrorInfo>)await GetMethodResult(invokeRes);
             }

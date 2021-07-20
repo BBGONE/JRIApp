@@ -9,14 +9,14 @@ namespace RIAppDemo.BLL.Utils
 
         public FileContent(string filePath)
         {
-            this._filePath = filePath;
+            _filePath = filePath;
         }
 
-        public string FilePath { get { return _filePath; } }
+        public string FilePath => _filePath;
 
         public async Task CopyToAsync(Stream stream, int bufferSize = 131072)
         {
-            using (var fileStream = File.OpenRead(this.FilePath))
+            using (FileStream fileStream = File.OpenRead(FilePath))
             {
                 await fileStream.CopyToAsync(stream);
             }
@@ -24,9 +24,9 @@ namespace RIAppDemo.BLL.Utils
 
         public void CleanUp()
         {
-            if (File.Exists(this.FilePath))
+            if (File.Exists(FilePath))
             {
-                File.Delete(this.FilePath);
+                File.Delete(FilePath);
             }
         }
     }

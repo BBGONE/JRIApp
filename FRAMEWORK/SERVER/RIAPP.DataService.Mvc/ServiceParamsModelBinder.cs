@@ -13,17 +13,17 @@ namespace RIAPP.DataService.Mvc
 
         public class JsonModelBinder : IModelBinder
         {
-            static readonly ISerializer serializer = new Serializer();
+            private static readonly ISerializer serializer = new Serializer();
 
             public object BindModel(ControllerContext controllerContext, ModelBindingContext bindingContext)
             {
                 try
                 {
-                    var bytes = new byte[controllerContext.HttpContext.Request.ContentLength];
+                    byte[] bytes = new byte[controllerContext.HttpContext.Request.ContentLength];
                     controllerContext.HttpContext.Request.InputStream.Position = 0;
                     controllerContext.HttpContext.Request.InputStream.Read(bytes, 0, bytes.Length);
-                    var body = controllerContext.HttpContext.Request.ContentEncoding.GetString(bytes);
-                   
+                    string body = controllerContext.HttpContext.Request.ContentEncoding.GetString(bytes);
+
                     return serializer.DeSerialize(body, bindingContext.ModelType);
                 }
                 catch (Exception)

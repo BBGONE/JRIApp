@@ -12,9 +12,9 @@ namespace RIAPP.DataService.Mvc.Utils
                 return;
             }
 
-            var request = filterContext.HttpContext.Request;
+            System.Web.HttpRequestBase request = filterContext.HttpContext.Request;
 
-            var acceptEncoding = request.Headers["Accept-Encoding"];
+            string acceptEncoding = request.Headers["Accept-Encoding"];
 
             if (string.IsNullOrEmpty(acceptEncoding))
             {
@@ -23,7 +23,7 @@ namespace RIAPP.DataService.Mvc.Utils
 
             acceptEncoding = acceptEncoding.ToUpperInvariant();
 
-            var response = filterContext.HttpContext.Response;
+            System.Web.HttpResponseBase response = filterContext.HttpContext.Response;
 
             if (acceptEncoding.Contains("GZIP"))
             {

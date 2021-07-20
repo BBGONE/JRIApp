@@ -32,9 +32,9 @@ namespace RIAPP.DataService.Core.CodeGen
         /// <returns>registered type name</returns>
         public string RegisterType(Type t)
         {
-            var isArray = t.IsArray;
-            var isEnumerable = false;
-            var isEnum = false;
+            bool isArray = t.IsArray;
+            bool isEnumerable = false;
+            bool isEnum = false;
             string result = "any";
 
             try
@@ -59,7 +59,7 @@ namespace RIAPP.DataService.Core.CodeGen
                     isEnumerable = true;
                     return "any[]";
                 }
-                else if (t == typeof(Object))
+                else if (t == typeof(object))
                 {
                     return "any";
                 }
@@ -69,7 +69,7 @@ namespace RIAPP.DataService.Core.CodeGen
                     isEnum = true;
                 }
 
-                var dtype = _valueConverter.DataTypeFromType(t);
+                DataType dtype = _valueConverter.DataTypeFromType(t);
                 result = DataTypeToTypeName(dtype);
 
                 if (isArray || isEnumerable)
@@ -110,8 +110,8 @@ namespace RIAPP.DataService.Core.CodeGen
                 if (extendsAttr != null && extendsAttr.InterfaceNames.Length > 0)
                 {
                     extendsSb = new StringBuilder("extends ");
-                    var isFirst = true;
-                    foreach (var intfName in extendsAttr.InterfaceNames)
+                    bool isFirst = true;
+                    foreach (string intfName in extendsAttr.InterfaceNames)
                     {
                         if (!isFirst)
                         {
@@ -162,7 +162,7 @@ namespace RIAPP.DataService.Core.CodeGen
                 throw new ArgumentException("Can not generate interface for a System.Type");
             }
 
-            var name = typeName;
+            string name = typeName;
             if (string.IsNullOrEmpty(typeName))
             {
                 name = RegisterType(t);
@@ -173,9 +173,9 @@ namespace RIAPP.DataService.Core.CodeGen
                 return _tsTypes[name];
             }
 
-            var commentAttr = t.GetCustomAttributes(typeof(CommentAttribute), false).OfType<CommentAttribute>().FirstOrDefault();
+            CommentAttribute commentAttr = t.GetCustomAttributes(typeof(CommentAttribute), false).OfType<CommentAttribute>().FirstOrDefault();
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             if (commentAttr != null && !string.IsNullOrWhiteSpace(commentAttr.Text))
             {
                 AddComment(sb, commentAttr.Text);
@@ -188,8 +188,8 @@ namespace RIAPP.DataService.Core.CodeGen
             }
             sb.AppendLine();
             sb.AppendLine("{");
-            var objProps = t.GetProperties();
-            foreach (var propInfo in objProps)
+            System.Reflection.PropertyInfo[] objProps = t.GetProperties();
+            foreach (System.Reflection.PropertyInfo propInfo in objProps)
             {
                 sb.AppendFormat("\t{0}{1}:{2};", propInfo.CanWrite ? "" : "readonly ", propInfo.Name, RegisterType(propInfo.PropertyType));
                 sb.AppendLine();
@@ -207,7 +207,7 @@ namespace RIAPP.DataService.Core.CodeGen
         /// <returns></returns>
         protected internal string GetTSEnum(Type t, string typeName)
         {
-            var name = typeName;
+            string name = typeName;
             if (string.IsNullOrEmpty(typeName))
             {
                 name = RegisterType(t);
@@ -218,10 +218,10 @@ namespace RIAPP.DataService.Core.CodeGen
                 return _tsTypes[name];
             }
 
-            var commentAttr =
+            CommentAttribute commentAttr =
                 t.GetCustomAttributes(typeof(CommentAttribute), false).OfType<CommentAttribute>().FirstOrDefault();
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             if (commentAttr != null && !string.IsNullOrWhiteSpace(commentAttr.Text))
             {
                 AddComment(sb, commentAttr.Text);
@@ -229,8 +229,8 @@ namespace RIAPP.DataService.Core.CodeGen
             sb.AppendFormat("export enum {0}", name);
             sb.AppendLine();
             sb.AppendLine("{");
-            var enumVals = Enum.GetValues(t).Cast<int>().ToArray();
-            var isFirst = true;
+            int[] enumVals = Enum.GetValues(t).Cast<int>().ToArray();
+            bool isFirst = true;
             Array.ForEach(enumVals, val =>
             {
                 if (!isFirst)
@@ -238,7 +238,7 @@ namespace RIAPP.DataService.Core.CodeGen
                     sb.AppendLine(",");
                 }
 
-                var valname = Enum.GetName(t, val);
+                string valname = Enum.GetName(t, val);
                 sb.AppendFormat("\t{0}={1}", valname, val);
                 isFirst = false;
             }
@@ -251,9 +251,9 @@ namespace RIAPP.DataService.Core.CodeGen
 
         public string GetInterfaceDeclarations()
         {
-            var vals = _tsTypes.Values;
-            var sb = new StringBuilder(4096);
-            foreach (var str in vals)
+            Dictionary<string, string>.ValueCollection vals = _tsTypes.Values;
+            StringBuilder sb = new StringBuilder(4096);
+            foreach (string str in vals)
             {
                 sb.Append(str);
                 sb.AppendLine();
@@ -263,7 +263,7 @@ namespace RIAPP.DataService.Core.CodeGen
 
         public static string DataTypeToTypeName(DataType dataType)
         {
-            var fieldType = "any";
+            string fieldType = "any";
             switch (dataType)
             {
                 case DataType.Binary:

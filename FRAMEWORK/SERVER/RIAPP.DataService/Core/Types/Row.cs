@@ -5,8 +5,8 @@
     {
         public Row()
         {
-            this.v = new object[0];
-            this.k = string.Empty;
+            v = new object[0];
+            k = string.Empty;
         }
 
         public Row(object[] v, string k)

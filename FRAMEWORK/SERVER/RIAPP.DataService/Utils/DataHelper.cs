@@ -17,19 +17,19 @@ namespace RIAPP.DataService.Utils
 
         public DataHelper(ISerializer serializer, IValueConverter<TService> valueConverter)
         {
-            this._serializer = serializer ?? throw new ArgumentNullException(nameof(serializer), ErrorStrings.ERR_NO_SERIALIZER);
-            this._valueConverter = valueConverter ?? throw new ArgumentNullException(nameof(valueConverter));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer), ErrorStrings.ERR_NO_SERIALIZER);
+            _valueConverter = valueConverter ?? throw new ArgumentNullException(nameof(valueConverter));
         }
 
         protected T Deserialize<T>(string val)
         {
-            return (T)this._serializer.DeSerialize(val, typeof(T));
+            return (T)_serializer.DeSerialize(val, typeof(T));
         }
 
         protected object[] SerializeObjectField(object fieldOwner, Field objectFieldInfo)
         {
-            var fieldInfos = objectFieldInfo.GetNestedInResultFields();
-            var res = new object[fieldInfos.Length];
+            Field[] fieldInfos = objectFieldInfo.GetNestedInResultFields();
+            object[] res = new object[fieldInfos.Length];
 
             for (int i = 0; i < fieldInfos.Length; ++i)
             {
@@ -41,8 +41,8 @@ namespace RIAPP.DataService.Utils
 
         protected object[] DeSerializeObjectField(Type propType, Field objectFieldInfo, object[] values)
         {
-            var fieldInfos = objectFieldInfo.GetNestedInResultFields();
-            var res = new object[fieldInfos.Length];
+            Field[] fieldInfos = objectFieldInfo.GetNestedInResultFields();
+            object[] res = new object[fieldInfos.Length];
 
             for (int i = 0; i < fieldInfos.Length; ++i)
             {
@@ -57,8 +57,8 @@ namespace RIAPP.DataService.Utils
         /// </summary>
         protected virtual object SerializeField(object fieldOwner, Field fieldInfo, bool optional)
         {
-            var enityType = fieldOwner.GetType();
-            var pinfo = enityType.GetProperty(fieldInfo.fieldName);
+            Type enityType = fieldOwner.GetType();
+            System.Reflection.PropertyInfo pinfo = enityType.GetProperty(fieldInfo.fieldName);
 
             if (pinfo == null)
             {
@@ -70,16 +70,16 @@ namespace RIAPP.DataService.Utils
                 return null;
             }
 
-            var propValue = pinfo.GetValue(fieldOwner, null);
+            object propValue = pinfo.GetValue(fieldOwner, null);
 
-            return (fieldInfo.fieldType == FieldType.Object) ? (object)this.SerializeObjectField(propValue, fieldInfo) : this._valueConverter.SerializeField(pinfo.PropertyType, fieldInfo, propValue);
+            return (fieldInfo.fieldType == FieldType.Object) ? (object)SerializeObjectField(propValue, fieldInfo) : _valueConverter.SerializeField(pinfo.PropertyType, fieldInfo, propValue);
         }
 
         public object GetValue(object obj, string propertyName, bool throwErrors)
         {
-            var parts = propertyName.Split('.');
-            var enityType = obj.GetType();
-            var pinfo = enityType.GetProperty(parts[0]);
+            string[] parts = propertyName.Split('.');
+            Type enityType = obj.GetType();
+            System.Reflection.PropertyInfo pinfo = enityType.GetProperty(parts[0]);
 
             if (pinfo == null && throwErrors)
             {
@@ -103,9 +103,9 @@ namespace RIAPP.DataService.Utils
 
         public bool SetValue(object obj, string propertyName, object value, bool throwErrors)
         {
-            var parts = propertyName.Split('.');
-            var enityType = obj.GetType();
-            var pinfo = enityType.GetProperty(parts[0]);
+            string[] parts = propertyName.Split('.');
+            Type enityType = obj.GetType();
+            System.Reflection.PropertyInfo pinfo = enityType.GetProperty(parts[0]);
 
             if (pinfo == null && throwErrors)
             {
@@ -134,16 +134,16 @@ namespace RIAPP.DataService.Utils
                 return true;
             }
 
-            var pval = pinfo.GetValue(obj, null) ?? throw new Exception(string.Format(ErrorStrings.ERR_PPROPERTY_ISNULL, enityType.Name, pinfo.Name));
+            object pval = pinfo.GetValue(obj, null) ?? throw new Exception(string.Format(ErrorStrings.ERR_PPROPERTY_ISNULL, enityType.Name, pinfo.Name));
 
             return SetValue(pval, string.Join(".", parts.Skip(1)), value, throwErrors);
         }
 
         public object SetFieldValue(object entity, string fullName, Field fieldInfo, string value)
         {
-            var parts = fullName.Split('.');
-            var enityType = entity.GetType();
-            var pinfo = enityType.GetProperty(parts[0]) ?? throw new Exception(string.Format(ErrorStrings.ERR_PROPERTY_IS_MISSING, enityType.Name,
+            string[] parts = fullName.Split('.');
+            Type enityType = entity.GetType();
+            System.Reflection.PropertyInfo pinfo = enityType.GetProperty(parts[0]) ?? throw new Exception(string.Format(ErrorStrings.ERR_PROPERTY_IS_MISSING, enityType.Name,
                     fieldInfo.fieldName));
 
             if (parts.Length == 1)
@@ -154,8 +154,8 @@ namespace RIAPP.DataService.Utils
                         fieldInfo.fieldName));
                 }
 
-                var propType = pinfo.PropertyType;
-                object val = this._valueConverter.DeserializeField(propType, fieldInfo, value);
+                Type propType = pinfo.PropertyType;
+                object val = _valueConverter.DeserializeField(propType, fieldInfo, value);
 
                 if (val != null)
                 {
@@ -187,7 +187,7 @@ namespace RIAPP.DataService.Utils
 
         public object SerializeField(object fieldOwner, Field fieldInfo)
         {
-            return this.SerializeField(fieldOwner, fieldInfo, false);
+            return SerializeField(fieldOwner, fieldInfo, false);
         }
 
         public string SerializeField(object fieldOwner, string fullName, Field fieldInfo)
@@ -197,17 +197,17 @@ namespace RIAPP.DataService.Utils
             if (parts.Length == 1)
             {
                 Type enityType = fieldOwner.GetType();
-                var pinfo = enityType.GetProperty(fieldInfo.fieldName) ?? throw new Exception(string.Format(ErrorStrings.ERR_PROPERTY_IS_MISSING, enityType.Name,
+                System.Reflection.PropertyInfo pinfo = enityType.GetProperty(fieldInfo.fieldName) ?? throw new Exception(string.Format(ErrorStrings.ERR_PROPERTY_IS_MISSING, enityType.Name,
                         fieldInfo.fieldName));
 
                 object fieldValue = pinfo.GetValue(fieldOwner, null);
-                return this._valueConverter.SerializeField(pinfo.PropertyType, fieldInfo, fieldValue);
+                return _valueConverter.SerializeField(pinfo.PropertyType, fieldInfo, fieldValue);
             }
 
             for (int i = 0; i < parts.Length - 1; i += 1)
             {
-                var enityType = fieldOwner.GetType();
-                var pinfo = enityType.GetProperty(parts[i]) ?? throw new Exception(string.Format(ErrorStrings.ERR_PROPERTY_IS_MISSING, enityType.Name, parts[i]));
+                Type enityType = fieldOwner.GetType();
+                System.Reflection.PropertyInfo pinfo = enityType.GetProperty(parts[i]) ?? throw new Exception(string.Format(ErrorStrings.ERR_PROPERTY_IS_MISSING, enityType.Name, parts[i]));
                 fieldOwner = pinfo.GetValue(fieldOwner, null);
             }
 
@@ -216,7 +216,7 @@ namespace RIAPP.DataService.Utils
 
         public object DeserializeField(Type entityType, Field fieldInfo, object value)
         {
-            var propInfo = entityType.GetProperty(fieldInfo.fieldName);
+            System.Reflection.PropertyInfo propInfo = entityType.GetProperty(fieldInfo.fieldName);
 
             if (propInfo == null)
             {
@@ -228,7 +228,7 @@ namespace RIAPP.DataService.Utils
                 return DeSerializeObjectField(propInfo.PropertyType, fieldInfo, (object[])value);
             }
 
-            return this._valueConverter.DeserializeField(propInfo.PropertyType, fieldInfo, (string)value);
+            return _valueConverter.DeserializeField(propInfo.PropertyType, fieldInfo, (string)value);
         }
 
         private IEnumerable ToEnumerable(Type elementType, ParamMetadata pinfo, string[] arr)
@@ -241,7 +241,7 @@ namespace RIAPP.DataService.Utils
 
         private object ParseArray(Type paramType, ParamMetadata pinfo, string val)
         {
-            string[] arr = this.Deserialize<string[]>(val);
+            string[] arr = Deserialize<string[]>(val);
 
             if (arr == null)
             {
@@ -257,12 +257,12 @@ namespace RIAPP.DataService.Utils
 
         public object ParseParameter(Type paramType, ParamMetadata pinfo, bool isArray, string val)
         {
-            return (isArray && val != null) ? ParseArray(paramType, pinfo, val) : this._valueConverter.DeserializeValue(paramType, pinfo.dataType, pinfo.dateConversion, val);
+            return (isArray && val != null) ? ParseArray(paramType, pinfo, val) : _valueConverter.DeserializeValue(paramType, pinfo.dataType, pinfo.dateConversion, val);
         }
 
         public Field GetFieldInfo(DbSetInfo dbSetInfo, string fullName)
         {
-            var fieldsByName = dbSetInfo.GetFieldByNames();
+            System.Collections.Generic.Dictionary<string, Field> fieldsByName = dbSetInfo.GetFieldByNames();
             return fieldsByName[fullName];
         }
 

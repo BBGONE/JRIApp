@@ -42,13 +42,13 @@ namespace RIAPP.DataService.Core.Types
 
         public object GetValue(string name, MethodDescription methodDescription, IDataHelper dataHelper)
         {
-            var par = parameters.Where(p => p.name == name).FirstOrDefault();
+            MethodParameter par = parameters.Where(p => p.name == name).FirstOrDefault();
             if (par == null)
             {
                 return null;
             }
 
-            var paraminfo = methodDescription.parameters.Where(p => p.name == name).FirstOrDefault();
+            ParamMetadata paraminfo = methodDescription.parameters.Where(p => p.name == name).FirstOrDefault();
             if (paraminfo == null)
             {
                 throw new DomainServiceException(string.Format("Method: {0} has no parameter with a name: {1}",

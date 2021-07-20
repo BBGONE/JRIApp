@@ -59,16 +59,16 @@ namespace RIAppDemo.DAL.EF
         [StringLength(50)]
         public string EmailAddress
         {
-            get { return _owner.EmailAddress; }
-            set { _owner.EmailAddress = value; }
+            get => _owner.EmailAddress;
+            set => _owner.EmailAddress = value;
         }
 
 
         [StringLength(25)]
         public string Phone
         {
-            get { return _owner.Phone; }
-            set { _owner.Phone = value; }
+            get => _owner.Phone;
+            set => _owner.Phone = value;
         }
     }
 

@@ -23,12 +23,12 @@ namespace RIAPP.DataService.Core.CodeGen
             string lang,
             Func<IEnumerable<Type>> clientTypes)
         {
-            this.Owner = owner ?? throw new ArgumentNullException(nameof(owner));
+            Owner = owner ?? throw new ArgumentNullException(nameof(owner));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _dataHelper = dataHelper ?? throw new ArgumentNullException(nameof(dataHelper));
             _valueConverter = valueConverter ?? throw new ArgumentNullException(nameof(valueConverter));
-            this.Lang = lang;
-            this._clientTypes = clientTypes ?? (() => Enumerable.Empty<Type>());
+            Lang = lang;
+            _clientTypes = clientTypes ?? (() => Enumerable.Empty<Type>());
         }
 
         public string Lang
@@ -40,8 +40,8 @@ namespace RIAPP.DataService.Core.CodeGen
 
         public virtual string GenerateScript(string comment = null, bool isDraft = false)
         {
-            RunTimeMetadata metadata = this.Owner.GetMetadata();
-            var helper = new TypeScriptHelper(_serializer, _dataHelper, _valueConverter, metadata, this._clientTypes());
+            RunTimeMetadata metadata = Owner.GetMetadata();
+            TypeScriptHelper helper = new TypeScriptHelper(_serializer, _dataHelper, _valueConverter, metadata, _clientTypes());
             return helper.CreateTypeScript(comment);
         }
     }
@@ -54,13 +54,13 @@ namespace RIAPP.DataService.Core.CodeGen
 
         public TypeScriptProviderFactory(IServiceContainer<TService> serviceContainer, Func<IEnumerable<Type>> clientTypes = null)
         {
-            this._serviceContainer = serviceContainer ?? throw new ArgumentNullException(nameof(serviceContainer));
-            this._clientTypes = clientTypes;
+            _serviceContainer = serviceContainer ?? throw new ArgumentNullException(nameof(serviceContainer));
+            _clientTypes = clientTypes;
         }
 
         public ICodeGenProvider Create(BaseDomainService owner)
         {
-            return this.Create((TService)owner);
+            return Create((TService)owner);
         }
 
         public ICodeGenProvider<TService> Create(TService owner)
@@ -69,7 +69,7 @@ namespace RIAPP.DataService.Core.CodeGen
                 _serviceContainer.Serializer,
                 _serviceContainer.GetDataHelper(),
                 _serviceContainer.GetValueConverter(),
-                this.Lang, this._clientTypes);
+                Lang, _clientTypes);
         }
 
         public string Lang => "ts";

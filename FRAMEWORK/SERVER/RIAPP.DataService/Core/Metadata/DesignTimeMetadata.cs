@@ -31,7 +31,7 @@ namespace RIAPP.DataService.Core.Metadata
 
             XNamespace ns_dal = $"clr-namespace:{dbSetType.Namespace};assembly={dbSetType.Assembly.GetName().Name}";
 
-            var xElement = new XElement(NS_DATA + "Metadata",
+            XElement xElement = new XElement(NS_DATA + "Metadata",
                 new XAttribute(XNamespace.Xmlns + "x", NS_XAML.ToString()),
                 new XAttribute(XNamespace.Xmlns + "data", NS_DATA.ToString()),
                 new XAttribute(XNamespace.Xmlns + "dal", ns_dal.ToString()),
@@ -75,31 +75,31 @@ namespace RIAPP.DataService.Core.Metadata
                         ))
                 );
 
-            var xml = xElement.ToString();
+            string xml = xElement.ToString();
             return xml;
         }
 
         public static DesignTimeMetadata FromXML(string xml)
         {
-            var metadata = new DesignTimeMetadata();
-            var xdoc = XDocument.Parse(xml);
-            var xmetadata = xdoc.Element(NS_DATA + "Metadata");
-            var xdbSets = xmetadata.Element(NS_DATA + "Metadata.DbSets");
-            var ximports = xmetadata.Nodes().Where(n => n is XProcessingInstruction && (n as XProcessingInstruction).Target == "import").Cast<XProcessingInstruction>();
+            DesignTimeMetadata metadata = new DesignTimeMetadata();
+            XDocument xdoc = XDocument.Parse(xml);
+            XElement xmetadata = xdoc.Element(NS_DATA + "Metadata");
+            XElement xdbSets = xmetadata.Element(NS_DATA + "Metadata.DbSets");
+            IEnumerable<XProcessingInstruction> ximports = xmetadata.Nodes().Where(n => n is XProcessingInstruction && (n as XProcessingInstruction).Target == "import").Cast<XProcessingInstruction>();
 
-            foreach (var xpc in ximports)
+            foreach (XProcessingInstruction xpc in ximports)
             {
                 metadata.TypeScriptImports.Add(xpc.Data);
             }
 
             if (xdbSets != null)
             {
-                foreach (var xdbSet in xdbSets.Elements(NS_DATA + "DbSetInfo"))
+                foreach (XElement xdbSet in xdbSets.Elements(NS_DATA + "DbSetInfo"))
                 {
-                    var xType = xdbSet.Attribute("EntityType").Value;
-                    var _entityType = _GetTypeFromXType(xType, xdoc);
+                    string xType = xdbSet.Attribute("EntityType").Value;
+                    Type _entityType = _GetTypeFromXType(xType, xdoc);
 
-                    var dbSetInfo = new DbSetInfo
+                    DbSetInfo dbSetInfo = new DbSetInfo
                     {
                         dbSetName = (string)xdbSet.Attribute("dbSetName")
                     };
@@ -122,18 +122,18 @@ namespace RIAPP.DataService.Core.Metadata
 
                     metadata.DbSets.Add(dbSetInfo);
 
-                    var xFields = xdbSet.Element(NS_DATA + "DbSetInfo.fieldInfos");
-                    var fields = xFields.Elements(NS_DATA + "Field");
+                    XElement xFields = xdbSet.Element(NS_DATA + "DbSetInfo.fieldInfos");
+                    IEnumerable<XElement> fields = xFields.Elements(NS_DATA + "Field");
                     dbSetInfo.fieldInfos.AddRange(_XElementsToFieldList(fields));
                 }
             }
 
-            var xAssocs = xmetadata.Element(NS_DATA + "Metadata.Associations");
+            XElement xAssocs = xmetadata.Element(NS_DATA + "Metadata.Associations");
             if (xAssocs != null)
             {
-                foreach (var xAssoc in xAssocs.Elements(NS_DATA + "Association"))
+                foreach (XElement xAssoc in xAssocs.Elements(NS_DATA + "Association"))
                 {
-                    var assoc = new Association
+                    Association assoc = new Association
                     {
                         name = (string)xAssoc.Attribute("name")
                     };
@@ -163,12 +163,12 @@ namespace RIAPP.DataService.Core.Metadata
                             (DeleteAction)Enum.Parse(typeof(DeleteAction), xAssoc.Attribute("onDeleteAction").Value);
                     }
 
-                    var xFieldRels = xAssoc.Element(NS_DATA + "Association.fieldRels");
+                    XElement xFieldRels = xAssoc.Element(NS_DATA + "Association.fieldRels");
                     if (xFieldRels != null)
                     {
-                        foreach (var xFieldRel in xFieldRels.Elements(NS_DATA + "FieldRel"))
+                        foreach (XElement xFieldRel in xFieldRels.Elements(NS_DATA + "FieldRel"))
                         {
-                            var fldRel = new FieldRel
+                            FieldRel fldRel = new FieldRel
                             {
                                 parentField = (string)xFieldRel.Attribute("parentField"),
                                 childField = (string)xFieldRel.Attribute("childField")
@@ -192,30 +192,30 @@ namespace RIAPP.DataService.Core.Metadata
         public static string ClassTypesToXML(IEnumerable<Type> classTypes)
         {
             classTypes = classTypes.Where(t => t.IsClass && !t.IsArray);
-            var dic_types = new Dictionary<Type, string>();
+            Dictionary<Type, string> dic_types = new Dictionary<Type, string>();
 
-            foreach (var classType in classTypes)
+            foreach (Type classType in classTypes)
             {
-                var ns_dal = $"clr-namespace:{classType.Namespace};assembly={classType.Assembly.GetName().Name}";
+                string ns_dal = $"clr-namespace:{classType.Namespace};assembly={classType.Assembly.GetName().Name}";
                 dic_types.Add(classType, ns_dal);
             }
 
-            var dic_ns_prefix = new Dictionary<string, string>();
-            var dal_ns_attributes = new LinkedList<XAttribute>();
+            Dictionary<string, string> dic_ns_prefix = new Dictionary<string, string>();
+            LinkedList<XAttribute> dal_ns_attributes = new LinkedList<XAttribute>();
             int i = 0;
 
-            foreach (var ns in dic_types.Values)
+            foreach (string ns in dic_types.Values)
             {
                 if (!dic_ns_prefix.ContainsKey(ns))
                 {
                     ++i;
-                    var prefix = $"dal{i}";
+                    string prefix = $"dal{i}";
                     dic_ns_prefix.Add(ns, prefix);
                     dal_ns_attributes.AddLast(new XAttribute(XNamespace.Xmlns + prefix, ns));
                 }
             }
 
-            var xElement = new XElement(NS_DATA + "Metadata",
+            XElement xElement = new XElement(NS_DATA + "Metadata",
                 new XAttribute(XNamespace.Xmlns + "x", NS_XAML.ToString()),
                 new XAttribute(XNamespace.Xmlns + "data", NS_DATA.ToString()),
                 dal_ns_attributes.ToArray(),
@@ -339,11 +339,11 @@ namespace RIAPP.DataService.Core.Metadata
 
         private static FieldsList _XElementsToFieldList(IEnumerable<XElement> xFields)
         {
-            var fields = new FieldsList();
+            FieldsList fields = new FieldsList();
 
-            foreach (var xField in xFields)
+            foreach (XElement xField in xFields)
             {
-                var field = new Field
+                Field field = new Field
                 {
                     fieldName = (string)xField.Attribute("fieldName")
                 };
@@ -436,16 +436,16 @@ namespace RIAPP.DataService.Core.Metadata
                 throw new Exception(string.Format("Invalid EntityType attribute value: {0}", xType));
             }
 
-            var typeParts = xType.TrimStart('{').TrimEnd('}').Split(' ');
+            string[] typeParts = xType.TrimStart('{').TrimEnd('}').Split(' ');
             if (typeParts.Length != 2)
             {
                 throw new Exception(string.Format("Invalid entity type: {0}", xType));
             }
 
-            var typeParts1 = typeParts[0].Split(':').Select(s => s.Trim()).ToArray();
-            var typeParts2 = typeParts[1].Split(':').Select(s => s.Trim()).ToArray();
+            string[] typeParts1 = typeParts[0].Split(':').Select(s => s.Trim()).ToArray();
+            string[] typeParts2 = typeParts[1].Split(':').Select(s => s.Trim()).ToArray();
 
-            var xaml_ns = xdoc.Root.GetNamespaceOfPrefix(typeParts1[0]);
+            XNamespace xaml_ns = xdoc.Root.GetNamespaceOfPrefix(typeParts1[0]);
             if (xaml_ns != NS_XAML)
             {
                 throw new Exception(string.Format("Can not get xaml namespace for xType: {0}", typeParts1[0]));
@@ -456,7 +456,7 @@ namespace RIAPP.DataService.Core.Metadata
                 throw new Exception(string.Format("Invalid EntityType attribute value: {0}", xType));
             }
 
-            var xEntity_ns = xdoc.Root.GetNamespaceOfPrefix(typeParts2[0]);
+            XNamespace xEntity_ns = xdoc.Root.GetNamespaceOfPrefix(typeParts2[0]);
             if (xEntity_ns == null)
             {
                 throw new Exception(string.Format("Can not get clr namespace for the prefix: {0}", typeParts2[0]));
@@ -466,16 +466,16 @@ namespace RIAPP.DataService.Core.Metadata
                 throw new Exception(string.Format("The namespace: {0} is not valid clr namespace", xEntity_ns));
             }
 
-            var entity_ns = RemoveWhitespace(xEntity_ns.ToString()).Replace("clr-namespace:", "");
-            var entityTypeName = typeParts2[1];
-            var nsparts = entity_ns.Split(';');
+            string entity_ns = RemoveWhitespace(xEntity_ns.ToString()).Replace("clr-namespace:", "");
+            string entityTypeName = typeParts2[1];
+            string[] nsparts = entity_ns.Split(';');
 
             entityTypeName = $"{nsparts[0]}.{entityTypeName}";
             if (nsparts.Length == 2 && nsparts[1].IndexOf("assembly=") >= 0)
             {
                 entityTypeName = $"{entityTypeName}, {nsparts[1].Replace("assembly=", "")}";
             }
-            var entityType = Type.GetType(entityTypeName, true);
+            Type entityType = Type.GetType(entityTypeName, true);
             return entityType;
         }
 

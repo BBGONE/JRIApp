@@ -19,16 +19,16 @@ namespace RIAPP.DataService.Core.UseCases.CRUDMiddleware
 
         public async Task Invoke(CRUDContext<TService> ctx)
         {
-            var serviceHelper = ctx.ServiceContainer.GetServiceHelper();
-            var dataHelper = ctx.ServiceContainer.GetDataHelper();
-            var metadata = ctx.Service.GetMetadata();
-            var changeSet = ctx.Request;
-            var graph = ctx.Properties.Get<IChangeSetGraph>(CRUDContext<TService>.CHANGE_GRAPH_KEY) ?? throw new InvalidOperationException("Could not get Graph changes from properties");
-            var serviceMethods = ctx.Properties.Get<CRUDServiceMethods>(CRUDContext<TService>.CHANGE_METHODS_KEY) ?? throw new InvalidOperationException("Could not get CRUD Service methods from properties");
+            IServiceOperationsHelper<TService> serviceHelper = ctx.ServiceContainer.GetServiceHelper();
+            IDataHelper<TService> dataHelper = ctx.ServiceContainer.GetDataHelper();
+            Metadata.RunTimeMetadata metadata = ctx.Service.GetMetadata();
+            ChangeSetRequest changeSet = ctx.Request;
+            IChangeSetGraph graph = ctx.Properties.Get<IChangeSetGraph>(CRUDContext<TService>.CHANGE_GRAPH_KEY) ?? throw new InvalidOperationException("Could not get Graph changes from properties");
+            CRUDServiceMethods serviceMethods = ctx.Properties.Get<CRUDServiceMethods>(CRUDContext<TService>.CHANGE_METHODS_KEY) ?? throw new InvalidOperationException("Could not get CRUD Service methods from properties");
 
-            var req = CRUDContext<TService>.CreateRequestContext(ctx.Service, changeSet);
+            RequestContext req = CRUDContext<TService>.CreateRequestContext(ctx.Service, changeSet);
 
-            using (var callContext = new RequestCallContext(req))
+            using (RequestCallContext callContext = new RequestCallContext(req))
             {
                 await serviceMethods.ExecuteChangeSet();
                 await serviceHelper.AfterExecuteChangeSet(changeSet);
@@ -42,9 +42,9 @@ namespace RIAPP.DataService.Core.UseCases.CRUDMiddleware
                     }
                 }
 
-                var subResults = new SubResultList();
+                SubResultList subResults = new SubResultList();
                 await serviceHelper.AfterChangeSetCommited(changeSet, subResults);
-                await (serviceMethods as CRUDServiceMethods).AfterChangeSetCommited(subResults);
+                await serviceMethods.AfterChangeSetCommited(subResults);
 
                 SubsetsGenerator subsetsGenerator = new SubsetsGenerator(metadata, dataHelper);
                 ctx.Response.subsets = subsetsGenerator.CreateSubsets(subResults);

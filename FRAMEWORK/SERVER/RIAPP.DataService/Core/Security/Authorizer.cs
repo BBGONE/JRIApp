@@ -18,8 +18,8 @@ namespace RIAPP.DataService.Core.Security
 
         public Authorizer(AuthorizationContext<TService> authorizationContext)
         {
-            this.AuthorizationContext = authorizationContext ?? throw new ArgumentNullException(nameof(authorizationContext));
-            this._serviceAuthorization = new Lazy<IEnumerable<IAuthorizeData>>(() => AuthorizationContext.Service.GetType().GetTypeAuthorization(), true);
+            AuthorizationContext = authorizationContext ?? throw new ArgumentNullException(nameof(authorizationContext));
+            _serviceAuthorization = new Lazy<IEnumerable<IAuthorizeData>>(() => AuthorizationContext.Service.GetType().GetTypeAuthorization(), true);
         }
 
         public AuthorizationContext AuthorizationContext { get; }
@@ -30,17 +30,17 @@ namespace RIAPP.DataService.Core.Security
         /// <param name="changeSet"></param>
         public async Task CheckUserRightsToExecute(IEnumerable<MethodInfoData> methods)
         {
-            var authorizationTree = GetServiceAuthorization().GetAuthorizationTree(methods);
+            AuthorizationTree authorizationTree = GetServiceAuthorization().GetAuthorizationTree(methods);
 
             if (!await CheckAccess(authorizationTree))
             {
-                throw new AccessDeniedException(string.Format(ErrorStrings.ERR_USER_ACCESS_DENIED, this.UserName));
+                throw new AccessDeniedException(string.Format(ErrorStrings.ERR_USER_ACCESS_DENIED, UserName));
             }
         }
 
         public Task<bool> CanAccessMethod(MethodInfoData method)
         {
-            var authorizationTree = GetServiceAuthorization().GetAuthorizationTree(new[] { method });
+            AuthorizationTree authorizationTree = GetServiceAuthorization().GetAuthorizationTree(new[] { method });
             return CheckAccess(authorizationTree);
         }
 
@@ -52,16 +52,16 @@ namespace RIAPP.DataService.Core.Security
         {
             if (!await CanAccessMethod(method))
             {
-                throw new AccessDeniedException(string.Format(ErrorStrings.ERR_USER_ACCESS_DENIED, this.UserName));
+                throw new AccessDeniedException(string.Format(ErrorStrings.ERR_USER_ACCESS_DENIED, UserName));
             }
         }
 
         #region Private methods
-        private ClaimsPrincipal User => this.AuthorizationContext.User;
+        private ClaimsPrincipal User => AuthorizationContext.User;
 
-        private string UserName => this.User == null || this.User.Identity == null || !this.User.Identity.IsAuthenticated
+        private string UserName => User == null || User.Identity == null || !User.Identity.IsAuthenticated
                     ? ANONYMOUS_USER
-                    : this.User.Identity.Name;
+                    : User.Identity.Name;
 
         private async Task<bool> CheckAccessCore(IEnumerable<IAuthorizeData> authorizeData)
         {
@@ -82,9 +82,9 @@ namespace RIAPP.DataService.Core.Security
                 return false;
             }
 
-            var denies = authorizeData.Where(a => a is IDenyAuthorizeData);
+            IEnumerable<IAuthorizeData> denies = authorizeData.Where(a => a is IDenyAuthorizeData);
 
-            foreach (var item in denies)
+            foreach (IAuthorizeData item in denies)
             {
                 if (!(await item.IsAuthorized(AuthorizationContext)))
                 {
@@ -92,11 +92,11 @@ namespace RIAPP.DataService.Core.Security
                 }
             }
 
-            var authorizers = authorizeData.Where(a => !(a is IDenyAuthorizeData));
+            IEnumerable<IAuthorizeData> authorizers = authorizeData.Where(a => !(a is IDenyAuthorizeData));
 
             int cnt = 0;
 
-            foreach (var item in authorizers)
+            foreach (IAuthorizeData item in authorizers)
             {
                 ++cnt;
 
@@ -124,7 +124,7 @@ namespace RIAPP.DataService.Core.Security
         {
             bool result = true;
 
-            foreach (var methodAuthorization in methodAuthorizations)
+            foreach (MethodAuthorization methodAuthorization in methodAuthorizations)
             {
                 if (methodAuthorization.IsAllowAnonymous)
                 {
@@ -203,7 +203,7 @@ namespace RIAPP.DataService.Core.Security
                 return allowServiceAccess;
             }
 
-            foreach (var ownerAuthorization in authorizationTree.DataManagersAuthorization)
+            foreach (DataManagerAuthorization ownerAuthorization in authorizationTree.DataManagersAuthorization)
             {
                 bool allowOwnerAccess = await CheckOwnerAccess(allowServiceAccess, ownerAuthorization);
                 result = await CheckMethodAccess(allowOwnerAccess, ownerAuthorization.MethodsAuthorization);

@@ -33,7 +33,7 @@ namespace RIAPP.DataService.Core
 
         IServiceContainer IServiceContainer.CreateScope()
         {
-            return this.CreateScope();
+            return CreateScope();
         }
 
         public IServiceContainer<TService> CreateScope()
@@ -95,7 +95,7 @@ namespace RIAPP.DataService.Core
 
         public void Dispose()
         {
-            IDisposable scope = Interlocked.Exchange(ref this._scope, null);
+            IDisposable scope = Interlocked.Exchange(ref _scope, null);
             scope?.Dispose();
         }
     }

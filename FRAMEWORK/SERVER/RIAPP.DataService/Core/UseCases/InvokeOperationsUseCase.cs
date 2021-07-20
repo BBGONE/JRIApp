@@ -1,5 +1,4 @@
 ﻿using Pipeline;
-using RIAPP.DataService.Core.Exceptions;
 using RIAPP.DataService.Core.Types;
 using RIAPP.DataService.Core.UseCases.InvokeMiddleware;
 using System;
@@ -30,7 +29,7 @@ namespace RIAPP.DataService.Core
 
             try
             {
-                var context = new InvokeContext<TService>(message,
+                InvokeContext<TService> context = new InvokeContext<TService>(message,
                  response,
                  (TService)_service,
                  _serviceContainer);

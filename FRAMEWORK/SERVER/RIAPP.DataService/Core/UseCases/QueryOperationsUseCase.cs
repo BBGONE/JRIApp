@@ -1,5 +1,4 @@
 ﻿using Pipeline;
-using RIAPP.DataService.Core.Exceptions;
 using RIAPP.DataService.Core.Types;
 using RIAPP.DataService.Core.UseCases.QueryMiddleware;
 using RIAPP.DataService.Utils.Extensions;
@@ -27,7 +26,7 @@ namespace RIAPP.DataService.Core
 
         public async Task<bool> Handle(QueryRequest message, IOutputPort<QueryResponse> outputPort)
         {
-            var response = new QueryResponse
+            QueryResponse response = new QueryResponse
             {
                 pageIndex = message.pageIndex,
                 pageCount = message.pageCount,
@@ -39,13 +38,13 @@ namespace RIAPP.DataService.Core
 
             try
             {
-                var metadata = _service.GetMetadata();
-                var dbSetInfo = metadata.DbSets.Get(message.dbSetName) ?? throw new InvalidOperationException($"The DbSet {message.dbSetName} was not found in metadata");
+                Metadata.RunTimeMetadata metadata = _service.GetMetadata();
+                DbSetInfo dbSetInfo = metadata.DbSets.Get(message.dbSetName) ?? throw new InvalidOperationException($"The DbSet {message.dbSetName} was not found in metadata");
                 message.SetDbSetInfo(dbSetInfo);
 
                 bool isMultyPageRequest = dbSetInfo.enablePaging && message.pageCount > 1;
 
-                var context = new QueryContext<TService>(message,
+                QueryContext<TService> context = new QueryContext<TService>(message,
                     response,
                     (TService)_service,
                     _serviceContainer,

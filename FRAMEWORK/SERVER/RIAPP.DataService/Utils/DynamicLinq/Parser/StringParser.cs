@@ -13,8 +13,8 @@ namespace System.Linq.Dynamic.Core.Parser
     {
         public static string ParseString(string s)
         {
-            var inputStringBuilder = new StringBuilder(s);
-            var tempStringBuilder = new StringBuilder();
+            StringBuilder inputStringBuilder = new StringBuilder(s);
+            StringBuilder tempStringBuilder = new StringBuilder();
             string found = null;
 
             char quote = inputStringBuilder[0];
@@ -63,7 +63,7 @@ namespace System.Linq.Dynamic.Core.Parser
 
         private static string Replace(StringBuilder inputStringBuilder)
         {
-            var sb = new StringBuilder(inputStringBuilder.ToString())
+            StringBuilder sb = new StringBuilder(inputStringBuilder.ToString())
                 .Replace(@"\\", "\\") // \\ – backslash
                 .Replace(@"\0", "\0") // Unicode character 0
                 .Replace(@"\a", "\a") // Alert(character 7)
@@ -73,7 +73,7 @@ namespace System.Linq.Dynamic.Core.Parser
                 .Replace(@"\r", "\r") // Carriage return (character 13)
                 .Replace(@"\t", "\t") // Horizontal tab(character 9)
                 .Replace(@"\v", "\v") // Vertical quote(character 11)
-            ; 
+            ;
 
             return sb.ToString();
         }

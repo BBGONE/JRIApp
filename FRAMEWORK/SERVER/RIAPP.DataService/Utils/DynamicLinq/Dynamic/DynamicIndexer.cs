@@ -24,7 +24,7 @@ namespace System.Linq.Dynamic.Core
             // At this moment, this is only a very quick fix for issue: https://github.com/zzzprojects/System.Linq.Dynamic.Core/issues/397
             // To replace DynamicGetMemberBinder.cs old logic that was caching the result
 
-            var dictionary = obj as IDictionary<string, object>;
+            IDictionary<string, object> dictionary = obj as IDictionary<string, object>;
             if (dictionary == null)
             {
                 throw new InvalidOperationException("Target object is not an ExpandoObject");

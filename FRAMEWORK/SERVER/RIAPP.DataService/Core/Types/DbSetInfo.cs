@@ -44,7 +44,7 @@ namespace RIAPP.DataService.Core.Types
         #region NonSerializable properties
         public DbSetInfo ShallowCopy()
         {
-            return (DbSetInfo)this.MemberwiseClone();
+            return (DbSetInfo)MemberwiseClone();
         }
 
         public Field[] GetInResultFields()

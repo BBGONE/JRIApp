@@ -12,7 +12,7 @@ namespace RIAPP.DataService.Utils.Extensions
 
         public static IEnumerable ToArray(this IEnumerable list, Type elementType)
         {
-            var del = _cacheToArray.GetOrAdd(elementType, Internal.GetToArrayDelegate);
+            Func<IEnumerable, IEnumerable> del = _cacheToArray.GetOrAdd(elementType, Internal.GetToArrayDelegate);
             return del(list);
         }
 

@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -1699,7 +1701,7 @@ define("manToManDemo/addAddressVM", ["require", "exports", "jriapp", "jriapp_db"
         };
         AddAddressVM.prototype._addAddressRP = function (addressID) {
             if (this._checkAddressInRP(addressID)) {
-                var deferred = utils.defer.createDeferred();
+                var deferred = utils.async.createDeferred();
                 deferred.reject();
                 return deferred.promise();
             }
@@ -2234,13 +2236,6 @@ define("manToManDemo/app", ["require", "exports", "jriapp", "demo/demoDB", "comm
                 _super.prototype.dispose.call(this);
             }
         };
-        Object.defineProperty(DemoApplication.prototype, "options", {
-            get: function () {
-                return this._options;
-            },
-            enumerable: false,
-            configurable: true
-        });
         Object.defineProperty(DemoApplication.prototype, "dbContext", {
             get: function () {
                 return this._dbContext;
@@ -2277,8 +2272,8 @@ define("manToManDemo/main", ["require", "exports", "jriapp", "common", "autocomp
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.start = void 0;
-    var bootstrap = RIAPP.bootstrap;
-    bootstrap.objEvents.addOnError(function (_s, args) {
+    var bootstrapper = RIAPP.bootstrapper;
+    bootstrapper.objEvents.addOnError(function (_s, args) {
         debugger;
         alert(args.error.message);
     });
@@ -2287,7 +2282,7 @@ define("manToManDemo/main", ["require", "exports", "jriapp", "common", "autocomp
             "COMMON": COMMON.initModule,
             "AUTOCOMPLETE": AUTOCOMPLETE.initModule
         };
-        return bootstrap.startApp(function () {
+        return bootstrapper.startApp(function () {
             return new app_1.DemoApplication(mainOptions);
         }).then(function (app) {
             return app.customerVM.load();

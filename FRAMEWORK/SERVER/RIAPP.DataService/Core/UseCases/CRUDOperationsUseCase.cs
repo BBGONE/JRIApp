@@ -1,6 +1,6 @@
-﻿using RIAPP.DataService.Core.Types;
+﻿using Pipeline;
+using RIAPP.DataService.Core.Types;
 using RIAPP.DataService.Core.UseCases.CRUDMiddleware;
-using Pipeline;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;

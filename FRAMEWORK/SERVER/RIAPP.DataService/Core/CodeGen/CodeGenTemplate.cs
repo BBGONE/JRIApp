@@ -12,16 +12,16 @@ namespace RIAPP.DataService.Core.CodeGen
 
         private static string GetTemplate(string ID)
         {
-            var a = typeof(CodeGenTemplate).Assembly;
+            System.Reflection.Assembly a = typeof(CodeGenTemplate).Assembly;
             //string[] resNames = a.GetManifestResourceNames();
-            using (var stream = a.GetManifestResourceStream(string.Format("{0}.{1}", NAMESPACE, ID)))
+            using (Stream stream = a.GetManifestResourceStream(string.Format("{0}.{1}", NAMESPACE, ID)))
             {
                 if (null == stream)
                 {
                     throw new Exception("Can not find embedded string resource: \"" + ID + "\"");
                 }
-                var rd = new StreamReader(stream, Encoding.UTF8);
-                var txt = rd.ReadToEnd();
+                StreamReader rd = new StreamReader(stream, Encoding.UTF8);
+                string txt = rd.ReadToEnd();
                 return txt;
             }
         }

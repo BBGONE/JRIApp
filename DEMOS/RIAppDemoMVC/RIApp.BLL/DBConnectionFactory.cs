@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 
@@ -17,7 +16,7 @@ namespace RIAppDemo.BLL
 
         private string GetConnectionString(string name)
         {
-            var connstrings = ConfigurationManager.ConnectionStrings[name];
+            ConnectionStringSettings connstrings = ConfigurationManager.ConnectionStrings[name];
             if (connstrings == null)
             {
                 throw new ApplicationException(string.Format("Connection string {0} is not found in config file", name));
@@ -27,15 +26,15 @@ namespace RIAppDemo.BLL
 
         public string GetRIAppDemoConnectionString()
         {
-            var connStr = GetConnectionString(CONNECTION_STRING_DEFAULT);
-            var scsb = new SqlConnectionStringBuilder(connStr);
+            string connStr = GetConnectionString(CONNECTION_STRING_DEFAULT);
+            SqlConnectionStringBuilder scsb = new SqlConnectionStringBuilder(connStr);
             return scsb.ToString();
         }
 
         public DbConnection GetRIAppDemoConnection()
         {
-            var connStr = GetRIAppDemoConnectionString();
-            var cn = SqlClientFactory.Instance.CreateConnection();
+            string connStr = GetRIAppDemoConnectionString();
+            DbConnection cn = SqlClientFactory.Instance.CreateConnection();
             cn.ConnectionString = connStr;
             return cn;
         }

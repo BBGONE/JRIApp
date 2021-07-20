@@ -23,13 +23,13 @@ namespace RIAPP.DataService.Core.UseCases.CRUDMiddleware
 
         private async Task<bool> ValidateRows(CRUDContext<TService> ctx, ChangeSetRequest changeSet, RunTimeMetadata metadata, IEnumerable<RowInfo> rows)
         {
-            var service = ctx.Service;
-            var serviceHelper = ctx.ServiceContainer.GetServiceHelper();
+            TService service = ctx.Service;
+            IServiceOperationsHelper<TService> serviceHelper = ctx.ServiceContainer.GetServiceHelper();
 
             foreach (RowInfo rowInfo in rows)
             {
-                var req = CRUDContext<TService>.CreateRequestContext(service, changeSet, rowInfo);
-                using (var callContext = new RequestCallContext(req))
+                RequestContext req = CRUDContext<TService>.CreateRequestContext(service, changeSet, rowInfo);
+                using (RequestCallContext callContext = new RequestCallContext(req))
                 {
                     if (!await serviceHelper.ValidateEntity(metadata, req))
                     {
@@ -43,10 +43,10 @@ namespace RIAPP.DataService.Core.UseCases.CRUDMiddleware
 
         public async Task Invoke(CRUDContext<TService> ctx)
         {
-            var metadata = ctx.Service.GetMetadata();
-            var changeSet = ctx.Request;
+            RunTimeMetadata metadata = ctx.Service.GetMetadata();
+            ChangeSetRequest changeSet = ctx.Request;
 
-            var graph = ctx.Properties.Get<IChangeSetGraph>(CRUDContext<TService>.CHANGE_GRAPH_KEY) ?? throw new InvalidOperationException("Could not get Graph changes from properties");
+            IChangeSetGraph graph = ctx.Properties.Get<IChangeSetGraph>(CRUDContext<TService>.CHANGE_GRAPH_KEY) ?? throw new InvalidOperationException("Could not get Graph changes from properties");
 
             if (!await ValidateRows(ctx, changeSet, metadata, graph.InsertList))
             {

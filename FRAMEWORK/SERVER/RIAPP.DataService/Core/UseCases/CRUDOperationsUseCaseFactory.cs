@@ -10,17 +10,17 @@ namespace RIAPP.DataService.Core
 
         public CRUDOperationsUseCaseFactory(Func<BaseDomainService, CRUDServiceMethods, ICRUDOperationsUseCase<TService>> func)
         {
-            this._func = func;
+            _func = func;
         }
 
         public ICRUDOperationsUseCase Create(BaseDomainService service, CRUDServiceMethods serviceMethods)
         {
-            return this._func(service, serviceMethods);
+            return _func(service, serviceMethods);
         }
 
         public ICRUDOperationsUseCase<TService> Create(TService service, CRUDServiceMethods serviceMethods)
         {
-            return this._func(service, serviceMethods);
+            return _func(service, serviceMethods);
         }
     }
 }

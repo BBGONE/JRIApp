@@ -72,6 +72,10 @@ namespace RIAPP.DataService.Utils
                         }
                         isPlaceHolder1 = true;
                     }
+                    else if (prevChar == LEFT_CHAR2)
+                    {
+                        sb.Append(prevChar);
+                    }
                 }
                 else if (ch == LEFT_CHAR2)
                 {
@@ -83,6 +87,10 @@ namespace RIAPP.DataService.Utils
                             sb = new StringBuilder();
                         }
                         isPlaceHolder2 = true;
+                    }
+                    else if (prevChar == LEFT_CHAR1)
+                    {
+                        sb.Append(prevChar);
                     }
                 }
                 else if (isPlaceHolder1 && ch == RIGHT_CHAR1)
@@ -153,7 +161,7 @@ namespace RIAPP.DataService.Utils
 
                     if (part.isTemplateRef)
                     {
-                        var parser = GetTemplate(name, dic);
+                        TemplateParser parser = GetTemplate(name, dic);
 
                         list.AddLast(new Part(TemplateName, name, (Context context) =>
                         {
@@ -187,10 +195,7 @@ namespace RIAPP.DataService.Utils
             }
 
             string result = sb.ToString();
-            
-            // removes empty lines
-            // return Regex.Replace(result, @"^\s+$[\r\n]*", string.Empty, RegexOptions.Multiline);
-            return result;
+            return Regex.Replace(result, @"^\s+$[\r\n]*", string.Empty, RegexOptions.Multiline);
         }
 
         public class Part

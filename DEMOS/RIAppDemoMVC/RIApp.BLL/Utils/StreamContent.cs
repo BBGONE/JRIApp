@@ -9,12 +9,12 @@ namespace RIAppDemo.BLL.Utils
 
         public StreamContent(Stream stream)
         {
-            this._stream = stream;
+            _stream = stream;
         }
 
         public Task CopyToAsync(Stream stream, int bufferSize = 131072)
         {
-            return this._stream.CopyToAsync(stream);
+            return _stream.CopyToAsync(stream);
         }
 
         public void CleanUp()

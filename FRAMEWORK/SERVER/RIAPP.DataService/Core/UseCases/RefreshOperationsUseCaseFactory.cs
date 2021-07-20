@@ -9,17 +9,17 @@ namespace RIAPP.DataService.Core
 
         public RefreshOperationsUseCaseFactory(Func<BaseDomainService, Func<Exception, string>, IRefreshOperationsUseCase<TService>> func)
         {
-            this._func = func;
+            _func = func;
         }
 
         public IRefreshOperationsUseCase Create(BaseDomainService service, Func<Exception, string> onError)
         {
-            return this._func(service, onError);
+            return _func(service, onError);
         }
 
         public IRefreshOperationsUseCase<TService> Create(TService service, Func<Exception, string> onError)
         {
-            return this._func(service, onError);
+            return _func(service, onError);
         }
     }
 }

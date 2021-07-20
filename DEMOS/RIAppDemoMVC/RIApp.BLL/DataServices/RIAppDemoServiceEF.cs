@@ -53,7 +53,7 @@ namespace RIAppDemo.BLL.DataServices
         protected override void OnTrackChange(string dbSetName, ChangeType changeType, string diffgram)
         {
             //you can set a breakpoint here and to examine diffgram
-            var user = this.User.Identity.Name;
+            string user = User.Identity.Name;
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace RIAppDemo.BLL.DataServices
         /// <param name="ex"></param>
         protected override void OnError(Exception ex)
         {
-            var msg = "";
+            string msg = "";
             if (ex != null)
             {
                 msg = ex.GetFullMessage();
@@ -81,7 +81,7 @@ namespace RIAppDemo.BLL.DataServices
         public QueryResult<ProductModel> ReadProductModel()
         {
             int? totalCount = null;
-            var res = this.PerformQuery(DB.ProductModels.AsNoTracking(), ref totalCount).AsEnumerable();
+            IEnumerable<ProductModel> res = this.PerformQuery(DB.ProductModels.AsNoTracking(), ref totalCount).AsEnumerable();
             return new QueryResult<ProductModel>(res, totalCount);
         }
 
@@ -117,14 +117,14 @@ namespace RIAppDemo.BLL.DataServices
         [Query]
         public QueryResult<SalesInfo> ReadSalesInfo()
         {
-            var queryInfo = this.GetCurrentQueryInfo();
-            var startsWithVal = queryInfo.filterInfo.filterItems[0].values.First().TrimEnd('%');
-            var res = DB.Customers.AsNoTracking().Where(c => c.SalesPerson.StartsWith(startsWithVal))
+            QueryRequest queryInfo = this.GetCurrentQueryInfo();
+            string startsWithVal = queryInfo.filterInfo.filterItems[0].values.First().TrimEnd('%');
+            IQueryable<SalesInfo> res = DB.Customers.AsNoTracking().Where(c => c.SalesPerson.StartsWith(startsWithVal))
                     .Select(s => s.SalesPerson)
                     .Distinct()
                     .OrderBy(s => s)
                     .Select(s => new SalesInfo { SalesPerson = s });
-            var resPage = res.Skip(queryInfo.pageIndex * queryInfo.pageSize).Take(queryInfo.pageSize);
+            IQueryable<SalesInfo> resPage = res.Skip(queryInfo.pageIndex * queryInfo.pageSize).Take(queryInfo.pageSize);
             return new QueryResult<SalesInfo>(resPage, res.Count());
         }
 
@@ -132,7 +132,7 @@ namespace RIAppDemo.BLL.DataServices
         public QueryResult<AddressInfo> ReadAddressInfo()
         {
             int? totalCount = null;
-            var res = this.PerformQuery(DB.Addresses.AsNoTracking(), ref totalCount)
+            IQueryable<AddressInfo> res = this.PerformQuery(DB.Addresses.AsNoTracking(), ref totalCount)
                     .Select(a =>
                             new AddressInfo
                             {
@@ -158,11 +158,11 @@ namespace RIAppDemo.BLL.DataServices
         [Invoke]
         public Task<string> TestInvoke(byte[] param1, string param2)
         {
-            var userIPaddress = "Not Available";
+            string userIPaddress = "Not Available";
 
             return Task.Run(() =>
             {
-                var sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
 
                 Array.ForEach(param1, item =>
                 {
@@ -193,7 +193,7 @@ namespace RIAppDemo.BLL.DataServices
             string vals = string.Join(",", keys?.Select(k => k.val).ToArray());
             // System.Diagnostics.Debug.WriteLine(info);
             // System.Diagnostics.Debug.WriteLine(vals);
-            var result = BitConverter.GetBytes(DateTime.Now.Ticks);
+            byte[] result = BitConverter.GetBytes(DateTime.Now.Ticks);
             // System.Diagnostics.Debug.WriteLine(string.Join(",", result));
             return result;
         }
@@ -207,9 +207,9 @@ namespace RIAppDemo.BLL.DataServices
         {
             DEMOCLS res = new DEMOCLS
             {
-                prodCategory = await this.DB.ProductCategories.OrderBy(l => l.Name).Select(d => new KeyVal { key = d.ProductCategoryID, val = d.Name }).ToListAsync(),
-                prodDescription = await this.DB.ProductDescriptions.OrderBy(l => l.Description).Select(d => new KeyVal { key = d.ProductDescriptionID, val = d.Description }).ToListAsync(),
-                prodModel = await this.DB.ProductModels.OrderBy(l => l.Name).Select(d => new KeyVal { key = d.ProductModelID, val = d.Name }).ToListAsync()
+                prodCategory = await DB.ProductCategories.OrderBy(l => l.Name).Select(d => new KeyVal { key = d.ProductCategoryID, val = d.Name }).ToListAsync(),
+                prodDescription = await DB.ProductDescriptions.OrderBy(l => l.Description).Select(d => new KeyVal { key = d.ProductDescriptionID, val = d.Description }).ToListAsync(),
+                prodModel = await DB.ProductModels.OrderBy(l => l.Name).Select(d => new KeyVal { key = d.ProductModelID, val = d.Name }).ToListAsync()
             };
 
             (res.prodModel as List<KeyVal>).Insert(0, new KeyVal() { key = -1, val = "Not Set (Empty)" });
@@ -227,13 +227,13 @@ namespace RIAppDemo.BLL.DataServices
         [Query]
         public async Task<QueryResult<CustomerJSON>> ReadCustomerJSON()
         {
-            var customers = DB.Customers.AsNoTracking().Where(c => c.CustomerAddresses.Any()) as IQueryable<Customer>;
-            var queryInfo = this.GetCurrentQueryInfo();
+            IQueryable<Customer> customers = DB.Customers.AsNoTracking().Where(c => c.CustomerAddresses.Any());
+            QueryRequest queryInfo = this.GetCurrentQueryInfo();
             //calculate totalCount only when we fetch first page (to speed up query)
             int? totalCount = queryInfo.pageIndex == 0 ? (int?)null : -1;
 
-            var custQuery = this.PerformQuery(customers, ref totalCount);
-            var custList = await custQuery.ToListAsync();
+            IQueryable<Customer> custQuery = this.PerformQuery(customers, ref totalCount);
+            List<Customer> custList = await custQuery.ToListAsync();
 
             var custAddresses = (from cust in custQuery
                                  from custAddr in cust.CustomerAddresses
@@ -250,11 +250,11 @@ namespace RIAppDemo.BLL.DataServices
 
             //i create JSON Data myself because there's no entity in db
             //which has json data in its fields
-            var res = custList.Select(c => new CustomerJSON()
+            IEnumerable<CustomerJSON> res = custList.Select(c => new CustomerJSON()
             {
                 CustomerID = c.CustomerID,
                 rowguid = c.rowguid,
-                Data = this.Serializer.Serialize(new
+                Data = Serializer.Serialize(new
                 {
                     Title = c.Title,
                     CompanyName = c.CompanyName,
@@ -298,7 +298,7 @@ namespace RIAppDemo.BLL.DataServices
         [Delete]
         public void DeleteCustomerJSON(CustomerJSON customer)
         {
-            var entity = DB.Customers.Where(c => c.CustomerID == customer.CustomerID).Single();
+            Customer entity = DB.Customers.Where(c => c.CustomerID == customer.CustomerID).Single();
             DB.Customers.Remove(entity);
         }
 
@@ -309,10 +309,10 @@ namespace RIAppDemo.BLL.DataServices
         [Query]
         public async Task<QueryResult<Customer>> ReadCustomer(bool? includeNav)
         {
-            var customers = DB.Customers as IQueryable<Customer>;
-            var queryInfo = this.GetCurrentQueryInfo();
+            IQueryable<Customer> customers = DB.Customers;
+            QueryRequest queryInfo = this.GetCurrentQueryInfo();
             // AddressCount does not exists in Database (we calculate it), so it is needed to sort it manually
-            var addressCountSortItem = queryInfo.sortInfo.sortItems.FirstOrDefault(sortItem => sortItem.fieldName == "AddressCount");
+            SortItem addressCountSortItem = queryInfo.sortInfo.sortItems.FirstOrDefault(sortItem => sortItem.fieldName == "AddressCount");
 
             if (addressCountSortItem != null)
             {
@@ -328,25 +328,25 @@ namespace RIAppDemo.BLL.DataServices
             }
 
             // perform query
-            var customersResult = this.PerformQuery(customers, (countQuery) => countQuery.CountAsync());
+            PerformQueryResult<Customer> customersResult = this.PerformQuery(customers, (countQuery) => countQuery.CountAsync());
             int? totalCount = await customersResult.CountAsync();
             List<Customer> customersList = await customersResult.Data.ToListAsync();
 
-            var queryRes = new QueryResult<Customer>(customersList, totalCount);
+            QueryResult<Customer> queryRes = new QueryResult<Customer>(customersList, totalCount);
 
             if (includeNav == true)
             {
                 int[] customerIDs = customersList.Select(c => c.CustomerID).ToArray();
-                var customerAddress = await DB.CustomerAddresses.Where(ca => customerIDs.Contains(ca.CustomerID)).ToListAsync();
+                List<CustomerAddress> customerAddress = await DB.CustomerAddresses.Where(ca => customerIDs.Contains(ca.CustomerID)).ToListAsync();
                 int[] addressIDs = customerAddress.Select(ca => ca.AddressID).ToArray();
 
-                var subResult1 = new SubResult
+                SubResult subResult1 = new SubResult
                 {
                     dbSetName = this.GetSetInfosByEntityType(typeof(CustomerAddress)).Single().dbSetName,
                     Result = customerAddress
                 };
 
-                var subResult2 = new SubResult
+                SubResult subResult2 = new SubResult
                 {
                     dbSetName = this.GetSetInfosByEntityType(typeof(Address)).Single().dbSetName,
                     Result = await DB.Addresses.AsNoTracking().Where(adr => addressIDs.Contains(adr.AddressID)).ToListAsync()
@@ -383,7 +383,7 @@ namespace RIAppDemo.BLL.DataServices
         public void UpdateCustomer(Customer customer)
         {
             customer.ModifiedDate = DateTime.Now;
-            var orig = this.GetOriginal<Customer>();
+            Customer orig = this.GetOriginal<Customer>();
             DB.Customers.Attach(customer);
             DB.Entry(customer).OriginalValues.SetValues(orig);
         }
@@ -399,7 +399,7 @@ namespace RIAppDemo.BLL.DataServices
         [Refresh]
         public async Task<Customer> RefreshCustomer(RefreshRequest refreshInfo)
         {
-            var query = this.GetRefreshedEntityQuery(DB.Customers, refreshInfo);
+            IQueryable<Customer> query = this.GetRefreshedEntityQuery(DB.Customers, refreshInfo);
             return await query.SingleAsync();
         }
 
@@ -411,7 +411,7 @@ namespace RIAppDemo.BLL.DataServices
         public QueryResult<Address> ReadAddress()
         {
             int? totalCount = null;
-            var res = this.PerformQuery(DB.Addresses.AsNoTracking(), ref totalCount).AsEnumerable();
+            IEnumerable<Address> res = this.PerformQuery(DB.Addresses.AsNoTracking(), ref totalCount).AsEnumerable();
             return new QueryResult<Address>(res, totalCount);
         }
 
@@ -419,7 +419,7 @@ namespace RIAppDemo.BLL.DataServices
         public QueryResult<Address> ReadAddressByIds(int[] addressIDs)
         {
             int? totalCount = null;
-            var res = DB.Addresses.AsNoTracking().Where(ca => addressIDs.Contains(ca.AddressID));
+            IQueryable<Address> res = DB.Addresses.AsNoTracking().Where(ca => addressIDs.Contains(ca.AddressID));
             return new QueryResult<Address>(res, totalCount);
         }
 
@@ -442,7 +442,7 @@ namespace RIAppDemo.BLL.DataServices
         [Update]
         public void UpdateAddress(Address address)
         {
-            var orig = this.GetOriginal<Address>();
+            Address orig = this.GetOriginal<Address>();
             DB.Addresses.Attach(address);
             DB.Entry(address).OriginalValues.SetValues(orig);
         }
@@ -463,7 +463,7 @@ namespace RIAppDemo.BLL.DataServices
         public QueryResult<SalesOrderHeader> ReadSalesOrderHeader()
         {
             int? totalCount = null;
-            var res = this.PerformQuery(DB.SalesOrderHeaders.AsNoTracking(), ref totalCount);
+            IQueryable<SalesOrderHeader> res = this.PerformQuery(DB.SalesOrderHeaders.AsNoTracking(), ref totalCount);
             return new QueryResult<SalesOrderHeader>(res, totalCount);
         }
 
@@ -482,7 +482,7 @@ namespace RIAppDemo.BLL.DataServices
         [Update]
         public void UpdateSalesOrderHeader(SalesOrderHeader salesorderheader)
         {
-            var orig = this.GetOriginal<SalesOrderHeader>();
+            SalesOrderHeader orig = this.GetOriginal<SalesOrderHeader>();
             DB.SalesOrderHeaders.Attach(salesorderheader);
             DB.Entry(salesorderheader).OriginalValues.SetValues(orig);
         }
@@ -503,7 +503,7 @@ namespace RIAppDemo.BLL.DataServices
         public QueryResult<SalesOrderDetail> ReadSalesOrderDetail()
         {
             int? totalCount = null;
-            var res = this.PerformQuery(DB.SalesOrderDetails.AsNoTracking(), ref totalCount);
+            IQueryable<SalesOrderDetail> res = this.PerformQuery(DB.SalesOrderDetails.AsNoTracking(), ref totalCount);
             return new QueryResult<SalesOrderDetail>(res, totalCount);
         }
 
@@ -520,7 +520,7 @@ namespace RIAppDemo.BLL.DataServices
         [Update]
         public void UpdateSalesOrderDetail(SalesOrderDetail salesorderdetail)
         {
-            var orig = this.GetOriginal<SalesOrderDetail>();
+            SalesOrderDetail orig = this.GetOriginal<SalesOrderDetail>();
             DB.SalesOrderDetails.Attach(salesorderdetail);
             DB.Entry(salesorderdetail).OriginalValues.SetValues(orig);
         }

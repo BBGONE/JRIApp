@@ -24,7 +24,7 @@ namespace RIAPP.DataService.Core
 
         public IEnumerable<Row> CreateRows()
         {
-            foreach (var entity in _dataSource)
+            foreach (object entity in _dataSource)
             {
                 yield return CreateRow(entity);
             }
@@ -33,10 +33,10 @@ namespace RIAPP.DataService.Core
         public IEnumerable<Row> CreateDistinctRows()
         {
             // map by PK
-            var keys = new HashSet<string>();
-            foreach (var entity in _dataSource)
+            HashSet<string> keys = new HashSet<string>();
+            foreach (object entity in _dataSource)
             {
-                var row = CreateRow(entity);
+                Row row = CreateRow(entity);
                 if (!keys.Contains(row.k))
                 {
                     keys.Add(row.k);
@@ -50,12 +50,12 @@ namespace RIAPP.DataService.Core
             int fieldCnt = fieldInfos.Length;
             string[] pk = new string[pkInfos.Length];
             object[] v = new object[fieldCnt];
-            for (var i = 0; i < fieldCnt; ++i)
+            for (int i = 0; i < fieldCnt; ++i)
             {
-                var fieldInfo = fieldInfos[i];
-                var fv = _dataHelper.SerializeField(entity, fieldInfo);
+                Field fieldInfo = fieldInfos[i];
+                object fv = _dataHelper.SerializeField(entity, fieldInfo);
 
-                var keyIndex = Array.IndexOf(pkInfos, fieldInfo);
+                int keyIndex = Array.IndexOf(pkInfos, fieldInfo);
                 if (keyIndex > -1)
                 {
                     if (fv == null)

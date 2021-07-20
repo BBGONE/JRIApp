@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -15,7 +17,7 @@ define(["require", "exports", "jriapp", "jriapp_ui", "./folderBrowserSvc", "comm
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.start = exports.DemoApplication = exports.FolderBrowserVM = exports.FolderBrowser = void 0;
-    var bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils, coreUtils = RIAPP.Utils.core, $ = uiMOD.$;
+    var bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils, coreUtils = RIAPP.Utils.core, $ = uiMOD.$;
     var FolderBrowser = (function (_super) {
         __extends(FolderBrowser, _super);
         function FolderBrowser(app, options) {
@@ -337,11 +339,6 @@ define(["require", "exports", "jriapp", "jriapp_ui", "./folderBrowserSvc", "comm
                 _super.prototype.dispose.call(this);
             }
         };
-        Object.defineProperty(DemoApplication.prototype, "options", {
-            get: function () { return this._options; },
-            enumerable: false,
-            configurable: true
-        });
         Object.defineProperty(DemoApplication.prototype, "errorVM", {
             get: function () { return this._errorVM; },
             enumerable: false,
@@ -375,7 +372,7 @@ define(["require", "exports", "jriapp", "jriapp_ui", "./folderBrowserSvc", "comm
         return DemoApplication;
     }(RIAPP.Application));
     exports.DemoApplication = DemoApplication;
-    RIAPP.bootstrap.objEvents.addOnError(function (_s, args) {
+    RIAPP.bootstrapper.objEvents.addOnError(function (_s, args) {
         debugger;
         alert(args.error.message);
     });
@@ -383,7 +380,7 @@ define(["require", "exports", "jriapp", "jriapp_ui", "./folderBrowserSvc", "comm
         mainOptions.modulesInits = {
             "COMMON": COMMON.initModule
         };
-        bootstrap.startApp(function () {
+        bootstrapper.startApp(function () {
             return new DemoApplication(mainOptions);
         }, function (thisApp) { });
     }

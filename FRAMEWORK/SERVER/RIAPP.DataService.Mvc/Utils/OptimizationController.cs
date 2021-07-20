@@ -49,10 +49,7 @@ namespace RIAPP.DataService.Mvc.Utils
             _checks2.Add(str => { return str.EndsWith(".map"); });
         }
 
-        public virtual bool isOptimizationEnabled
-        {
-            get { return false; }
-        }
+        public virtual bool isOptimizationEnabled => false;
 
         //[Compress]
         public ActionResult Index(string bust, int min, string path)
@@ -62,7 +59,7 @@ namespace RIAPP.DataService.Mvc.Utils
                 return new HttpStatusCodeResult(404);
             }
 
-            var lastModified = DateTime.MinValue;
+            DateTime lastModified = DateTime.MinValue;
             if (!DateTime.TryParse(Request.Headers["If-Modified-Since"], out lastModified))
             {
                 lastModified = DateTime.MinValue;
@@ -70,8 +67,7 @@ namespace RIAPP.DataService.Mvc.Utils
 
             //System.Diagnostics.Trace.WriteLine(path);
 
-            CachedResult cachedResult;
-            if (_cache.TryGetValue(path, out cachedResult))
+            if (_cache.TryGetValue(path, out CachedResult cachedResult))
             {
                 if (lastModified >= cachedResult.lastWrite)
                 {
@@ -86,9 +82,9 @@ namespace RIAPP.DataService.Mvc.Utils
             {
                 cachedResult = _cache.GetOrAdd(path, key =>
                 {
-                    var physicalPath = Server.MapPath("~/" + key);
-                    var lastWrite = System.IO.File.GetLastWriteTimeUtc(physicalPath);
-                    var contentType = GetContentType(key);
+                    string physicalPath = Server.MapPath("~/" + key);
+                    DateTime lastWrite = System.IO.File.GetLastWriteTimeUtc(physicalPath);
+                    string contentType = GetContentType(key);
 
                     Response.Cache.SetCacheability(HttpCacheability.Private);
                     Response.Cache.SetMaxAge(TimeSpan.FromDays(365));
@@ -114,7 +110,7 @@ namespace RIAPP.DataService.Mvc.Utils
                 });
             }
 
-            var isImage = Array.IndexOf(_imgMediaTypes, cachedResult.contentType) > -1;
+            bool isImage = Array.IndexOf(_imgMediaTypes, cachedResult.contentType) > -1;
 
             if (isImage)
             {
@@ -126,12 +122,12 @@ namespace RIAPP.DataService.Mvc.Utils
 
         private static byte[] MinifyJS(string physicalPath)
         {
-            var compressor = new JSMin();
-            using (var result = new MemoryStream())
+            JSMin compressor = new JSMin();
+            using (MemoryStream result = new MemoryStream())
             {
-                var writer = new StreamWriter(result, Encoding.UTF8, 1024, true);
-                using (var fs = System.IO.File.OpenRead(physicalPath))
-                using (var reader = new StreamReader(fs, Encoding.UTF8))
+                StreamWriter writer = new StreamWriter(result, Encoding.UTF8, 1024, true);
+                using (FileStream fs = System.IO.File.OpenRead(physicalPath))
+                using (StreamReader reader = new StreamReader(fs, Encoding.UTF8))
                 {
                     compressor.Minify(reader, writer);
                 }
@@ -142,16 +138,16 @@ namespace RIAPP.DataService.Mvc.Utils
 
         private static byte[] MinifyCss(string physicalPath)
         {
-            var css = System.IO.File.ReadAllText(physicalPath, Encoding.UTF8);
+            string css = System.IO.File.ReadAllText(physicalPath, Encoding.UTF8);
             css = CssMin.RemoveWhiteSpaceFromStylesheets(css);
             return Encoding.UTF8.GetBytes(css);
         }
 
         private static byte[] GetFileBytes(string physicalPath)
         {
-            using (var result = new MemoryStream())
+            using (MemoryStream result = new MemoryStream())
             {
-                using (var fs = System.IO.File.OpenRead(physicalPath))
+                using (FileStream fs = System.IO.File.OpenRead(physicalPath))
                 {
                     fs.CopyTo(result);
                 }
@@ -167,14 +163,14 @@ namespace RIAPP.DataService.Mvc.Utils
                 return false;
             }
 
-            var lowerPath = path.ToLower();
+            string lowerPath = path.ToLower();
             if (lowerPath.Contains(".."))
             {
                 return false;
             }
 
-            var isOk = false;
-            foreach (var check in _checks1)
+            bool isOk = false;
+            foreach (Func<string, bool> check in _checks1)
             {
                 isOk = check(lowerPath);
                 if (isOk)
@@ -188,7 +184,7 @@ namespace RIAPP.DataService.Mvc.Utils
             }
 
             isOk = false;
-            foreach (var check in _checks2)
+            foreach (Func<string, bool> check in _checks2)
             {
                 isOk = check(lowerPath);
                 if (isOk)
@@ -202,7 +198,7 @@ namespace RIAPP.DataService.Mvc.Utils
 
         private static string GetContentType(string path)
         {
-            var extension = Path.GetExtension(path).ToLowerInvariant();
+            string extension = Path.GetExtension(path).ToLowerInvariant();
             switch (extension)
             {
                 case ".js":

@@ -8,7 +8,7 @@ namespace RIAPP.DataService.Core.Metadata
     {
         public MethodInfoData GetMethod(string dbSetName, MethodType methodType)
         {
-            var list = this[dbSetName];
+            System.Collections.Generic.IEnumerable<MethodInfoData> list = this[dbSetName];
             return list.Where(m => m.MethodType == methodType).FirstOrDefault();
         }
     }

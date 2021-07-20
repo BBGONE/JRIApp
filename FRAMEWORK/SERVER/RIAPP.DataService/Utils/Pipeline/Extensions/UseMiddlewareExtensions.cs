@@ -56,12 +56,12 @@ namespace Pipeline.Extensions
                 return UseMiddlewareInterface(app, middleware);
             }
 
-            var applicationServices = app.ApplicationServices;
+            IServiceProvider applicationServices = app.ApplicationServices;
 
             return app.Use(next =>
             {
-                var methods = middleware.GetMethods(BindingFlags.Instance | BindingFlags.Public);
-                var invokeMethods = methods.Where(m =>
+                MethodInfo[] methods = middleware.GetMethods(BindingFlags.Instance | BindingFlags.Public);
+                MethodInfo[] invokeMethods = methods.Where(m =>
                     string.Equals(m.Name, InvokeMethodName, StringComparison.Ordinal)
                     || string.Equals(m.Name, InvokeAsyncMethodName, StringComparison.Ordinal)
                     ).ToArray();
@@ -76,32 +76,32 @@ namespace Pipeline.Extensions
                     throw new InvalidOperationException("UseMiddlewareNoInvokeMethod(InvokeMethodName, InvokeAsyncMethodName, middleware)");
                 }
 
-                var methodInfo = invokeMethods[0];
+                MethodInfo methodInfo = invokeMethods[0];
                 if (!typeof(Task).IsAssignableFrom(methodInfo.ReturnType))
                 {
                     throw new InvalidOperationException("UseMiddlewareNonTaskReturnType(InvokeMethodName, InvokeAsyncMethodName, nameof(Task))");
                 }
 
-                var parameters = methodInfo.GetParameters();
+                ParameterInfo[] parameters = methodInfo.GetParameters();
                 if (parameters.Length == 0 || parameters[0].ParameterType != typeof(TContext))
                 {
                     throw new InvalidOperationException("UseMiddlewareNoParameters(InvokeMethodName, InvokeAsyncMethodName, nameof(HttpContext))");
                 }
 
-                var ctorArgs = new object[args.Length + 1];
+                object[] ctorArgs = new object[args.Length + 1];
                 ctorArgs[0] = next;
                 Array.Copy(args, 0, ctorArgs, 1, args.Length);
-                var instance = ActivatorUtilities.CreateInstance(app.ApplicationServices, middleware, ctorArgs);
+                object instance = ActivatorUtilities.CreateInstance(app.ApplicationServices, middleware, ctorArgs);
                 if (parameters.Length == 1)
                 {
                     return (RequestDelegate<TContext>)methodInfo.CreateDelegate(typeof(RequestDelegate<TContext>), instance);
                 }
 
-                var factory = Compile<object, TContext>(methodInfo, parameters);
+                Func<object, TContext, IServiceProvider, Task> factory = Compile<object, TContext>(methodInfo, parameters);
 
                 return context =>
                 {
-                    var serviceProvider = context.RequestServices ?? applicationServices;
+                    IServiceProvider serviceProvider = context.RequestServices ?? applicationServices;
                     if (serviceProvider == null)
                     {
                         throw new InvalidOperationException("UseMiddlewareIServiceProviderNotAvailable(nameof(IServiceProvider))");
@@ -120,14 +120,14 @@ namespace Pipeline.Extensions
             {
                 return async context =>
                 {
-                    var middlewareFactory = (IMiddlewareFactory<TContext>)context.RequestServices.GetService(typeof(IMiddlewareFactory<TContext>));
+                    IMiddlewareFactory<TContext> middlewareFactory = (IMiddlewareFactory<TContext>)context.RequestServices.GetService(typeof(IMiddlewareFactory<TContext>));
                     if (middlewareFactory == null)
                     {
                         // No middleware factory
                         throw new InvalidOperationException("UseMiddlewareNoMiddlewareFactory(typeof(IMiddlewareFactory))");
                     }
 
-                    var middleware = middlewareFactory.Create(middlewareType);
+                    IMiddleware<TContext> middleware = middlewareFactory.Create(middlewareType);
                     if (middleware == null)
                     {
                         // The factory returned null, it's a broken implementation
@@ -175,30 +175,30 @@ namespace Pipeline.Extensions
             //      return ((Middleware)instance).Invoke(httpContext, (ILoggerFactory)UseMiddlewareExtensions.GetService(provider, typeof(ILoggerFactory));
             //   }
 
-            var middleware = typeof(T);
+            Type middleware = typeof(T);
 
-            var contextArg = Expression.Parameter(typeof(TContext), "context");
-            var providerArg = Expression.Parameter(typeof(IServiceProvider), "serviceProvider");
-            var instanceArg = Expression.Parameter(middleware, "middleware");
+            ParameterExpression contextArg = Expression.Parameter(typeof(TContext), "context");
+            ParameterExpression providerArg = Expression.Parameter(typeof(IServiceProvider), "serviceProvider");
+            ParameterExpression instanceArg = Expression.Parameter(middleware, "middleware");
 
-            var methodArguments = new Expression[parameters.Length];
+            Expression[] methodArguments = new Expression[parameters.Length];
             methodArguments[0] = contextArg;
             for (int i = 1; i < parameters.Length; i++)
             {
-                var parameterType = parameters[i].ParameterType;
+                Type parameterType = parameters[i].ParameterType;
                 if (parameterType.IsByRef)
                 {
                     throw new NotSupportedException("InvokeDoesNotSupportRefOrOutParams(InvokeMethodName)");
                 }
 
-                var parameterTypeExpression = new Expression[]
+                Expression[] parameterTypeExpression = new Expression[]
                 {
                     providerArg,
                     Expression.Constant(parameterType, typeof(Type)),
                     Expression.Constant(methodInfo.DeclaringType, typeof(Type))
                 };
 
-                var getServiceCall = Expression.Call(GetServiceInfo, parameterTypeExpression);
+                MethodCallExpression getServiceCall = Expression.Call(GetServiceInfo, parameterTypeExpression);
                 methodArguments[i] = Expression.Convert(getServiceCall, parameterType);
             }
 
@@ -208,16 +208,16 @@ namespace Pipeline.Extensions
                 middlewareInstanceArg = Expression.Convert(middlewareInstanceArg, methodInfo.DeclaringType);
             }
 
-            var body = Expression.Call(middlewareInstanceArg, methodInfo, methodArguments);
+            MethodCallExpression body = Expression.Call(middlewareInstanceArg, methodInfo, methodArguments);
 
-            var lambda = Expression.Lambda<Func<T, TContext, IServiceProvider, Task>>(body, instanceArg, contextArg, providerArg);
+            Expression<Func<T, TContext, IServiceProvider, Task>> lambda = Expression.Lambda<Func<T, TContext, IServiceProvider, Task>>(body, instanceArg, contextArg, providerArg);
 
             return lambda.Compile();
         }
 
         private static object GetService(IServiceProvider sp, Type type, Type middleware)
         {
-            var service = sp.GetService(type);
+            object service = sp.GetService(type);
             if (service == null)
             {
                 throw new InvalidOperationException("InvokeMiddlewareNoService(type, middleware)");

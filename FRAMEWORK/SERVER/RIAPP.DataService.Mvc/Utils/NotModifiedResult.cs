@@ -6,7 +6,7 @@ namespace RIAPP.DataService.Mvc.Utils
     {
         public override void ExecuteResult(ControllerContext context)
         {
-            var response = context.HttpContext.Response;
+            System.Web.HttpResponseBase response = context.HttpContext.Response;
             response.StatusCode = 304;
             response.StatusDescription = "Not Modified";
             response.SuppressContent = true;

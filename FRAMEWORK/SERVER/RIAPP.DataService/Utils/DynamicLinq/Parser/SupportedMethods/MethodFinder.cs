@@ -40,11 +40,11 @@ namespace System.Linq.Dynamic.Core.Parser.SupportedMethods
             if (instance != null)
             {
                 // TRY to solve with registered extension methods 
-                if (_parsingConfig.CustomTypeProvider.GetExtensionMethods().TryGetValue(type, out var methods))
+                if (_parsingConfig.CustomTypeProvider.GetExtensionMethods().TryGetValue(type, out List<MethodInfo> methods))
                 {
-                    var argsList = args.ToList();
+                    List<Expression> argsList = args.ToList();
                     argsList.Insert(0, instance);
-                    var extensionMethodArgs = argsList.ToArray();
+                    Expression[] extensionMethodArgs = argsList.ToArray();
                     int count = FindBestMethod(methods.Cast<MethodBase>(), ref extensionMethodArgs, out method);
                     if (count != 0)
                     {
@@ -63,7 +63,7 @@ namespace System.Linq.Dynamic.Core.Parser.SupportedMethods
         {
             // passing args by reference is now required with the params array support.
 
-            var inlineArgs = args;
+            Expression[] inlineArgs = args;
 
             MethodData[] applicable = methods
                 .Select(m => new MethodData { MethodBase = m, Parameters = m.GetParameters() })
@@ -116,7 +116,7 @@ namespace System.Linq.Dynamic.Core.Parser.SupportedMethods
             return 0;
         }
 
-        bool IsApplicable(MethodData method, Expression[] args)
+        private bool IsApplicable(MethodData method, Expression[] args)
         {
             bool isParamArray = method.Parameters.Length > 0 && method.Parameters.Last().IsDefined(typeof(ParamArrayAttribute), false);
 
@@ -144,14 +144,14 @@ namespace System.Linq.Dynamic.Core.Parser.SupportedMethods
                     }
                     else
                     {
-                        var paramType = method.Parameters.Last().ParameterType;
-                        var paramElementType = paramType.GetElementType();
+                        Type paramType = method.Parameters.Last().ParameterType;
+                        Type paramElementType = paramType.GetElementType();
 
                         List<Expression> arrayInitializerExpressions = new List<Expression>();
 
                         for (int j = method.Parameters.Length - 1; j < args.Length; j++)
                         {
-                            Expression promoted = this._parsingConfig.ExpressionPromoter.Promote(args[j], paramElementType, false, method.MethodBase.DeclaringType != typeof(IEnumerableSignatures));
+                            Expression promoted = _parsingConfig.ExpressionPromoter.Promote(args[j], paramElementType, false, method.MethodBase.DeclaringType != typeof(IEnumerableSignatures));
                             if (promoted == null)
                             {
                                 return false;
@@ -160,7 +160,7 @@ namespace System.Linq.Dynamic.Core.Parser.SupportedMethods
                             arrayInitializerExpressions.Add(promoted);
                         }
 
-                        var paramExpression = Expression.NewArrayInit(paramElementType, arrayInitializerExpressions);
+                        NewArrayExpression paramExpression = Expression.NewArrayInit(paramElementType, arrayInitializerExpressions);
 
                         promotedArgs[promotedArgs.Length - 1] = paramExpression;
                     }
@@ -173,7 +173,7 @@ namespace System.Linq.Dynamic.Core.Parser.SupportedMethods
                         return false;
                     }
 
-                    Expression promoted = this._parsingConfig.ExpressionPromoter.Promote(args[i], pi.ParameterType, false, method.MethodBase.DeclaringType != typeof(IEnumerableSignatures));
+                    Expression promoted = _parsingConfig.ExpressionPromoter.Promote(args[i], pi.ParameterType, false, method.MethodBase.DeclaringType != typeof(IEnumerableSignatures));
                     if (promoted == null)
                     {
                         return false;
@@ -186,7 +186,7 @@ namespace System.Linq.Dynamic.Core.Parser.SupportedMethods
             return true;
         }
 
-        bool IsBetterThan(Expression[] args, MethodData first, MethodData second)
+        private bool IsBetterThan(Expression[] args, MethodData first, MethodData second)
         {
             bool better = false;
             for (int i = 0; i < args.Length; i++)
@@ -218,7 +218,7 @@ namespace System.Linq.Dynamic.Core.Parser.SupportedMethods
         // Return "First" if s -> t1 is a better conversion than s -> t2
         // Return "Second" if s -> t2 is a better conversion than s -> t1
         // Return "Both" if neither conversion is better
-        CompareConversionType CompareConversions(Type source, Type first, Type second)
+        private CompareConversionType CompareConversions(Type source, Type first, Type second)
         {
             if (first == second)
             {
@@ -257,18 +257,18 @@ namespace System.Linq.Dynamic.Core.Parser.SupportedMethods
             return CompareConversionType.Both;
         }
 
-        IEnumerable<Type> SelfAndBaseTypes(Type type)
+        private IEnumerable<Type> SelfAndBaseTypes(Type type)
         {
             if (type.GetTypeInfo().IsInterface)
             {
-                var types = new List<Type>();
+                List<Type> types = new List<Type>();
                 AddInterface(types, type);
                 return types;
             }
             return SelfAndBaseClasses(type);
         }
 
-        IEnumerable<Type> SelfAndBaseClasses(Type type)
+        private IEnumerable<Type> SelfAndBaseClasses(Type type)
         {
             while (type != null)
             {
@@ -277,12 +277,15 @@ namespace System.Linq.Dynamic.Core.Parser.SupportedMethods
             }
         }
 
-        void AddInterface(List<Type> types, Type type)
+        private void AddInterface(List<Type> types, Type type)
         {
             if (!types.Contains(type))
             {
                 types.Add(type);
-                foreach (Type t in type.GetInterfaces()) AddInterface(types, t);
+                foreach (Type t in type.GetInterfaces())
+                {
+                    AddInterface(types, t);
+                }
             }
         }
     }

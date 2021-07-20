@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using JetBrains.Annotations;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Dynamic.Core.Validation;
@@ -7,7 +8,6 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using JetBrains.Annotations;
 
 namespace System.Linq.Dynamic.Core
 {
@@ -43,16 +43,16 @@ namespace System.Linq.Dynamic.Core
 
         private static int _index = -1;
 
-        private static string DynamicAssemblyName = "System.Linq.Dynamic.Core.DynamicClasses, Version=1.0.0.0";
-        private static string DynamicModuleName = "System.Linq.Dynamic.Core.DynamicClasses";
+        private static readonly string DynamicAssemblyName = "System.Linq.Dynamic.Core.DynamicClasses, Version=1.0.0.0";
+        private static readonly string DynamicModuleName = "System.Linq.Dynamic.Core.DynamicClasses";
 
         /// <summary>
         /// Initializes the <see cref="DynamicClassFactory"/> class.
         /// </summary>
         static DynamicClassFactory()
         {
-            var assemblyName = new AssemblyName(DynamicAssemblyName);
-            var assemblyBuilder = AssemblyBuilderFactory.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            AssemblyName assemblyName = new AssemblyName(DynamicAssemblyName);
+            AssemblyBuilder assemblyBuilder = AssemblyBuilderFactory.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
 
             ModuleBuilder = assemblyBuilder.DefineDynamicModule(DynamicModuleName);
         }
@@ -87,8 +87,7 @@ namespace System.Linq.Dynamic.Core
 
             string key = GenerateKey(properties, createParameterCtor);
 
-            Type type;
-            if (!GeneratedTypes.TryGetValue(key, out type))
+            if (!GeneratedTypes.TryGetValue(key, out Type type))
             {
                 // We create only a single class at a time, through this lock
                 // Note that this is a variant of the double-checked locking.
@@ -120,7 +119,7 @@ namespace System.Linq.Dynamic.Core
                             generics = new GenericTypeParameterBuilder[0];
                         }
 
-                        var fields = new FieldBuilder[names.Length];
+                        FieldBuilder[] fields = new FieldBuilder[names.Length];
 
                         // There are two for cycles because we want to have all the getter methods before all the other methods
                         for (int i = 0; i < names.Length; i++)

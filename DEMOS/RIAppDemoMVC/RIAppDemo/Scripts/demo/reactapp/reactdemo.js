@@ -6,17 +6,17 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
 };
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
@@ -85,7 +85,7 @@ define("testobject", ["require", "exports", "jriapp"], function (require, export
             _this._page = 1;
             _this._rows = demoRows;
             _this._reverseCommand = new RIAPP.Command(function () {
-                _this.rows = __spreadArrays(_this._rows).reverse();
+                _this.rows = __spreadArray([], _this._rows).reverse();
             });
             _this._selectedRow = null;
             _this._tabs = demoTabs;
@@ -1114,8 +1114,8 @@ define("main", ["require", "exports", "jriapp", "app", "views/simple", "views/pa
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.start = void 0;
-    var bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils;
-    bootstrap.objEvents.addOnError(function (_s, args) {
+    var bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils;
+    bootstrapper.objEvents.addOnError(function (_s, args) {
         debugger;
         alert(args.error.message);
         args.isHandled = true;
@@ -1128,7 +1128,7 @@ define("main", ["require", "exports", "jriapp", "app", "views/simple", "views/pa
             "tabsview": tabs_2.initModule,
             "tabs2view": tabs_old_1.initModule,
         });
-        return bootstrap.startApp(function () {
+        return bootstrapper.startApp(function () {
             return new app_1.DemoApplication(options);
         });
     }

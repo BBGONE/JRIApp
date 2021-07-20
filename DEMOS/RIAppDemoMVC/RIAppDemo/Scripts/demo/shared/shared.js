@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -333,7 +335,7 @@ define("autocomplete", ["require", "exports", "jriapp", "jriapp_ui", "common"], 
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.initModule = exports.AutoCompleteElView = void 0;
-    var bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils, $ = uiMOD.$, dom = RIAPP.DOM;
+    var bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils, $ = uiMOD.$, dom = RIAPP.DOM;
     function findElemViewInTemplate(template, name) {
         var arr = template.findElViewsByDataName(name);
         return (!!arr && arr.length > 0) ? arr[0] : null;
@@ -470,7 +472,7 @@ define("autocomplete", ["require", "exports", "jriapp", "jriapp_ui", "common"], 
         };
         AutoCompleteElView.prototype._hideAsync = function () {
             var self = this;
-            return utils.defer.delay(function () {
+            return utils.async.delay(function () {
                 self._hide();
             }, 100);
         };
@@ -507,9 +509,9 @@ define("autocomplete", ["require", "exports", "jriapp", "jriapp_ui", "common"], 
                     self._updateSelection();
                     self._hide();
                 }, this.uniqueID);
-                bootstrap.selectedControl = self._grid;
+                bootstrapper.selectedControl = self._grid;
                 $(dom.document).on('keyup.' + this.uniqueID, function (e) {
-                    if (bootstrap.selectedControl === self._grid) {
+                    if (bootstrapper.selectedControl === self._grid) {
                         if (self._onKeyPress(e.which))
                             e.stopPropagation();
                     }
@@ -858,7 +860,7 @@ define("ssevents", ["require", "exports", "jriapp"], function (require, exports,
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SSEventsVM = void 0;
-    var bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils;
+    var bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils;
     var SSEventsVM = (function (_super) {
         __extends(SSEventsVM, _super);
         function SSEventsVM(baseUrl, clientID) {
@@ -883,7 +885,7 @@ define("ssevents", ["require", "exports", "jriapp"], function (require, exports,
             }, function () {
                 return !!_this._es;
             });
-            bootstrap.addOnUnLoad(function () { return self.close(); });
+            bootstrapper.addOnUnLoad(function () { return self.close(); });
             return _this;
         }
         SSEventsVM.isSupported = function () {
@@ -940,7 +942,7 @@ define("ssevents", ["require", "exports", "jriapp"], function (require, exports,
             var self = this;
             if (!!this._deffered)
                 return this._deffered.promise();
-            this._deffered = utils.defer.createDeferred();
+            this._deffered = utils.async.createDeferred();
             this._timeOut = setTimeout(function () {
                 self._timeOut = null;
                 if (!!self._deffered) {
@@ -1030,7 +1032,7 @@ define("uploader", ["require", "exports", "jriapp_shared"], function (require, e
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Uploader = void 0;
-    var utils = RIAPP.Utils, _async = utils.defer, CHUNK_SIZE = (512 * 1024);
+    var utils = RIAPP.Utils, _async = utils.async, CHUNK_SIZE = (512 * 1024);
     var Uploader = (function (_super) {
         __extends(Uploader, _super);
         function Uploader(uploadUrl, file) {
@@ -1107,7 +1109,7 @@ define("websocket", ["require", "exports", "jriapp"], function (require, exports
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.WebSocketsVM = void 0;
-    var bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils;
+    var bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils;
     var WebSocketsVM = (function (_super) {
         __extends(WebSocketsVM, _super);
         function WebSocketsVM(url) {
@@ -1129,7 +1131,7 @@ define("websocket", ["require", "exports", "jriapp"], function (require, exports
             }, function () {
                 return !!_this._ws;
             });
-            bootstrap.addOnUnLoad(function (s, a) { return self.close(); });
+            bootstrapper.addOnUnLoad(function (s, a) { return self.close(); });
             return _this;
         }
         WebSocketsVM.createUrl = function (port, svcName, isSSL) {
@@ -1197,7 +1199,7 @@ define("websocket", ["require", "exports", "jriapp"], function (require, exports
             var self = this;
             if (!!this._deffered)
                 return this._deffered.promise();
-            this._deffered = utils.defer.createDeferred();
+            this._deffered = utils.async.createDeferred();
             if (!!this._ws && !!this._clientID) {
                 this._deffered.resolve(this._clientID);
                 var promise = this._deffered.promise();
@@ -1289,7 +1291,7 @@ define("dropdownbox", ["require", "exports", "jriapp", "jriapp_ui"], function (r
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.initModule = exports.DropDownBoxElView = void 0;
-    var bootstrap = RIAPP.bootstrap, utils = RIAPP.Utils, $ = uiMOD.$, dom = RIAPP.DOM;
+    var bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils, $ = uiMOD.$, dom = RIAPP.DOM;
     function findElemViewInTemplate(template, name) {
         var arr = template.findElViewsByDataName(name);
         return (!!arr && arr.length > 0) ? arr[0] : null;
@@ -1422,7 +1424,7 @@ define("dropdownbox", ["require", "exports", "jriapp", "jriapp_ui"], function (r
         };
         DropDownBoxElView.prototype._hideAsync = function () {
             var self = this;
-            return utils.defer.delay(function () {
+            return utils.async.delay(function () {
                 self._hide();
             }, 100);
         };
@@ -1457,9 +1459,9 @@ define("dropdownbox", ["require", "exports", "jriapp", "jriapp_ui"], function (r
                 this._grid.addOnRowSelected(function (_s, args) {
                     self.onRowSelected(args.row);
                 }, this.uniqueID, this);
-                bootstrap.selectedControl = self._grid;
+                bootstrapper.selectedControl = self._grid;
                 $(dom.document).on('keyup.' + this.uniqueID, function (e) {
-                    if (bootstrap.selectedControl === self._grid) {
+                    if (bootstrapper.selectedControl === self._grid) {
                         if (self._onKeyPress(e.which))
                             e.stopPropagation();
                     }

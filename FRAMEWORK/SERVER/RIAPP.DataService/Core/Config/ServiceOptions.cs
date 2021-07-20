@@ -9,9 +9,9 @@ namespace RIAPP.DataService.Core.Config
     {
         public ServiceOptions(IServiceCollection services)
         {
-            this.Services = services;
-            this.DataManagerRegister = new DataManagerRegister();
-            this.ValidatorRegister = new ValidatorRegister();
+            Services = services;
+            DataManagerRegister = new DataManagerRegister();
+            ValidatorRegister = new ValidatorRegister();
         }
 
         public Func<IServiceProvider, ClaimsPrincipal> UserFactory { get; set; }

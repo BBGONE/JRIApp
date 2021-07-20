@@ -1,5 +1,4 @@
 ﻿using Pipeline;
-using RIAPP.DataService.Core.Exceptions;
 using RIAPP.DataService.Core.Types;
 using RIAPP.DataService.Core.UseCases.RefreshMiddleware;
 using RIAPP.DataService.Utils.Extensions;
@@ -30,12 +29,12 @@ namespace RIAPP.DataService.Core
 
             try
             {
-                var metadata = _service.GetMetadata();
-                var dbSetInfo = metadata.DbSets.Get(message.dbSetName) ?? throw new InvalidOperationException($"The DbSet {message.dbSetName} was not found in metadata");
+                Metadata.RunTimeMetadata metadata = _service.GetMetadata();
+                DbSetInfo dbSetInfo = metadata.DbSets.Get(message.dbSetName) ?? throw new InvalidOperationException($"The DbSet {message.dbSetName} was not found in metadata");
                 message.SetDbSetInfo(dbSetInfo);
                 message.rowInfo.SetDbSetInfo(dbSetInfo);
 
-                var context = new RefreshContext<TService>(message,
+                RefreshContext<TService> context = new RefreshContext<TService>(message,
                 response,
                 (TService)_service,
                 _serviceContainer);

@@ -26,14 +26,14 @@ namespace RIAppDemo
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             BundleTable.EnableOptimizations = true;
 
-            this.Configuration(new ServiceCollection());
+            Configuration(new ServiceCollection());
         }
 
         protected void Application_AuthenticateRequest(object sender, EventArgs e)
         {
-            var isNoRoles = true;
+            bool isNoRoles = true;
 
-            var basicPrincipal = new ClaimsPrincipal(
+            ClaimsPrincipal basicPrincipal = new ClaimsPrincipal(
              new ClaimsIdentity(
                  new Claim[] {
                         new Claim("Permission", "CanUpdate"),
@@ -56,12 +56,12 @@ namespace RIAppDemo
             }
         }
 
-        protected void Application_BeginRequest(Object sender, EventArgs e)
+        protected void Application_BeginRequest(object sender, EventArgs e)
         {
             _appEvents.RaiseBegin(this);
         }
 
-        protected void Application_EndRequest(Object sender, EventArgs e)
+        protected void Application_EndRequest(object sender, EventArgs e)
         {
             _appEvents.RaiseEnd(this);
         }
@@ -74,7 +74,7 @@ namespace RIAppDemo
 
             _serviceProvider = services.BuildServiceProvider(true);
 
-            var resolver = new DefaultDependencyResolver(_serviceProvider, _appEvents);
+            DefaultDependencyResolver resolver = new DefaultDependencyResolver(_serviceProvider, _appEvents);
 
             DependencyResolver.SetResolver(resolver);
         }
@@ -83,12 +83,12 @@ namespace RIAppDemo
         {
             public void RaiseBegin(HttpApplication app)
             {
-                this.OnBeginRequest?.Invoke(app, EventArgs.Empty);
+                OnBeginRequest?.Invoke(app, EventArgs.Empty);
             }
 
             public void RaiseEnd(HttpApplication app)
             {
-                this.OnEndRequest?.Invoke(app, EventArgs.Empty);
+                OnEndRequest?.Invoke(app, EventArgs.Empty);
             }
 
             public event EventHandler OnBeginRequest;
@@ -104,10 +104,10 @@ namespace RIAppDemo
 
             public DefaultDependencyResolver(IServiceProvider serviceProvider, AppEvents appEvents)
             {
-                this._rootProvider = serviceProvider;
-                this._appEvents = appEvents;
-                this._appEvents.OnBeginRequest += _appEvents_OnBeginRequest;
-                this._appEvents.OnEndRequest += _appEvents_OnEndRequest;
+                _rootProvider = serviceProvider;
+                _appEvents = appEvents;
+                _appEvents.OnBeginRequest += _appEvents_OnBeginRequest;
+                _appEvents.OnEndRequest += _appEvents_OnEndRequest;
             }
 
             private void _appEvents_OnBeginRequest(object sender, EventArgs e)
@@ -115,7 +115,7 @@ namespace RIAppDemo
                 HttpContext ctx = HttpContext.Current;
                 IServiceScopeFactory scopeFactory = _rootProvider.GetRequiredService<IServiceScopeFactory>();
                 IServiceScope scope = scopeFactory.CreateScope();
-                var scopeProvider = scope.ServiceProvider;
+                IServiceProvider scopeProvider = scope.ServiceProvider;
                 ctx.Items.Add(PROVIDER_KEY, scopeProvider);
                 ctx.Items.Add(PROVIDER_SCOPE_KEY, scope);
             }
@@ -125,7 +125,7 @@ namespace RIAppDemo
                 try
                 {
                     HttpContext ctx = HttpContext.Current;
-                    var scope = (IServiceScope)ctx.Items[PROVIDER_SCOPE_KEY];
+                    IServiceScope scope = (IServiceScope)ctx.Items[PROVIDER_SCOPE_KEY];
                     scope.Dispose();
                 }
                 catch
@@ -137,28 +137,28 @@ namespace RIAppDemo
 
             public object GetService(Type serviceType)
             {
-                var ctx = HttpContext.Current;
+                HttpContext ctx = HttpContext.Current;
                 if (ctx == null)
                 {
-                    return this._rootProvider.GetService(serviceType);
+                    return _rootProvider.GetService(serviceType);
                 }
                 else
                 {
-                    var provider = (IServiceProvider)ctx.Items[PROVIDER_KEY];
+                    IServiceProvider provider = (IServiceProvider)ctx.Items[PROVIDER_KEY];
                     return provider.GetService(serviceType);
                 }
             }
 
             public IEnumerable<object> GetServices(Type serviceType)
             {
-                var ctx = HttpContext.Current;
+                HttpContext ctx = HttpContext.Current;
                 if (ctx == null)
                 {
-                    return this._rootProvider.GetServices(serviceType);
+                    return _rootProvider.GetServices(serviceType);
                 }
                 else
                 {
-                    var provider = (IServiceProvider)ctx.Items[PROVIDER_KEY];
+                    IServiceProvider provider = (IServiceProvider)ctx.Items[PROVIDER_KEY];
                     return provider.GetServices(serviceType);
                 }
 

@@ -22,8 +22,8 @@ namespace RIAPP.DataService.Core.UseCases.CRUDMiddleware
 
         public async Task Invoke(CRUDContext<TService> ctx)
         {
-            var authorizer = ctx.ServiceContainer.GetAuthorizer();
-            var metadata = ctx.Service.GetMetadata();
+            IAuthorizer<TService> authorizer = ctx.ServiceContainer.GetAuthorizer();
+            RunTimeMetadata metadata = ctx.Service.GetMetadata();
 
             foreach (DbSet dbSet in ctx.Request.dbSets)
             {

@@ -67,7 +67,8 @@ declare module "jriapp/consts" {
         change = 2,
         keypress = 3,
         keydown = 4,
-        keyup = 5
+        keyup = 5,
+        input = 6
     }
 }
 declare module "jriapp/int" {
@@ -195,6 +196,7 @@ declare module "jriapp/int" {
         readonly el: HTMLElement;
         readonly app: IApplication;
         readonly uniqueID: string;
+        bindingState: number;
         viewMounted?: () => void;
     }
     export interface ITemplateElView extends IElView, ITemplateEvents {
@@ -540,22 +542,6 @@ declare module "jriapp/utils/domevents" {
         stopImmediatePropagation(): void;
     }
     export class DomEvents {
-        static on(el: TDomElement, evType: "MSContentZoom", listener: (ev: UIEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSGestureChange", listener: (ev: MSGestureEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSGestureDoubleTap", listener: (ev: MSGestureEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSGestureEnd", listener: (ev: MSGestureEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSGestureHold", listener: (ev: MSGestureEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSGestureStart", listener: (ev: MSGestureEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSGestureTap", listener: (ev: MSGestureEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSInertiaStart", listener: (ev: MSGestureEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSPointerCancel", listener: (ev: MSPointerEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSPointerDown", listener: (ev: MSPointerEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSPointerEnter", listener: (ev: MSPointerEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSPointerLeave", listener: (ev: MSPointerEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSPointerMove", listener: (ev: MSPointerEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSPointerOut", listener: (ev: MSPointerEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSPointerOver", listener: (ev: MSPointerEvent) => any, args?: TEventsArgsOrNamespace): void;
-        static on(el: TDomElement, evType: "MSPointerUp", listener: (ev: MSPointerEvent) => any, args?: TEventsArgsOrNamespace): void;
         static on(el: TDomElement, evType: "abort", listener: (ev: UIEvent) => any, args?: TEventsArgsOrNamespace): void;
         static on(el: TDomElement, evType: "activate", listener: (ev: UIEvent) => any, args?: TEventsArgsOrNamespace): void;
         static on(el: TDomElement, evType: "beforeactivate", listener: (ev: UIEvent) => any, args?: TEventsArgsOrNamespace): void;
@@ -709,18 +695,18 @@ declare module "jriapp/utils/sloader" {
         search: string;
     }
 }
-declare module "jriapp/bootstrap" {
+declare module "jriapp/bootstrapper" {
     import { IIndexer, IBaseObject, IPromise, TErrorHandler, TEventHandler, BaseObject, IObjectEvents, IWeakMap } from "jriapp_shared";
     import { IApplication, ISelectableProvider, IDataProvider, IConverter, ISvcStore, IContentFactoryList, IElViewRegister, IStylesLoader } from "jriapp/int";
     import { Defaults } from "jriapp/defaults";
     import { TemplateLoader } from "jriapp/utils/tloader";
     export const subscribeWeakMap: IWeakMap, selectableProviderWeakMap: IWeakMap;
     export interface IInternalBootstrapMethods {
-        initialize(): IPromise<Bootstrap>;
+        initialize(): IPromise<Bootstrapper>;
         registerApp(app: IApplication): void;
         unregisterApp(app: IApplication): void;
     }
-    export const enum BootstrapState {
+    export const enum StartupState {
         None = 0,
         Initializing = 1,
         Initialized = 2,
@@ -737,7 +723,7 @@ declare module "jriapp/bootstrap" {
     export function registerObject(root: IDataProvider, name: string, obj: any): void;
     export function unregisterObject(root: IDataProvider, name: string): any;
     export function getObject(root: IDataProvider, name: string): any;
-    export class Bootstrap extends BaseObject implements IDataProvider, ISvcStore {
+    export class Bootstrapper extends BaseObject implements IDataProvider, ISvcStore {
         static _initFramework(): void;
         private _app;
         private _selectedControl;
@@ -765,16 +751,16 @@ declare module "jriapp/bootstrap" {
         private _destroyApp;
         private _waitLoaded;
         _getInternal(): IInternalBootstrapMethods;
-        addOnDisposed(handler: TEventHandler<Bootstrap, any>, nmspace?: string, context?: object): void;
+        addOnDisposed(handler: TEventHandler<Bootstrapper, any>, nmspace?: string, context?: object): void;
         offOnDisposed(nmspace?: string): void;
-        addOnError(handler: TErrorHandler<Bootstrap>, nmspace?: string, context?: object): void;
+        addOnError(handler: TErrorHandler<Bootstrapper>, nmspace?: string, context?: object): void;
         offOnError(nmspace?: string): void;
-        addOnLoad(fn: TEventHandler<Bootstrap, any>, nmspace?: string, context?: IBaseObject): void;
-        addOnUnLoad(fn: TEventHandler<Bootstrap, any>, nmspace?: string, context?: IBaseObject): void;
-        addOnInitialize(fn: TEventHandler<Bootstrap, any>, nmspace?: string, context?: IBaseObject): void;
+        addOnLoad(fn: TEventHandler<Bootstrapper, any>, nmspace?: string, context?: IBaseObject): void;
+        addOnUnLoad(fn: TEventHandler<Bootstrapper, any>, nmspace?: string, context?: IBaseObject): void;
+        addOnInitialize(fn: TEventHandler<Bootstrapper, any>, nmspace?: string, context?: IBaseObject): void;
         addModuleInit(fn: (app: IApplication) => void): boolean;
         getData(): IIndexer<any>;
-        init(onInit: (bootstrap: Bootstrap) => void): void;
+        init(onInit: (bootstrap: Bootstrapper) => void): void;
         startApp<TApp extends IApplication>(appFactory: () => TApp, onStartUp?: (app: TApp) => void): IPromise<TApp>;
         registerSvc(name: string, obj: any): void;
         unregisterSvc(name: string): void;
@@ -794,9 +780,9 @@ declare module "jriapp/bootstrap" {
         set selectedControl(v: ISelectableProvider);
         get defaults(): Defaults;
         get isReady(): boolean;
-        get state(): BootstrapState;
+        get state(): StartupState;
     }
-    export const bootstrap: Bootstrap;
+    export const bootstrapper: Bootstrapper;
 }
 declare module "jriapp/utils/viewchecks" {
     import { IElView, ITemplateElView } from "jriapp/int";
@@ -1031,7 +1017,7 @@ declare module "jriapp/databindsvc" {
 declare module "jriapp/app" {
     import { IIndexer, TEventHandler, IPromise, TErrorHandler, IBaseObject, BaseObject } from "jriapp_shared";
     import { IElViewFactory, IViewType, IApplication, TBindingOptions, IAppOptions, IInternalAppMethods, IConverter, IBinding, TLoaderFunc, THTMLLoaderFunc } from "jriapp/int";
-    export class Application extends BaseObject implements IApplication {
+    export class Application<TOptions extends IAppOptions = any> extends BaseObject implements IApplication {
         private _UC;
         private _moduleInits;
         private _uniqueID;
@@ -1042,8 +1028,8 @@ declare module "jriapp/app" {
         private _viewFactory;
         private _internal;
         private _appState;
-        protected _options: IAppOptions;
-        constructor(options?: IAppOptions);
+        private _options;
+        constructor(options?: TOptions);
         dispose(): void;
         private _cleanUpObjMaps;
         private _initAppModules;
@@ -1075,7 +1061,7 @@ declare module "jriapp/app" {
         getOptions(name: string): string;
         toString(): string;
         get uniqueID(): string;
-        get options(): IAppOptions;
+        get options(): TOptions;
         get appName(): string;
         get appRoot(): Document | HTMLElement;
         get viewFactory(): IElViewFactory;
@@ -1088,18 +1074,18 @@ declare module "jriapp" {
     export * from "jriapp_shared/collection/const";
     export * from "jriapp_shared/collection/int";
     export * from "jriapp_shared/utils/jsonbag";
-    export { StatefulPromise } from "jriapp_shared/utils/deferred";
+    export { StatefulPromise } from "jriapp_shared/utils/promise";
     export { KEYS, BINDING_MODE, BindTo, SubscribeFlags } from "jriapp/consts";
     export { IAppOptions, IApplication, TBindingMode, ITemplate, ITemplateEvents, IBinding, TBindingInfo, TBindingOptions, IConverter, IContentFactory, IDatepicker, IElView, ITooltipService, ISelectable, ISelectableProvider, ILifeTimeScope, ITemplateGroupInfo, ITemplateInfo, IViewOptions, ISubscriber } from "jriapp/int";
     export { DomUtils as DOM } from "jriapp/utils/dom";
     export { ViewChecks } from "jriapp/utils/viewchecks";
     export { BaseConverter } from "jriapp/converter";
-    export { bootstrap, subscribeWeakMap, selectableProviderWeakMap } from "jriapp/bootstrap";
+    export { bootstrapper, subscribeWeakMap, selectableProviderWeakMap } from "jriapp/bootstrapper";
     export { Binding } from "jriapp/binding";
     export { createTemplate, ITemplateOptions } from "jriapp/template";
     export { LifeTimeScope } from "jriapp/utils/lifetime";
     export { PropWatcher } from "jriapp/utils/propwatcher";
     export { ViewModel, BaseCommand, Command, ICommand } from "jriapp/mvvm";
     export { Application } from "jriapp/app";
-    export const VERSION = "3.0.4";
+    export const VERSION = "4.0.0";
 }

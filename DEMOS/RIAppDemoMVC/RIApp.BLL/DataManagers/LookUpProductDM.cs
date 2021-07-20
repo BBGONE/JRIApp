@@ -13,7 +13,7 @@ namespace RIAppDemo.BLL.DataServices.DataManagers
         [Query]
         public async Task<QueryResult<LookUpProduct>> ReadProductLookUp()
         {
-            var res = await PerformQuery<Product>(null).Data.Select(p => new LookUpProduct { ProductID = p.ProductID, Name = p.Name }).ToListAsync();
+            System.Collections.Generic.List<LookUpProduct> res = await PerformQuery<Product>(null).Data.Select(p => new LookUpProduct { ProductID = p.ProductID, Name = p.Name }).ToListAsync();
             return new QueryResult<LookUpProduct>(res, totalCount: null);
         }
     }

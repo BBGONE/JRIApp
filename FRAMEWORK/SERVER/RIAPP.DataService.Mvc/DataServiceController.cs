@@ -24,18 +24,9 @@ namespace RIAPP.DataService.Mvc
             _DomainService = domainService;
         }
 
-        protected IDomainService DomainService
-        {
-            get { return _DomainService; }
-        }
+        protected IDomainService DomainService => _DomainService;
 
-        public ISerializer Serializer
-        {
-            get
-            {
-                return _DomainService.Serializer;
-            }
-        }
+        public ISerializer Serializer => _DomainService.Serializer;
 
         [ActionName("typescript")]
         [HttpGet]
@@ -43,11 +34,13 @@ namespace RIAPP.DataService.Mvc
         {
             string url = ControllerContext.HttpContext.Request.RawUrl;
             DateTime now = DateTime.Now;
-            var comment = $"\tGenerated from: {url} on {now:yyyy-MM-dd} at {now:HH:mm}\r\n\tDon't make manual changes here, they will be lost when this interface will be regenerated!";
-            var content = DomainService.ServiceCodeGen(new CodeGenArgs("ts") { comment = comment });
-            var res = new ContentResult();
-            res.ContentType = MediaTypeNames.Text.Plain;
-            res.Content = content;
+            string comment = $"\tGenerated from: {url} on {now:yyyy-MM-dd} at {now:HH:mm}\r\n\tDon't make manual changes here, they will be lost when this interface will be regenerated!";
+            string content = DomainService.ServiceCodeGen(new CodeGenArgs("ts") { comment = comment });
+            ContentResult res = new ContentResult
+            {
+                ContentType = MediaTypeNames.Text.Plain,
+                Content = content
+            };
             return res;
         }
 
@@ -55,11 +48,13 @@ namespace RIAPP.DataService.Mvc
         [HttpGet]
         public ActionResult GetXAML(bool isDraft = true)
         {
-            var content = DomainService.ServiceCodeGen(new CodeGenArgs("xaml") { isDraft = isDraft });
-            var res = new ContentResult();
-            res.ContentEncoding = Encoding.UTF8;
-            res.ContentType = MediaTypeNames.Text.Plain;
-            res.Content = content;
+            string content = DomainService.ServiceCodeGen(new CodeGenArgs("xaml") { isDraft = isDraft });
+            ContentResult res = new ContentResult
+            {
+                ContentEncoding = Encoding.UTF8,
+                ContentType = MediaTypeNames.Text.Plain,
+                Content = content
+            };
             return res;
         }
 
@@ -67,18 +62,20 @@ namespace RIAPP.DataService.Mvc
         [HttpGet]
         public ActionResult GetCSharp()
         {
-            var content = DomainService.ServiceCodeGen(new CodeGenArgs("csharp"));
-            var res = new ContentResult();
-            res.ContentEncoding = Encoding.UTF8;
-            res.ContentType = MediaTypeNames.Text.Plain;
-            res.Content = content;
+            string content = DomainService.ServiceCodeGen(new CodeGenArgs("csharp"));
+            ContentResult res = new ContentResult
+            {
+                ContentEncoding = Encoding.UTF8,
+                ContentType = MediaTypeNames.Text.Plain,
+                Content = content
+            };
             return res;
         }
 
         [ChildActionOnly]
         public string PermissionsInfo()
         {
-            var info = DomainService.ServiceGetPermissions().Result;
+            Permissions info = DomainService.ServiceGetPermissions().Result;
             return Serializer.Serialize(info);
         }
 
@@ -110,7 +107,7 @@ namespace RIAPP.DataService.Mvc
         [HttpGet]
         public async Task<ActionResult> GetPermissions()
         {
-            var res = await DomainService.ServiceGetPermissions();
+            Permissions res = await DomainService.ServiceGetPermissions();
             return new ChunkedResult<Permissions>(res, Serializer);
         }
 
@@ -118,7 +115,7 @@ namespace RIAPP.DataService.Mvc
         [HttpPost]
         public async Task<ActionResult> PerformQuery([ServiceParamsBinder] QueryRequest request)
         {
-            var response = await DomainService.ServiceGetData(request);
+            QueryResponse response = await DomainService.ServiceGetData(request);
             return new ChunkedResult<QueryResponse>(response, Serializer);
         }
 
@@ -126,7 +123,7 @@ namespace RIAPP.DataService.Mvc
         [HttpPost]
         public async Task<ActionResult> Save([ServiceParamsBinder] ChangeSetRequest changeSet)
         {
-            var response = await DomainService.ServiceApplyChangeSet(changeSet);
+            ChangeSetResponse response = await DomainService.ServiceApplyChangeSet(changeSet);
             return new ChunkedResult<ChangeSetResponse>(response, Serializer);
         }
 
@@ -134,7 +131,7 @@ namespace RIAPP.DataService.Mvc
         [HttpPost]
         public async Task<ActionResult> Refresh([ServiceParamsBinder] RefreshRequest refreshInfo)
         {
-            var response = await DomainService.ServiceRefreshRow(refreshInfo);
+            RefreshResponse response = await DomainService.ServiceRefreshRow(refreshInfo);
             return new ChunkedResult<RefreshResponse>(response, Serializer);
         }
 
@@ -142,7 +139,7 @@ namespace RIAPP.DataService.Mvc
         [HttpPost]
         public async Task<ActionResult> Invoke([ServiceParamsBinder] InvokeRequest invokeInfo)
         {
-            var response = await DomainService.ServiceInvokeMethod(invokeInfo);
+            InvokeResponse response = await DomainService.ServiceInvokeMethod(invokeInfo);
             return new ChunkedResult<InvokeResponse>(response, Serializer);
         }
 

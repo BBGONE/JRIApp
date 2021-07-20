@@ -19,7 +19,7 @@ namespace RIAppDemo.BLL.DataServices.Config
 
                 options.ClientTypes = () => new[] { typeof(TestModel), typeof(KeyVal), typeof(StrKeyVal), typeof(RadioVal), typeof(HistoryItem), typeof(TestEnum2) };
 
-                var svcOptions = new SvcOptions();
+                SvcOptions svcOptions = new SvcOptions();
                 configure?.Invoke(svcOptions);
 
                 options.UserFactory = svcOptions.GetUser;
@@ -27,7 +27,7 @@ namespace RIAppDemo.BLL.DataServices.Config
 
             services.AddScoped<ADWDbContext>((sp) =>
             {
-                var res = new ADWDbContext(sp.GetRequiredService<DBConnectionFactory>().GetRIAppDemoConnection());
+                ADWDbContext res = new ADWDbContext(sp.GetRequiredService<DBConnectionFactory>().GetRIAppDemoConnection());
                 return res;
             });
         }

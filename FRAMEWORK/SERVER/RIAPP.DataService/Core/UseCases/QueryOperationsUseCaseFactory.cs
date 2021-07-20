@@ -9,17 +9,17 @@ namespace RIAPP.DataService.Core
 
         public QueryOperationsUseCaseFactory(Func<BaseDomainService, Func<Exception, string>, IQueryOperationsUseCase<TService>> func)
         {
-            this._func = func;
+            _func = func;
         }
 
         public IQueryOperationsUseCase Create(BaseDomainService service, Func<Exception, string> onError)
         {
-            return this._func(service, onError);
+            return _func(service, onError);
         }
 
         public IQueryOperationsUseCase<TService> Create(TService service, Func<Exception, string> onError)
         {
-            return this._func(service, onError);
+            return _func(service, onError);
         }
 
     }

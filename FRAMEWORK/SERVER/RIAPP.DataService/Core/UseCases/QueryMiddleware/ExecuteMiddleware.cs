@@ -21,10 +21,10 @@ namespace RIAPP.DataService.Core.UseCases.QueryMiddleware
 
         public async Task Invoke(QueryContext<TService> ctx)
         {
-            var dbSetInfo = ctx.Request.GetDbSetInfo() ?? throw new InvalidOperationException($"Could not get the DbSet for {ctx.Request.dbSetName}");
-            var dataHelper = ctx.ServiceContainer.GetDataHelper();
-            var serviceHelper = ctx.ServiceContainer.GetServiceHelper();
-            var metadata = ctx.Service.GetMetadata();
+            DbSetInfo dbSetInfo = ctx.Request.GetDbSetInfo() ?? throw new InvalidOperationException($"Could not get the DbSet for {ctx.Request.dbSetName}");
+            IDataHelper<TService> dataHelper = ctx.ServiceContainer.GetDataHelper();
+            IServiceOperationsHelper<TService> serviceHelper = ctx.ServiceContainer.GetServiceHelper();
+            RunTimeMetadata metadata = ctx.Service.GetMetadata();
 
             MethodDescription method = metadata.GetQueryMethod(ctx.Request.dbSetName, ctx.Request.queryName);
 
@@ -35,13 +35,13 @@ namespace RIAPP.DataService.Core.UseCases.QueryMiddleware
                 methParams.AddLast(ctx.Request.paramInfo.GetValue(method.parameters[i].name, method, dataHelper));
             }
 
-            var req = QueryContext<TService>.CreateRequestContext(ctx.Service, ctx.Request);
-            using (var callContext = new RequestCallContext(req))
+            RequestContext req = QueryContext<TService>.CreateRequestContext(ctx.Service, ctx.Request);
+            using (RequestCallContext callContext = new RequestCallContext(req))
             {
-                var methodData = method.GetMethodData();
+                MethodInfoData methodData = method.GetMethodData();
                 object instance = serviceHelper.GetMethodOwner(methodData);
                 object invokeRes = methodData.MethodInfo.Invoke(instance, methParams.ToArray());
-                var queryResult = (QueryResult)await serviceHelper.GetMethodResult(invokeRes);
+                QueryResult queryResult = (QueryResult)await serviceHelper.GetMethodResult(invokeRes);
 
                 IEnumerable<object> entities = queryResult.Result;
                 int? totalCount = queryResult.TotalCount;

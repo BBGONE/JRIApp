@@ -36,7 +36,7 @@ namespace RIAPP.DataService.Core.Metadata
 
         public RunTimeMetadata Build()
         {
-            var dbSets = new DbSetsDictionary();
+            DbSetsDictionary dbSets = new DbSetsDictionary();
 
             foreach (DbSetInfo dbSetInfo in designTimeMetadata.DbSets)
             {
@@ -48,11 +48,11 @@ namespace RIAPP.DataService.Core.Metadata
                 dbSetInfo.Initialize(dataHelper);
             }
 
-            var dbSetsByTypeLookUp = dbSets.Values.ToLookup(v => v.GetEntityType());
-            var svcMethods = new MethodMap();
-            var operMethods = new OperationalMethods();
+            ILookup<Type, DbSetInfo> dbSetsByTypeLookUp = dbSets.Values.ToLookup(v => v.GetEntityType());
+            MethodMap svcMethods = new MethodMap();
+            OperationalMethods operMethods = new OperationalMethods();
 
-            foreach (var descriptor in dataManagerContainer.Descriptors)
+            foreach (Config.ServiceTypeDescriptor descriptor in dataManagerContainer.Descriptors)
             {
                 ProcessMethodDescriptions(descriptor.ImplementationType, svcMethods, operMethods, dbSets, dbSetsByTypeLookUp);
             }
@@ -62,7 +62,7 @@ namespace RIAPP.DataService.Core.Metadata
             operMethods.MakeReadOnly();
             svcMethods.MakeReadOnly();
 
-            var associations = new AssociationsDictionary();
+            AssociationsDictionary associations = new AssociationsDictionary();
 
             foreach (Association assoc in designTimeMetadata.Associations)
             {
@@ -132,9 +132,9 @@ namespace RIAPP.DataService.Core.Metadata
                 }
             };
 
-            var methods = fromType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            MethodInfo[] methods = fromType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
-            foreach (var method in methods)
+            foreach (MethodInfo method in methods)
             {
                 AddMethod(method);
             }
@@ -149,9 +149,9 @@ namespace RIAPP.DataService.Core.Metadata
         /// <returns></returns>
         private static IEnumerable<MethodInfoData> _GetAllMethods(Type fromType)
         {
-            var methodInfos = fromType.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public);
-            var interfTypes = fromType.GetInterfaces();
-            var dataManagerInterface = interfTypes.Where(i =>
+            MethodInfo[] methodInfos = fromType.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public);
+            Type[] interfTypes = fromType.GetInterfaces();
+            Type dataManagerInterface = interfTypes.Where(i =>
                         i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDataManager<>) &&
                         i.GetGenericArguments().Count() == 1).FirstOrDefault();
 
@@ -167,12 +167,12 @@ namespace RIAPP.DataService.Core.Metadata
 
             IEnumerable<MethodInfoData> UnionMethods(IEnumerable<MethodInfoData> list, IDictionary<MethodType, MethodInfoData> crudMethods)
             {
-                foreach (var kv in crudMethods)
+                foreach (KeyValuePair<MethodType, MethodInfoData> kv in crudMethods)
                 {
                     yield return kv.Value;
                 }
 
-                foreach (var item in list)
+                foreach (MethodInfoData item in list)
                 {
                     if (!crudMethods.ContainsKey(item.MethodType))
                     {
@@ -228,7 +228,7 @@ namespace RIAPP.DataService.Core.Metadata
 
             InitSvcMethods(allList.GetSvcMethods(valueConverter), svcMethods, dbSets, dbSetsByTypeLookUp);
 
-            var otherMethods = allList.GetOthersOnly();
+            IEnumerable<MethodInfoData> otherMethods = allList.GetOthersOnly();
 
             InitOperMethods(otherMethods, operMethods, dbSetsByTypeLookUp);
         }
@@ -250,10 +250,10 @@ namespace RIAPP.DataService.Core.Metadata
                     assoc.childDbSetName));
             }
 
-            var childDb = dbSets[assoc.childDbSetName];
-            var parentDb = dbSets[assoc.parentDbSetName];
-            var parentDbFields = parentDb.GetFieldByNames();
-            var childDbFields = childDb.GetFieldByNames();
+            DbSetInfo childDb = dbSets[assoc.childDbSetName];
+            DbSetInfo parentDb = dbSets[assoc.parentDbSetName];
+            Dictionary<string, Field> parentDbFields = parentDb.GetFieldByNames();
+            Dictionary<string, Field> childDbFields = childDb.GetFieldByNames();
 
             //check navigation field
             //dont allow to define  it explicitly, the association adds the field by itself (implicitly)
@@ -279,7 +279,7 @@ namespace RIAPP.DataService.Core.Metadata
                     assoc.parentToChildrenName));
             }
 
-            foreach (var frel in assoc.fieldRels)
+            foreach (FieldRel frel in assoc.fieldRels)
             {
                 if (!parentDbFields.ContainsKey(frel.parentField))
                 {
@@ -298,13 +298,13 @@ namespace RIAPP.DataService.Core.Metadata
 
             if (!string.IsNullOrEmpty(assoc.childToParentName))
             {
-                var sb = new StringBuilder(120);
-                var dependentOn =
+                StringBuilder sb = new StringBuilder(120);
+                string dependentOn =
                     assoc.fieldRels.Aggregate(sb, (a, b) => a.Append((a.Length == 0 ? "" : ",") + b.childField),
                         a => a).ToString();
 
                 //add navigation field to dbSet's field collection
-                var fld = new Field
+                Field fld = new Field
                 {
                     fieldName = assoc.childToParentName,
                     fieldType = FieldType.Navigation,
@@ -318,8 +318,8 @@ namespace RIAPP.DataService.Core.Metadata
 
             if (!string.IsNullOrEmpty(assoc.parentToChildrenName))
             {
-                var sb = new StringBuilder(120);
-                var fld = new Field
+                StringBuilder sb = new StringBuilder(120);
+                Field fld = new Field
                 {
                     fieldName = assoc.parentToChildrenName,
                     fieldType = FieldType.Navigation,
@@ -361,7 +361,7 @@ namespace RIAPP.DataService.Core.Metadata
                             throw new DomainServiceException(string.Format("Can not determine the DbSet for a query method: {0}", md.methodName));
                         }
 
-                        foreach (var dbSetInfo in entityTypeDbSets)
+                        foreach (DbSetInfo dbSetInfo in entityTypeDbSets)
                         {
                             svcMethods.Add(dbSetInfo.dbSetName, md);
                         }
@@ -382,9 +382,9 @@ namespace RIAPP.DataService.Core.Metadata
             {
                 if (md.EntityType != null)
                 {
-                    var dbSets = dbSetsByTypeLookUp[md.EntityType];
+                    IEnumerable<DbSetInfo> dbSets = dbSetsByTypeLookUp[md.EntityType];
 
-                    foreach (var dbSetInfo in dbSets)
+                    foreach (DbSetInfo dbSetInfo in dbSets)
                     {
                         operMethods.Add(dbSetInfo.dbSetName, md);
                     }

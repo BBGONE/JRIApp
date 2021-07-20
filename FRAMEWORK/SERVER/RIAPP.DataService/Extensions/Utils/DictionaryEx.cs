@@ -4,7 +4,7 @@
     {
         public static T Get<T>(this System.Collections.Generic.IDictionary<string, object> dic, string key)
         {
-            if (!dic.TryGetValue(key, out var obj))
+            if (!dic.TryGetValue(key, out object obj))
             {
                 return (T)(object)null;
             }
@@ -14,7 +14,7 @@
         public static T Get<T>(this System.Collections.Generic.IDictionary<string, T> dic, string key)
             where T : class
         {
-            if (!dic.TryGetValue(key, out var obj))
+            if (!dic.TryGetValue(key, out T obj))
             {
                 return (T)(object)null;
             }

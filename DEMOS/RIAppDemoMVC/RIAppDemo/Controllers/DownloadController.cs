@@ -11,7 +11,7 @@ namespace RIAppDemo.Controllers
     [SessionState(SessionStateBehavior.Disabled)]
     public class DownloadController : Controller
     {
-        readonly IThumbnailService _thumbnailService;
+        private readonly IThumbnailService _thumbnailService;
 
         public DownloadController(IThumbnailService thumbnailService)
         {
@@ -28,16 +28,18 @@ namespace RIAppDemo.Controllers
         {
             try
             {
-                var stream = new MemoryStream();
-                var fileName = await _thumbnailService.GetThumbnail(id, stream);
+                MemoryStream stream = new MemoryStream();
+                string fileName = await _thumbnailService.GetThumbnail(id, stream);
                 if (string.IsNullOrEmpty(fileName))
                 {
                     return new HttpStatusCodeResult(400);
                 }
 
                 stream.Position = 0;
-                var res = new FileStreamResult(stream, MediaTypeNames.Image.Jpeg);
-                res.FileDownloadName = fileName;
+                FileStreamResult res = new FileStreamResult(stream, MediaTypeNames.Image.Jpeg)
+                {
+                    FileDownloadName = fileName
+                };
                 return res;
             }
             catch (Exception)
@@ -48,9 +50,9 @@ namespace RIAppDemo.Controllers
 
         public ActionResult DownloadTemplate(string name)
         {
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var path1 = Path.Combine(baseDir, "Templates");
-            var path2 = Path.GetFullPath(Path.Combine(path1, string.Format("{0}.html", name)));
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string path1 = Path.Combine(baseDir, "Templates");
+            string path2 = Path.GetFullPath(Path.Combine(path1, string.Format("{0}.html", name)));
             if (!path2.StartsWith(path1))
             {
                 throw new Exception("template name is invalid");

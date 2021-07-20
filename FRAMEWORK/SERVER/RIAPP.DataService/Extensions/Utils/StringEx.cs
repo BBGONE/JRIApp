@@ -145,7 +145,7 @@ namespace RIAPP.DataService.Utils.Extensions
                 {
                     if (lastValueSize > 0)
                     {
-                        result[cnt++] = byte.Parse(new String(lastValue, 0, lastValueSize));
+                        result[cnt++] = byte.Parse(new string(lastValue, 0, lastValueSize));
                     }
                     lastValueSize = 0;
 
@@ -153,7 +153,7 @@ namespace RIAPP.DataService.Utils.Extensions
                 }
                 else if (ch == ',')
                 {
-                    result[cnt++] = byte.Parse(new String(lastValue, 0, lastValueSize));
+                    result[cnt++] = byte.Parse(new string(lastValue, 0, lastValueSize));
                     lastValueSize = 0;
                 }
                 else if (!char.IsWhiteSpace(ch) && ch != '[')

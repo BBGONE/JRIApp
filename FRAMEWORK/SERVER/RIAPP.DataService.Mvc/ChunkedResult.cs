@@ -19,10 +19,10 @@ namespace RIAPP.DataService.Mvc
 
         public override void ExecuteResult(ControllerContext context)
         {
-            var response = context.HttpContext.Response;
+            System.Web.HttpResponseBase response = context.HttpContext.Response;
             response.ContentType = ResultContentType;
             response.Buffer = false;
-            var stream = context.HttpContext.Response.OutputStream;
+            System.IO.Stream stream = context.HttpContext.Response.OutputStream;
             _serializer.SerializeAsync(Data, stream).GetAwaiter().GetResult();
             response.End();
         }

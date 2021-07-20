@@ -20,7 +20,10 @@ namespace System.Linq.Dynamic.Core.Parser
                     foreach (Type intfType in type.GetInterfaces())
                     {
                         Type found = FindGenericType(generic, intfType);
-                        if (found != null) return found;
+                        if (found != null)
+                        {
+                            return found;
+                        }
                     }
                 }
 
@@ -53,47 +56,65 @@ namespace System.Linq.Dynamic.Core.Parser
             if (sc == typeof(sbyte))
             {
                 if (tc == typeof(sbyte) || tc == typeof(short) || tc == typeof(int) || tc == typeof(long) || tc == typeof(float) || tc == typeof(double) || tc == typeof(decimal))
+                {
                     return true;
+                }
             }
             else if (sc == typeof(byte))
             {
                 if (tc == typeof(byte) || tc == typeof(short) || tc == typeof(ushort) || tc == typeof(int) || tc == typeof(uint) || tc == typeof(long) || tc == typeof(ulong) || tc == typeof(float) || tc == typeof(double) || tc == typeof(decimal))
+                {
                     return true;
+                }
             }
             else if (sc == typeof(short))
             {
                 if (tc == typeof(short) || tc == typeof(int) || tc == typeof(long) || tc == typeof(float) || tc == typeof(double) || tc == typeof(decimal))
+                {
                     return true;
+                }
             }
             else if (sc == typeof(ushort))
             {
                 if (tc == typeof(ushort) || tc == typeof(int) || tc == typeof(uint) || tc == typeof(long) || tc == typeof(ulong) || tc == typeof(float) || tc == typeof(double) || tc == typeof(decimal))
+                {
                     return true;
+                }
             }
             else if (sc == typeof(int))
             {
                 if (tc == typeof(int) || tc == typeof(long) || tc == typeof(float) || tc == typeof(double) || tc == typeof(decimal))
+                {
                     return true;
+                }
             }
             else if (sc == typeof(uint))
             {
                 if (tc == typeof(uint) || tc == typeof(long) || tc == typeof(ulong) || tc == typeof(float) || tc == typeof(double) || tc == typeof(decimal))
+                {
                     return true;
+                }
             }
             else if (sc == typeof(long))
             {
                 if (tc == typeof(long) || tc == typeof(float) || tc == typeof(double) || tc == typeof(decimal))
+                {
                     return true;
+                }
             }
             else if (sc == typeof(ulong))
             {
                 if (tc == typeof(ulong) || tc == typeof(float) || tc == typeof(double) || tc == typeof(decimal))
+                {
                     return true;
+                }
             }
             else if (sc == typeof(float))
             {
                 if (tc == typeof(float) || tc == typeof(double))
+                {
                     return true;
+                }
             }
 
             if (st == tt)
@@ -148,11 +169,19 @@ namespace System.Linq.Dynamic.Core.Parser
             }
 
             if (type == typeof(char) || type == typeof(float) || type == typeof(double) || type == typeof(decimal))
+            {
                 return 1;
+            }
+
             if (type == typeof(sbyte) || type == typeof(short) || type == typeof(int) || type == typeof(long))
+            {
                 return 2;
+            }
+
             if (type == typeof(byte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong))
+            {
                 return 3;
+            }
 
             return 0;
         }
@@ -184,7 +213,7 @@ namespace System.Linq.Dynamic.Core.Parser
             Type[] genericTypeArguments = type.GetGenericArguments();
             if (genericTypeArguments.Any())
             {
-                var outerType = GetUnderlyingType(genericTypeArguments.LastOrDefault());
+                Type outerType = GetUnderlyingType(genericTypeArguments.LastOrDefault());
                 return Nullable.GetUnderlyingType(type) == outerType ? type : outerType;
             }
 
@@ -195,7 +224,7 @@ namespace System.Linq.Dynamic.Core.Parser
         {
             if (type.GetTypeInfo().IsInterface)
             {
-                var types = new List<Type>();
+                List<Type> types = new List<Type>();
                 AddInterface(types, type);
                 return types;
             }

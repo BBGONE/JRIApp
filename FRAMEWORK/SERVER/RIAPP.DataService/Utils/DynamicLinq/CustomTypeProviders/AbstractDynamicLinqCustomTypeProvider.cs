@@ -33,7 +33,7 @@ namespace System.Linq.Dynamic.Core.CustomTypeProviders
             Check.NotNull(assemblies, nameof(assemblies));
             Check.NotEmpty(typeName, nameof(typeName));
 
-            foreach (var assembly in assemblies)
+            foreach (Assembly assembly in assemblies)
             {
                 Type resolvedType = assembly.GetType(typeName, false, true);
                 if (resolvedType != null)
@@ -56,10 +56,10 @@ namespace System.Linq.Dynamic.Core.CustomTypeProviders
             Check.NotNull(assemblies, nameof(assemblies));
             Check.NotEmpty(simpleTypeName, nameof(simpleTypeName));
 
-            foreach (var assembly in assemblies)
+            foreach (Assembly assembly in assemblies)
             {
-                var fullnames = assembly.GetTypes().Select(t => t.FullName).Distinct();
-                var firstMatchingFullname = fullnames.FirstOrDefault(fn => fn.EndsWith($".{simpleTypeName}"));
+                IEnumerable<string> fullnames = assembly.GetTypes().Select(t => t.FullName).Distinct();
+                string firstMatchingFullname = fullnames.FirstOrDefault(fn => fn.EndsWith($".{simpleTypeName}"));
 
                 if (firstMatchingFullname != null)
                 {
@@ -83,7 +83,7 @@ namespace System.Linq.Dynamic.Core.CustomTypeProviders
         {
             Check.NotNull(assemblies, nameof(assemblies));
 
-            foreach (var assembly in assemblies)
+            foreach (Assembly assembly in assemblies)
             {
                 Type[] definedTypes = null;
 
@@ -102,7 +102,7 @@ namespace System.Linq.Dynamic.Core.CustomTypeProviders
 
                 if (definedTypes != null && definedTypes.Length > 0)
                 {
-                    foreach (var definedType in definedTypes)
+                    foreach (Type definedType in definedTypes)
                     {
                         yield return definedType;
                     }

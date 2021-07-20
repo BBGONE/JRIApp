@@ -43,14 +43,14 @@ namespace RIAPP.DataService.Core.CodeGen
             string interfaceName = string.Format("I{0}", typeName);
             fieldInfo.SetTypeScriptDataType(typeName);
 
-            var sbProperties = new StringBuilder();
-            var sbFieldsDef = new StringBuilder();
-            var sbFieldsInit = new StringBuilder();
-            var sbInterfaceFields = new StringBuilder();
+            StringBuilder sbProperties = new StringBuilder();
+            StringBuilder sbFieldsDef = new StringBuilder();
+            StringBuilder sbFieldsInit = new StringBuilder();
+            StringBuilder sbInterfaceFields = new StringBuilder();
 
             Action<Field> AddProperty = f =>
             {
-                var dataType = GetFieldDataType(f);
+                string dataType = GetFieldDataType(f);
                 sbProperties.AppendFormat("\tget {0}(): {2} {{ return this.getValue('{1}'); }}", f.fieldName,
                     f.GetFullName(), dataType);
                 sbProperties.AppendLine();
@@ -67,7 +67,7 @@ namespace RIAPP.DataService.Core.CodeGen
 
             Action<Field> AddCalculatedProperty = f =>
             {
-                var dataType = GetFieldDataType(f);
+                string dataType = GetFieldDataType(f);
                 sbProperties.AppendFormat("\tget {0}(): {2} {{ return this.getEntity()._getCalcFieldVal('{1}'); }}",
                     f.fieldName, f.GetFullName(), dataType);
                 sbProperties.AppendLine();
@@ -104,7 +104,7 @@ namespace RIAPP.DataService.Core.CodeGen
                 }
                 else if (f.fieldType == FieldType.Object)
                 {
-                    var dataType = CreateComplexType(dbSetInfo, f, level + 1);
+                    string dataType = CreateComplexType(dbSetInfo, f, level + 1);
                     AddComplexProperty(f, dataType);
                 }
                 else
@@ -113,7 +113,7 @@ namespace RIAPP.DataService.Core.CodeGen
                 }
             });
 
-            var templateName = "RootComplexProperty.txt";
+            string templateName = "RootComplexProperty.txt";
             if (level > 0)
             {
                 templateName = "ChildComplexProperty.txt";
@@ -137,7 +137,7 @@ namespace RIAPP.DataService.Core.CodeGen
 
         public string GetComplexTypes()
         {
-            var sb = new StringBuilder(1024);
+            StringBuilder sb = new StringBuilder(1024);
             _complexTypes.Values.ToList().ForEach(typeDef =>
             {
                 sb.AppendLine(typeDef);
@@ -148,9 +148,9 @@ namespace RIAPP.DataService.Core.CodeGen
 
         private string GetFieldDataType(Field fieldInfo)
         {
-            var fieldName = fieldInfo.fieldName;
-            var fieldType = "any";
-            var dataType = fieldInfo.dataType;
+            string fieldName = fieldInfo.fieldName;
+            string fieldType = "any";
+            DataType dataType = fieldInfo.dataType;
 
             fieldType = DotNet2TS.DataTypeToTypeName(dataType);
             return fieldType;

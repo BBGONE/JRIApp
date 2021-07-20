@@ -11,18 +11,18 @@ namespace RIAPP.DataService.Core.CodeGen
 
         public CodeGenFactory(IServiceProvider serviceProvider)
         {
-            this._codeGenConfig = (ICodeGenConfig)serviceProvider.GetService(typeof(ICodeGenConfig));
+            _codeGenConfig = (ICodeGenConfig)serviceProvider.GetService(typeof(ICodeGenConfig));
         }
 
         public ICodeGenProvider GetCodeGen(BaseDomainService dataService, string lang)
         {
-            if (!this.IsCodeGenEnabled)
+            if (!IsCodeGenEnabled)
             {
                 throw new InvalidOperationException(ErrorStrings.ERR_CODEGEN_DISABLED);
             }
 
-            var factories = dataService.ServiceContainer.GetServices<ICodeGenProviderFactory<TService>>();
-            var providerFactory = factories.Where(c => c.Lang == lang).FirstOrDefault();
+            System.Collections.Generic.IEnumerable<ICodeGenProviderFactory<TService>> factories = dataService.ServiceContainer.GetServices<ICodeGenProviderFactory<TService>>();
+            ICodeGenProviderFactory<TService> providerFactory = factories.Where(c => c.Lang == lang).FirstOrDefault();
 
             if (providerFactory == null)
             {

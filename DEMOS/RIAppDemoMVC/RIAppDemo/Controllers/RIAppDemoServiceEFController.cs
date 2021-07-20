@@ -17,20 +17,20 @@ namespace RIAppDemo.Controllers
         [ChildActionOnly]
         public string ProductModelData()
         {
-            var info = GetDomainService().GetQueryData("ProductModel", "ReadProductModel");
+            System.Threading.Tasks.Task<RIAPP.DataService.Core.Types.QueryResponse> info = GetDomainService().GetQueryData("ProductModel", "ReadProductModel");
             return Serializer.Serialize(info);
         }
 
         [ChildActionOnly]
         public string ProductCategoryData()
         {
-            var info = GetDomainService().GetQueryData("ProductCategory", "ReadProductCategory");
+            System.Threading.Tasks.Task<RIAPP.DataService.Core.Types.QueryResponse> info = GetDomainService().GetQueryData("ProductCategory", "ReadProductCategory");
             return Serializer.Serialize(info);
         }
 
         public string GetIPAddress()
         {
-            return this.Request.UserHostAddress;
+            return Request.UserHostAddress;
         }
     }
 }

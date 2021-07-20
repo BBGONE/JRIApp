@@ -22,7 +22,7 @@ namespace RIAPP.DataService.Utils
         {
             get
             {
-                var cur = _currentScope;
+                CallContext<T> cur = _currentScope;
                 return cur?._contextData;
             }
         }
@@ -76,7 +76,7 @@ namespace RIAPP.DataService.Utils
                         return;
                     }
 
-                    var outerScope = _outerScope;
+                    CallContext<T> outerScope = _outerScope;
                     while (outerScope != null && outerScope._isDisposed)
                     {
                         outerScope = outerScope._outerScope;

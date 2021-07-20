@@ -60,7 +60,7 @@ namespace System.Linq.Dynamic.Core.Parser
 
         private bool TryResolveTypeUsingExpressions(string name, ParameterExpression[] expressions, out Type result)
         {
-            foreach (var expression in expressions.Where(e => e != null))
+            foreach (ParameterExpression expression in expressions.Where(e => e != null))
             {
                 if (name == expression.Type.Name)
                 {
@@ -77,7 +77,7 @@ namespace System.Linq.Dynamic.Core.Parser
                 if (_parsingConfig.ResolveTypesBySimpleName && _parsingConfig.CustomTypeProvider != null)
                 {
                     string possibleFullName = $"{expression.Type.Namespace}.{name}";
-                    var resolvedType = _parsingConfig.CustomTypeProvider.ResolveType(possibleFullName);
+                    Type resolvedType = _parsingConfig.CustomTypeProvider.ResolveType(possibleFullName);
                     if (resolvedType != null)
                     {
                         result = resolvedType;

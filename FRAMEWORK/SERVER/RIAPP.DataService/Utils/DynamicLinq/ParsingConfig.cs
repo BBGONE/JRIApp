@@ -44,10 +44,7 @@ namespace System.Linq.Dynamic.Core
         /// </summary>
         public IDynamicLinkCustomTypeProvider CustomTypeProvider
         {
-            get
-            {
-                return _customTypeProvider;
-            }
+            get => _customTypeProvider;
 
             set
             {
@@ -79,10 +76,7 @@ namespace System.Linq.Dynamic.Core
         /// </summary>
         public IQueryableAnalyzer QueryableAnalyzer
         {
-            get
-            {
-                return _queryableAnalyzer ?? (_queryableAnalyzer = new DefaultQueryableAnalyzer());
-            }
+            get => _queryableAnalyzer ?? (_queryableAnalyzer = new DefaultQueryableAnalyzer());
 
             set
             {

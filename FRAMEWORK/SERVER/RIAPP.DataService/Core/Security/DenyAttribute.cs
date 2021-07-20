@@ -18,7 +18,7 @@ namespace RIAPP.DataService.Core.Security
         {
             await Task.CompletedTask;
 
-            foreach (var role in Roles)
+            foreach (string role in Roles)
             {
                 if (authorizationContext.User.IsInRole(role))
                 {

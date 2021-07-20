@@ -7,8 +7,8 @@ namespace RIAPP.DataService.Core.CodeGen
     {
         public BaseCsharpProvider(IMetaDataProvider owner, string lang)
         {
-            this.Owner = owner;
-            this.Lang = lang;
+            Owner = owner;
+            Lang = lang;
         }
 
         public string Lang

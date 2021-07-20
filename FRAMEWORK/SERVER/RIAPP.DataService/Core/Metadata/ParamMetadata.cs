@@ -61,14 +61,14 @@ namespace RIAPP.DataService.Core.Metadata
         /// <returns>ParamMetadataInfo</returns>
         public static ParamMetadata FromParamInfo(ParameterInfo pinfo, IValueConverter valueConverter)
         {
-            var ptype = pinfo.ParameterType;
+            Type ptype = pinfo.ParameterType;
 
             if (pinfo.IsOut)
             {
                 throw new DomainServiceException("Out parameters are not supported in service methods");
             }
 
-            var paramInfo = new ParamMetadata
+            ParamMetadata paramInfo = new ParamMetadata
             {
                 isNullable = ptype.IsNullableType(),
                 name = pinfo.Name
@@ -76,7 +76,7 @@ namespace RIAPP.DataService.Core.Metadata
             paramInfo.SetParameterType(ptype);
             Type realType = paramInfo.isNullable ? Nullable.GetUnderlyingType(ptype) : ptype;
 
-            var dateConvert = (IDateConversionData)pinfo.GetCustomAttributes(false).FirstOrDefault(a => a is IDateConversionData);
+            IDateConversionData dateConvert = (IDateConversionData)pinfo.GetCustomAttributes(false).FirstOrDefault(a => a is IDateConversionData);
 
             if (dateConvert != null)
             {

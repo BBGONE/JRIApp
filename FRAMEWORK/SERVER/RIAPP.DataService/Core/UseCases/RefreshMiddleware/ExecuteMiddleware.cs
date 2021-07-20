@@ -19,12 +19,12 @@ namespace RIAPP.DataService.Core.UseCases.RefreshMiddleware
 
         public async Task Invoke(RefreshContext<TService> ctx)
         {
-            var dbSetInfo = ctx.Request.GetDbSetInfo() ?? throw new InvalidOperationException($"Could not get the DbSet for {ctx.Request.dbSetName}");
-            var serviceHelper = ctx.ServiceContainer.GetServiceHelper();
-            var metadata = ctx.Service.GetMetadata();
+            DbSetInfo dbSetInfo = ctx.Request.GetDbSetInfo() ?? throw new InvalidOperationException($"Could not get the DbSet for {ctx.Request.dbSetName}");
+            IServiceOperationsHelper<TService> serviceHelper = ctx.ServiceContainer.GetServiceHelper();
+            RunTimeMetadata metadata = ctx.Service.GetMetadata();
 
-            var req = RefreshContext<TService>.CreateRequestContext(ctx.Service, ctx.Request.rowInfo);
-            using (var callContext = new RequestCallContext(req))
+            RequestContext req = RefreshContext<TService>.CreateRequestContext(ctx.Service, ctx.Request.rowInfo);
+            using (RequestCallContext callContext = new RequestCallContext(req))
             {
                 MethodInfoData methodData = metadata.GetOperationMethodInfo(ctx.Request.dbSetName, MethodType.Refresh);
                 object instance = serviceHelper.GetMethodOwner(methodData);

@@ -39,7 +39,7 @@ namespace RIAPP.DataService.Core.Metadata
 
         public MethodDescription GetQueryMethod(string dbSetName, string name)
         {
-            var method = _svcMethods.GetQueryMethod(dbSetName, name);
+            MethodDescription method = _svcMethods.GetQueryMethod(dbSetName, name);
             if (method == null)
             {
                 throw new DomainServiceException(string.Format(ErrorStrings.ERR_QUERY_NAME_INVALID, name));
@@ -54,7 +54,7 @@ namespace RIAPP.DataService.Core.Metadata
 
         public MethodDescription GetInvokeMethod(string name)
         {
-            var method = _svcMethods.GetInvokeMethod(name);
+            MethodDescription method = _svcMethods.GetInvokeMethod(name);
             if (method == null)
             {
                 throw new DomainServiceException(string.Format(ErrorStrings.ERR_METH_NAME_INVALID, name));

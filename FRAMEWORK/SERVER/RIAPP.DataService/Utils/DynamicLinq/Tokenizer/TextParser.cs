@@ -357,8 +357,14 @@ namespace System.Linq.Dynamic.Core.Tokenizer
                             NextChar();
                             if (_ch == 'L')
                             {
-                                if (_text[_textPos - 1] == 'U') NextChar();
-                                else throw ParseError(_textPos, Res.InvalidIntegerQualifier, _text.Substring(_textPos - 1, 2));
+                                if (_text[_textPos - 1] == 'U')
+                                {
+                                    NextChar();
+                                }
+                                else
+                                {
+                                    throw ParseError(_textPos, Res.InvalidIntegerQualifier, _text.Substring(_textPos - 1, 2));
+                                }
                             }
                             ValidateExpression();
                             break;
@@ -384,7 +390,11 @@ namespace System.Linq.Dynamic.Core.Tokenizer
                         {
                             tokenId = TokenId.RealLiteral;
                             NextChar();
-                            if (_ch == '+' || _ch == '-') NextChar();
+                            if (_ch == '+' || _ch == '-')
+                            {
+                                NextChar();
+                            }
+
                             ValidateDigit();
                             do
                             {
@@ -392,9 +402,21 @@ namespace System.Linq.Dynamic.Core.Tokenizer
                             } while (char.IsDigit(_ch));
                         }
 
-                        if (_ch == 'F' || _ch == 'f') NextChar();
-                        if (_ch == 'D' || _ch == 'd') NextChar();
-                        if (_ch == 'M' || _ch == 'm') NextChar();
+                        if (_ch == 'F' || _ch == 'f')
+                        {
+                            NextChar();
+                        }
+
+                        if (_ch == 'D' || _ch == 'd')
+                        {
+                            NextChar();
+                        }
+
+                        if (_ch == 'M' || _ch == 'm')
+                        {
+                            NextChar();
+                        }
+
                         break;
                     }
 

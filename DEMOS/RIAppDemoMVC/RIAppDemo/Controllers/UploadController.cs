@@ -11,7 +11,7 @@ namespace RIAppDemo.Controllers
     [SessionState(SessionStateBehavior.Disabled)]
     public class UploadController : Controller
     {
-        readonly IThumbnailService _thumbnailService;
+        private readonly IThumbnailService _thumbnailService;
 
 
         public UploadController(IThumbnailService thumbnailService)
@@ -33,7 +33,7 @@ namespace RIAppDemo.Controllers
                 {
                     try
                     {
-                        var filename = Path.GetFileName(file.FileName);
+                        string filename = Path.GetFileName(file.FileName);
                         if (filename != null)
                         {
                             await _thumbnailService.SaveThumbnail2(file.DataID, file.FileName, file.DataContent);

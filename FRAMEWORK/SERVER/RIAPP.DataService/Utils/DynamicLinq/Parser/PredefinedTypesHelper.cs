@@ -76,7 +76,7 @@ namespace System.Linq.Dynamic.Core.Parser
             Check.NotNull(config, nameof(config));
             Check.NotNull(type, nameof(type));
 
-            var nonNullableType = TypeHelper.GetNonNullableType(type);
+            Type nonNullableType = TypeHelper.GetNonNullableType(type);
             if (PredefinedTypes.ContainsKey(nonNullableType))
             {
                 return true;

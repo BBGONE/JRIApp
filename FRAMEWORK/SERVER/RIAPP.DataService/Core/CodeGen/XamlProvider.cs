@@ -8,8 +8,8 @@ namespace RIAPP.DataService.Core.CodeGen
     {
         public XamlProvider(IMetaDataProvider owner, string lang)
         {
-            this.Owner = owner;
-            this.Lang = lang;
+            Owner = owner;
+            Lang = lang;
         }
 
 
@@ -22,7 +22,7 @@ namespace RIAPP.DataService.Core.CodeGen
 
         public virtual string GenerateScript(string comment = null, bool isDraft = false)
         {
-            DesignTimeMetadata metadata = this.Owner.GetDesignTimeMetadata(isDraft);
+            DesignTimeMetadata metadata = Owner.GetDesignTimeMetadata(isDraft);
             return metadata.ToXML();
         }
     }
@@ -32,12 +32,12 @@ namespace RIAPP.DataService.Core.CodeGen
     {
         public ICodeGenProvider Create(BaseDomainService owner)
         {
-            return this.Create((TService)owner);
+            return Create((TService)owner);
         }
 
         public ICodeGenProvider<TService> Create(TService owner)
         {
-            return new XamlProvider<TService>(owner, this.Lang);
+            return new XamlProvider<TService>(owner, Lang);
         }
 
         public string Lang => "xaml";

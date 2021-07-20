@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using System.Reflection;
 
 namespace System.Linq.Dynamic.Core.Parser
 {
@@ -191,7 +190,7 @@ namespace System.Linq.Dynamic.Core.Parser
 
         private static MemberExpression WrappedConstant<TValue>(TValue value)
         {
-            var wrapper = new WrappedValue<TValue>(value);
+            WrappedValue<TValue> wrapper = new WrappedValue<TValue>(value);
 
             return Expression.Property(Expression.Constant(wrapper), typeof(WrappedValue<TValue>).GetProperty("Value"));
         }

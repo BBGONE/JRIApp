@@ -28,7 +28,7 @@ namespace RIAPP.DataService.Core
 
         public IValidator<TModel> GetValidator<TModel>()
         {
-            var res = GetValidator(typeof(TModel));
+            IValidator res = GetValidator(typeof(TModel));
             return (IValidator<TModel>)res;
         }
     }

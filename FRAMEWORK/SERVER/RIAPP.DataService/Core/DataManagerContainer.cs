@@ -30,7 +30,7 @@ namespace RIAPP.DataService.Core
         public IDataManager<TModel> GetDataManager<TModel>()
             where TModel : class
         {
-            var res = GetDataManager(typeof(TModel));
+            object res = GetDataManager(typeof(TModel));
             return (IDataManager<TModel>)res;
         }
 

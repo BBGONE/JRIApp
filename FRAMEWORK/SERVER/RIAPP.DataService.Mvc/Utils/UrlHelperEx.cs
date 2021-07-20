@@ -14,16 +14,16 @@ namespace RIAPP.DataService.Mvc.Utils
                 return Url.Content(Path);
             }
 
-            var serverPath = HttpContext.Current.Server.MapPath(Path);
-            var lastWrite = File.GetLastWriteTimeUtc(serverPath);
-            var result = lastWrite.Ticks.ToString();
+            string serverPath = HttpContext.Current.Server.MapPath(Path);
+            System.DateTime lastWrite = File.GetLastWriteTimeUtc(serverPath);
+            string result = lastWrite.Ticks.ToString();
             return Url.Content(Path) + "?t=" + result;
         }
 
         public static string Asset(this UrlHelper Url, string path, bool minify)
         {
-            var bust = Bust(Url);
-            var min = minify ? "1" : "0";
+            string bust = Bust(Url);
+            string min = minify ? "1" : "0";
 
             return Url.RouteUrl("Assets", new { bust, min, path });
         }

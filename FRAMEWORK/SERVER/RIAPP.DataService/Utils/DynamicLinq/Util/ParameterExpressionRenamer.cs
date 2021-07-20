@@ -45,7 +45,7 @@ namespace System.Linq.Dynamic.Core.Util
         /// <returns>Renamed Expression</returns>
         public Expression Rename(Expression expression, out ParameterExpression parameterExpression)
         {
-            var visitedExpression = Visit(expression);
+            Expression visitedExpression = Visit(expression);
 
             parameterExpression = _parameterExpression;
 

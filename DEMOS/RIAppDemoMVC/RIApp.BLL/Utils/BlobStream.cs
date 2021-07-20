@@ -31,7 +31,7 @@ namespace RIAppDemo.BLL.Utils
             m_TableName = TableName;
             m_ColName = ColName;
             m_Where = Where;
-            var cmd_txt = string.Format("SELECT DATALENGTH({0}) AS [LENGTH] FROM {1} {2}",
+            string cmd_txt = string.Format("SELECT DATALENGTH({0}) AS [LENGTH] FROM {1} {2}",
                 m_ColName, m_TableName, m_Where);
             m_cmdDataLength = new SqlCommand(cmd_txt, this.Connection);
 
@@ -56,34 +56,20 @@ namespace RIAppDemo.BLL.Utils
             m_cmdReadText.Parameters.Add("@length", SqlDbType.BigInt);
         }
 
-        public override bool CanRead
-        {
-            get { return true; }
-        }
+        public override bool CanRead => true;
 
-        public override bool CanWrite
-        {
-            get { return true; }
-        }
+        public override bool CanWrite => true;
 
-        public override bool CanSeek
-        {
-            get { return true; }
-        }
+        public override bool CanSeek => true;
 
-        public override long Length
-        {
-            get
-            {
+        public override long Length =>
                 //	this.m_DataLength=this.GetLength();
-                return m_DataLength;
-            }
-        }
+                m_DataLength;
 
         public override long Position
         {
-            get { return m_Position; }
-            set { m_Position = value; }
+            get => m_Position;
+            set => m_Position = value;
         }
 
         public SqlConnection Connection { get; }
@@ -113,7 +99,7 @@ namespace RIAppDemo.BLL.Utils
                 throw new ArgumentException("Argument_InvalidOffLen");
             }
 
-            var read = 0;
+            int read = 0;
             if (m_DataLength == 0)
             {
                 read = 0;
@@ -127,9 +113,9 @@ namespace RIAppDemo.BLL.Utils
                 read = count;
             }
 
-            var pos = m_Position;
-            var chunk = 0;
-            var cnt = 0;
+            long pos = m_Position;
+            int chunk = 0;
+            int cnt = 0;
             while (read > 0)
             {
                 if (read > m_BufferLen)
@@ -159,7 +145,7 @@ namespace RIAppDemo.BLL.Utils
                     m_Position = pos;
                     return cnt;
                 }
-                var res = (byte[])obj;
+                byte[] res = (byte[])obj;
                 Buffer.BlockCopy(res, 0, buffer, offset, res.Length);
                 offset += res.Length;
                 read -= chunk;
@@ -173,13 +159,13 @@ namespace RIAppDemo.BLL.Utils
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var res = this._Read(false, buffer, offset, count, CancellationToken.None);
+            Task<int> res = _Read(false, buffer, offset, count, CancellationToken.None);
             return res.Result;
         }
 
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            return this._Read(true, buffer, offset, count, cancellationToken);
+            return _Read(true, buffer, offset, count, cancellationToken);
         }
 
         protected virtual async Task _Write(bool isAsync, byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -211,10 +197,10 @@ namespace RIAppDemo.BLL.Utils
 
             byte[] buff = null;
             long append = count;
-            var pos = m_Position;
+            long pos = m_Position;
             while (append > 0)
             {
-                var chunk = 0;
+                int chunk = 0;
                 if (append > m_BufferLen)
                 {
                     chunk = m_BufferLen;
@@ -228,14 +214,14 @@ namespace RIAppDemo.BLL.Utils
                     chunk = (int)append;
                     buff = new byte[chunk];
                 }
-                var delete = 0;
+                int delete = 0;
                 if (m_DataLength == 0)
                 {
                     delete = 0;
                 }
                 else if (m_Position < m_DataLength)
                 {
-                    var to_right = m_DataLength - m_Position;
+                    long to_right = m_DataLength - m_Position;
                     if (to_right > chunk)
                     {
                         delete = chunk;
@@ -273,13 +259,13 @@ namespace RIAppDemo.BLL.Utils
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            var res = this._Write(false, buffer, offset, count, CancellationToken.None);
+            Task res = _Write(false, buffer, offset, count, CancellationToken.None);
             res.Wait();
         }
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            await this._Write(false, buffer, offset, count, cancellationToken);
+            await _Write(false, buffer, offset, count, cancellationToken);
         }
 
         public virtual void Insert(byte[] buffer, int offset, int count)
@@ -312,10 +298,10 @@ namespace RIAppDemo.BLL.Utils
 
             byte[] buff = null;
             long append = count;
-            var pos = m_Position;
+            long pos = m_Position;
             while (append > 0)
             {
-                var chunk = 0;
+                int chunk = 0;
                 if (append > m_BufferLen)
                 {
                     chunk = m_BufferLen;
@@ -329,7 +315,7 @@ namespace RIAppDemo.BLL.Utils
                     chunk = (int)append;
                     buff = new byte[chunk];
                 }
-                var delete = 0;
+                int delete = 0;
                 Buffer.BlockCopy(buffer, offset, buff, 0, chunk);
                 m_cmdUpdateText.Parameters["@offset"].Value = pos;
                 m_cmdUpdateText.Parameters["@length"].Value = delete;
@@ -400,10 +386,10 @@ namespace RIAppDemo.BLL.Utils
             {
                 throw new Exception("StreamIsClosed");
             }
-            var offset = value;
+            long offset = value;
             if (m_DataLength < value)
             {
-                var append = value - m_DataLength;
+                long append = value - m_DataLength;
                 offset = m_DataLength;
                 byte[] buff = null;
                 while (append > 0)
@@ -447,7 +433,7 @@ namespace RIAppDemo.BLL.Utils
 
         private long GetLength()
         {
-            var res = m_cmdDataLength.ExecuteScalar();
+            object res = m_cmdDataLength.ExecuteScalar();
             if (res == null || res is DBNull)
             {
                 return 0;

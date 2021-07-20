@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace System.Linq.Dynamic.Core.TypeConverters
 {
-    interface ITypeConverterFactory
+    internal interface ITypeConverterFactory
     {
         /// <summary>
         /// Returns a type converter for the specified type.

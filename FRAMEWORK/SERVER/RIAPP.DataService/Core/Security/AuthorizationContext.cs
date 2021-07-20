@@ -11,12 +11,12 @@ namespace RIAPP.DataService.Core.Security
 
         public AuthorizationContext(BaseDomainService service, IUserProvider userProvider, IServiceFactory serviceFactory)
         {
-            this.Service = service;
-            this._userProvider = userProvider ?? throw new ArgumentNullException(nameof(userProvider), ErrorStrings.ERR_NO_USER);
-            this.ServiceFactory = serviceFactory ?? throw new ArgumentNullException(nameof(serviceFactory));
+            Service = service;
+            _userProvider = userProvider ?? throw new ArgumentNullException(nameof(userProvider), ErrorStrings.ERR_NO_USER);
+            ServiceFactory = serviceFactory ?? throw new ArgumentNullException(nameof(serviceFactory));
         }
 
-        public ClaimsPrincipal User => this._userProvider.User;
+        public ClaimsPrincipal User => _userProvider.User;
 
         public BaseDomainService Service { get; }
 

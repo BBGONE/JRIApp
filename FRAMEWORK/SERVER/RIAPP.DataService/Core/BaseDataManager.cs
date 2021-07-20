@@ -8,7 +8,7 @@ namespace RIAPP.DataService.Core
         where TModel : class
         where TDataService : BaseDomainService
     {
-        BaseDomainService IDataServiceComponent.DataService => this.DataService;
+        BaseDomainService IDataServiceComponent.DataService => DataService;
 
         public TDataService DataService => (TDataService)RequestContext.DataService;
 

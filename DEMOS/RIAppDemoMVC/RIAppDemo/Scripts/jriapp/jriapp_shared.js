@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -46,7 +48,7 @@ define("jriapp_shared/consts", ["require", "exports"], function (require, export
     exports.APP_NAME = "app";
     exports.DUMY_ERROR = "DUMMY_ERROR";
 });
-define("jriapp_shared/utils/ideferred", ["require", "exports"], function (require, exports) {
+define("jriapp_shared/utils/ipromise", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.PromiseState = void 0;
@@ -1845,75 +1847,11 @@ define("jriapp_shared/object", ["require", "exports", "jriapp_shared/lang", "jri
     }());
     exports.BaseObject = BaseObject;
 });
-define("jriapp_shared/utils/arrhelper", ["require", "exports", "jriapp_shared/utils/coreutils"], function (require, exports, coreutils_6) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ArrayHelper = void 0;
-    var toArray = coreutils_6.CoreUtils.toArray, Indexer = coreutils_6.CoreUtils.Indexer;
-    var ArrayHelper = (function () {
-        function ArrayHelper() {
-        }
-        ArrayHelper.clone = function (arr) {
-            if (arr.length === 1) {
-                return [arr[0]];
-            }
-            else {
-                return Array.apply(null, arr);
-            }
-        };
-        ArrayHelper.fromList = function (list) {
-            if (!list)
-                return [];
-            return [].slice.call(list);
-        };
-        ArrayHelper.merge = function (arrays) {
-            if (!arrays)
-                return [];
-            return [].concat.apply([], arrays);
-        };
-        ArrayHelper.distinct = function (arr) {
-            if (!arr)
-                return [];
-            var map = Indexer(), len = arr.length;
-            for (var i = 0; i < len; i += 1) {
-                map["" + arr[i]] = arr[i];
-            }
-            return toArray(map);
-        };
-        ArrayHelper.toMap = function (arr, key) {
-            var map = Indexer();
-            if (!arr)
-                return map;
-            var len = arr.length;
-            for (var i = 0; i < len; i += 1) {
-                map[key(arr[i])] = arr[i];
-            }
-            return map;
-        };
-        ArrayHelper.remove = function (array, obj) {
-            var i = array.indexOf(obj);
-            if (i > -1) {
-                array.splice(i, 1);
-            }
-            return i;
-        };
-        ArrayHelper.removeIndex = function (array, index) {
-            var isOk = index > -1 && array.length > index;
-            array.splice(index, 1);
-            return isOk;
-        };
-        ArrayHelper.insert = function (array, obj, pos) {
-            array.splice(pos, 0, obj);
-        };
-        return ArrayHelper;
-    }());
-    exports.ArrayHelper = ArrayHelper;
-});
-define("jriapp_shared/utils/queue", ["require", "exports", "jriapp_shared/utils/error", "jriapp_shared/utils/deferred", "jriapp_shared/utils/coreutils"], function (require, exports, error_2, deferred_1, coreutils_7) {
+define("jriapp_shared/utils/queue", ["require", "exports", "jriapp_shared/utils/error", "jriapp_shared/utils/promise", "jriapp_shared/utils/coreutils"], function (require, exports, error_2, promise_1, coreutils_6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createQueue = void 0;
-    var Indexer = coreutils_7.CoreUtils.Indexer, error = error_2.ERROR, MAX_NUM = 99999900000;
+    var Indexer = coreutils_6.CoreUtils.Indexer, error = error_2.ERROR, MAX_NUM = 99999900000;
     function createQueue(interval) {
         if (interval === void 0) { interval = 0; }
         var _tasks = [], _taskMap = Indexer(), _timer = null, _newTaskId = 1;
@@ -1962,7 +1900,7 @@ define("jriapp_shared/utils/queue", ["require", "exports", "jriapp_shared/utils/
                 return taskId;
             },
             execAsync: function (func) {
-                var deferred = deferred_1.createDefer(true);
+                var deferred = promise_1.createDefer(true);
                 var fn = function () {
                     try {
                         deferred.resolve(func());
@@ -1979,11 +1917,12 @@ define("jriapp_shared/utils/queue", ["require", "exports", "jriapp_shared/utils/
     }
     exports.createQueue = createQueue;
 });
-define("jriapp_shared/utils/deferred", ["require", "exports", "jriapp_shared/utils/error", "jriapp_shared/errors", "jriapp_shared/utils/checks", "jriapp_shared/utils/arrhelper", "jriapp_shared/utils/queue"], function (require, exports, error_3, errors_2, checks_6, arrhelper_1, queue_1) {
+define("jriapp_shared/utils/promise", ["require", "exports", "jriapp_shared/utils/error", "jriapp_shared/errors", "jriapp_shared/utils/checks", "jriapp_shared/utils/queue", "jriapp_shared/utils/ipromise"], function (require, exports, error_3, errors_2, checks_6, queue_1, ipromise_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AbortablePromise = exports.CancellationTokenSource = exports.StatefulPromise = exports.promiseSerial = exports.race = exports.whenAll = exports.getTaskQueue = exports.createSyncDefer = exports.createDefer = void 0;
-    var _undefined = checks_6.Checks._undefined, isFunc = checks_6.Checks.isFunc, isThenable = checks_6.Checks.isThenable, isArray = checks_6.Checks.isArray, arrHelper = arrhelper_1.ArrayHelper;
+    __exportStar(ipromise_1, exports);
+    var _undefined = checks_6.Checks._undefined, isFunc = checks_6.Checks.isFunc, isThenable = checks_6.Checks.isThenable, isArray = checks_6.Checks.isArray;
     var taskQueue = null;
     function createDefer(isSync) {
         return new StatefulPromise(null, isSync).deferred();
@@ -2219,11 +2158,17 @@ define("jriapp_shared/utils/deferred", ["require", "exports", "jriapp_shared/uti
             });
         };
         StatefulPromise.all = function () {
-            var args = arrHelper.fromList(arguments);
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
             return (args.length === 1 && isArray(args[0])) ? whenAll(args[0]) : whenAll(args);
         };
         StatefulPromise.race = function () {
-            var args = arrHelper.fromList(arguments);
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
             return (args.length === 1 && isArray(args[0])) ? race(args[0]) : race(args);
         };
         StatefulPromise.reject = function (reason, isSync) {
@@ -2301,7 +2246,7 @@ define("jriapp_shared/utils/deferred", ["require", "exports", "jriapp_shared/uti
             _this._aborted = false;
             if (!!fn) {
                 _this._tokenSource = new CancellationTokenSource();
-                var self_1 = _this, deferred_2 = self_1.deferred(), tokenSource_1 = self_1._tokenSource;
+                var self_1 = _this, deferred_1 = self_1.deferred(), tokenSource_1 = self_1._tokenSource;
                 self_1.catch(function (err) {
                     if (!!self_1._tokenSource && error_3.ERROR.checkIsAbort(err)) {
                         self_1._tokenSource.cancel();
@@ -2310,7 +2255,7 @@ define("jriapp_shared/utils/deferred", ["require", "exports", "jriapp_shared/uti
                     self_1._tokenSource = null;
                 });
                 getTaskQueue().enque(function () {
-                    fn(function (res) { return deferred_2.resolve(res); }, function (err) { return deferred_2.reject(err); }, tokenSource_1.token);
+                    fn(function (res) { return deferred_1.resolve(res); }, function (err) { return deferred_1.reject(err); }, tokenSource_1.token);
                 });
             }
             return _this;
@@ -2326,7 +2271,7 @@ define("jriapp_shared/utils/deferred", ["require", "exports", "jriapp_shared/uti
     }(StatefulPromise));
     exports.AbortablePromise = AbortablePromise;
 });
-define("jriapp_shared/utils/debounce", ["require", "exports", "jriapp_shared/utils/deferred", "jriapp_shared/utils/error"], function (require, exports, deferred_3, error_4) {
+define("jriapp_shared/utils/debounce", ["require", "exports", "jriapp_shared/utils/promise", "jriapp_shared/utils/error"], function (require, exports, promise_2, error_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Debounce = void 0;
@@ -2370,7 +2315,7 @@ define("jriapp_shared/utils/debounce", ["require", "exports", "jriapp_shared/uti
                     }
                 };
                 if (!this._interval) {
-                    this._timer = deferred_3.getTaskQueue().enque(callback);
+                    this._timer = promise_2.getTaskQueue().enque(callback);
                 }
                 else {
                     this._timer = setTimeout(callback, this._interval);
@@ -2380,7 +2325,7 @@ define("jriapp_shared/utils/debounce", ["require", "exports", "jriapp_shared/uti
         Debounce.prototype.cancel = function () {
             if (!!this._timer) {
                 if (!this._interval) {
-                    deferred_3.getTaskQueue().cancel(this._timer);
+                    promise_2.getTaskQueue().cancel(this._timer);
                 }
                 else {
                     clearTimeout(this._timer);
@@ -2403,11 +2348,11 @@ define("jriapp_shared/utils/debounce", ["require", "exports", "jriapp_shared/uti
     }());
     exports.Debounce = Debounce;
 });
-define("jriapp_shared/utils/jsonbag", ["require", "exports", "jriapp_shared/object", "jriapp_shared/utils/coreutils", "jriapp_shared/utils/strutils", "jriapp_shared/utils/sysutils", "jriapp_shared/utils/checks", "jriapp_shared/utils/debounce", "jriapp_shared/errors"], function (require, exports, object_1, coreutils_8, strutils_3, sysutils_3, checks_7, debounce_1, errors_3) {
+define("jriapp_shared/utils/jsonbag", ["require", "exports", "jriapp_shared/object", "jriapp_shared/utils/coreutils", "jriapp_shared/utils/strutils", "jriapp_shared/utils/sysutils", "jriapp_shared/utils/checks", "jriapp_shared/utils/debounce", "jriapp_shared/errors"], function (require, exports, object_1, coreutils_7, strutils_3, sysutils_3, checks_7, debounce_1, errors_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.JsonBag = void 0;
-    var forEach = coreutils_8.CoreUtils.forEach, getValue = coreutils_8.CoreUtils.getValue, setValue = coreutils_8.CoreUtils.setValue, Indexer = coreutils_8.CoreUtils.Indexer, startsWith = strutils_3.StringUtils.startsWith, trimBrackets = strutils_3.StringUtils.trimBrackets, isArray = checks_7.Checks.isArray, _undefined = checks_7.Checks._undefined, sys = sysutils_3.SysUtils;
+    var forEach = coreutils_7.CoreUtils.forEach, getValue = coreutils_7.CoreUtils.getValue, setValue = coreutils_7.CoreUtils.setValue, Indexer = coreutils_7.CoreUtils.Indexer, startsWith = strutils_3.StringUtils.startsWith, trimBrackets = strutils_3.StringUtils.trimBrackets, isArray = checks_7.Checks.isArray, _undefined = checks_7.Checks._undefined, sys = sysutils_3.SysUtils;
     var BAG_EVENTS;
     (function (BAG_EVENTS) {
         BAG_EVENTS["errors_changed"] = "errors_changed";
@@ -2713,11 +2658,11 @@ define("jriapp_shared/utils/logger", ["require", "exports"], function (require, 
     }());
     exports.LOGGER = LOGGER;
 });
-define("jriapp_shared/utils/async", ["require", "exports", "jriapp_shared/utils/deferred", "jriapp_shared/utils/checks"], function (require, exports, deferred_4, checks_8) {
+define("jriapp_shared/utils/asyncutils", ["require", "exports", "jriapp_shared/utils/promise", "jriapp_shared/utils/checks"], function (require, exports, promise_3, checks_8) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AsyncUtils = void 0;
-    var isString = checks_8.Checks.isString, isFunc = checks_8.Checks.isFunc, _whenAll = deferred_4.whenAll, _race = deferred_4.race, _getTaskQueue = deferred_4.getTaskQueue, _createDefer = deferred_4.createDefer;
+    var isString = checks_8.Checks.isString, isFunc = checks_8.Checks.isFunc, _whenAll = promise_3.whenAll, _race = promise_3.race, _getTaskQueue = promise_3.getTaskQueue, _createDefer = promise_3.createDefer;
     var AsyncUtils = (function () {
         function AsyncUtils() {
         }
@@ -2725,13 +2670,13 @@ define("jriapp_shared/utils/async", ["require", "exports", "jriapp_shared/utils/
             return _createDefer(isSync);
         };
         AsyncUtils.reject = function (reason, isSync) {
-            return deferred_4.StatefulPromise.reject(reason, isSync);
+            return promise_3.StatefulPromise.reject(reason, isSync);
         };
         AsyncUtils.resolve = function (value, isSync) {
-            return deferred_4.StatefulPromise.resolve(value, isSync);
+            return promise_3.StatefulPromise.resolve(value, isSync);
         };
         AsyncUtils.promiseSerial = function (funcs) {
-            return deferred_4.promiseSerial(funcs);
+            return promise_3.promiseSerial(funcs);
         };
         AsyncUtils.whenAll = function (args) {
             return _whenAll(args);
@@ -2744,7 +2689,7 @@ define("jriapp_shared/utils/async", ["require", "exports", "jriapp_shared/utils/
         };
         AsyncUtils.delay = function (funcORvalue, time) {
             if (time === void 0) { time = 0; }
-            return new deferred_4.StatefulPromise(function (resolve, reject) {
+            return new promise_3.StatefulPromise(function (resolve, reject) {
                 setTimeout(function () {
                     try {
                         if (isFunc(funcORvalue)) {
@@ -2769,11 +2714,11 @@ define("jriapp_shared/utils/async", ["require", "exports", "jriapp_shared/utils/
     }());
     exports.AsyncUtils = AsyncUtils;
 });
-define("jriapp_shared/utils/http", ["require", "exports", "jriapp_shared/utils/strutils", "jriapp_shared/errors", "jriapp_shared/utils/coreutils", "jriapp_shared/utils/deferred"], function (require, exports, strUtils_2, errors_5, coreutils_9, deferred_5) {
+define("jriapp_shared/utils/http", ["require", "exports", "jriapp_shared/utils/strutils", "jriapp_shared/errors", "jriapp_shared/utils/coreutils", "jriapp_shared/utils/promise"], function (require, exports, strUtils_2, errors_5, coreutils_8, promise_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.HttpUtils = void 0;
-    var forEach = coreutils_9.CoreUtils.forEach, merge = coreutils_9.CoreUtils.merge, Indexer = coreutils_9.CoreUtils.Indexer, startsWith = strUtils_2.StringUtils.startsWith, fastTrim = strUtils_2.StringUtils.fastTrim;
+    var forEach = coreutils_8.CoreUtils.forEach, merge = coreutils_8.CoreUtils.merge, Indexer = coreutils_8.CoreUtils.Indexer, startsWith = strUtils_2.StringUtils.startsWith, fastTrim = strUtils_2.StringUtils.fastTrim;
     var HttpUtils = (function () {
         function HttpUtils() {
         }
@@ -2821,13 +2766,13 @@ define("jriapp_shared/utils/http", ["require", "exports", "jriapp_shared/utils/s
         };
         HttpUtils.postAjax = function (url, postData, headers) {
             var _headers = merge(headers, { "Content-Type": "application/json; charset=utf-8" });
-            return new deferred_5.AbortablePromise(function (resolve, reject, token) {
+            return new promise_4.AbortablePromise(function (resolve, reject, token) {
                 var req = HttpUtils._getXMLRequest(url, "POST", { resolve: resolve, reject: reject, token: token }, _headers);
                 req.send(postData);
             });
         };
         HttpUtils.getAjax = function (url, headers) {
-            return new deferred_5.AbortablePromise(function (resolve, reject, token) {
+            return new promise_4.AbortablePromise(function (resolve, reject, token) {
                 var req = HttpUtils._getXMLRequest(url, "GET", { resolve: resolve, reject: reject, token: token }, headers);
                 req.send(null);
             });
@@ -2837,6 +2782,70 @@ define("jriapp_shared/utils/http", ["require", "exports", "jriapp_shared/utils/s
         return HttpUtils;
     }());
     exports.HttpUtils = HttpUtils;
+});
+define("jriapp_shared/utils/arrhelper", ["require", "exports", "jriapp_shared/utils/coreutils"], function (require, exports, coreutils_9) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ArrayHelper = void 0;
+    var toArray = coreutils_9.CoreUtils.toArray, Indexer = coreutils_9.CoreUtils.Indexer;
+    var ArrayHelper = (function () {
+        function ArrayHelper() {
+        }
+        ArrayHelper.clone = function (arr) {
+            if (arr.length === 1) {
+                return [arr[0]];
+            }
+            else {
+                return Array.apply(null, arr);
+            }
+        };
+        ArrayHelper.fromList = function (list) {
+            if (!list)
+                return [];
+            return [].slice.call(list);
+        };
+        ArrayHelper.merge = function (arrays) {
+            if (!arrays)
+                return [];
+            return [].concat.apply([], arrays);
+        };
+        ArrayHelper.distinct = function (arr) {
+            if (!arr)
+                return [];
+            var map = Indexer(), len = arr.length;
+            for (var i = 0; i < len; i += 1) {
+                map["" + arr[i]] = arr[i];
+            }
+            return toArray(map);
+        };
+        ArrayHelper.toMap = function (arr, key) {
+            var map = Indexer();
+            if (!arr)
+                return map;
+            var len = arr.length;
+            for (var i = 0; i < len; i += 1) {
+                map[key(arr[i])] = arr[i];
+            }
+            return map;
+        };
+        ArrayHelper.remove = function (array, obj) {
+            var i = array.indexOf(obj);
+            if (i > -1) {
+                array.splice(i, 1);
+            }
+            return i;
+        };
+        ArrayHelper.removeIndex = function (array, index) {
+            var isOk = index > -1 && array.length > index;
+            array.splice(index, 1);
+            return isOk;
+        };
+        ArrayHelper.insert = function (array, obj, pos) {
+            array.splice(pos, 0, obj);
+        };
+        return ArrayHelper;
+    }());
+    exports.ArrayHelper = ArrayHelper;
 });
 define("jriapp_shared/utils/dates", ["require", "exports", "jriapp_shared/utils/strutils", "jriapp_shared/utils/checks", "jriapp_shared/lang"], function (require, exports, strutils_4, checks_9, lang_5) {
     "use strict";
@@ -2928,7 +2937,7 @@ define("jriapp_shared/utils/dates", ["require", "exports", "jriapp_shared/utils/
     }());
     exports.DateUtils = DateUtils;
 });
-define("jriapp_shared/utils/utils", ["require", "exports", "jriapp_shared/utils/coreutils", "jriapp_shared/utils/debug", "jriapp_shared/utils/error", "jriapp_shared/utils/logger", "jriapp_shared/utils/sysutils", "jriapp_shared/utils/async", "jriapp_shared/utils/http", "jriapp_shared/utils/strutils", "jriapp_shared/utils/checks", "jriapp_shared/utils/arrhelper", "jriapp_shared/utils/deferred", "jriapp_shared/utils/dates"], function (require, exports, coreutils_10, debug_2, error_5, logger_1, sysutils_4, async_1, http_1, strutils_5, checks_10, arrhelper_2, deferred_6, dates_1) {
+define("jriapp_shared/utils/utils", ["require", "exports", "jriapp_shared/utils/coreutils", "jriapp_shared/utils/debug", "jriapp_shared/utils/error", "jriapp_shared/utils/logger", "jriapp_shared/utils/sysutils", "jriapp_shared/utils/asyncutils", "jriapp_shared/utils/http", "jriapp_shared/utils/strutils", "jriapp_shared/utils/checks", "jriapp_shared/utils/arrhelper", "jriapp_shared/utils/promise", "jriapp_shared/utils/dates"], function (require, exports, coreutils_10, debug_2, error_5, logger_1, sysutils_4, asyncutils_1, http_1, strutils_5, checks_10, arrhelper_1, promise_5, dates_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Utils = void 0;
@@ -2937,15 +2946,15 @@ define("jriapp_shared/utils/utils", ["require", "exports", "jriapp_shared/utils/
         }
         Utils.check = checks_10.Checks;
         Utils.str = strutils_5.StringUtils;
-        Utils.arr = arrhelper_2.ArrayHelper;
+        Utils.arr = arrhelper_1.ArrayHelper;
         Utils.http = http_1.HttpUtils;
         Utils.core = coreutils_10.CoreUtils;
-        Utils.defer = async_1.AsyncUtils;
+        Utils.async = asyncutils_1.AsyncUtils;
         Utils.err = error_5.ERROR;
         Utils.log = logger_1.LOGGER;
         Utils.debug = debug_2.DEBUG;
         Utils.sys = sysutils_4.SysUtils;
-        Utils.queue = deferred_6.getTaskQueue();
+        Utils.queue = promise_5.getTaskQueue();
         Utils.dates = dates_1.DateUtils;
         return Utils;
     }());
@@ -4166,7 +4175,7 @@ define("jriapp_shared/collection/base", ["require", "exports", "jriapp_shared/ob
         };
         BaseCollection.prototype.sortLocal = function (fieldNames, sortOrder) {
             var sortFn = this._getSortFn(fieldNames, sortOrder);
-            var self = this, deferred = utils.defer.createDeferred();
+            var self = this, deferred = utils.async.createDeferred();
             this.waitForNotLoading(function () {
                 var cur = self.currentItem;
                 self._setIsLoading(true);
@@ -4916,7 +4925,7 @@ define("jriapp_shared/collection/aspect", ["require", "exports", "jriapp_shared/
             return res.join("|");
         };
         ItemAspect.prototype.submitChanges = function () {
-            return utils.defer.reject("not implemented");
+            return utils.async.reject("not implemented");
         };
         ItemAspect.prototype.rejectChanges = function () {
         };
@@ -5951,7 +5960,7 @@ define("jriapp_shared/utils/lazy", ["require", "exports", "jriapp_shared/utils/c
     }());
     exports.Lazy = Lazy;
 });
-define("jriapp_shared", ["require", "exports", "jriapp_shared/consts", "jriapp_shared/int", "jriapp_shared/errors", "jriapp_shared/object", "jriapp_shared/utils/jsonbag", "jriapp_shared/utils/jsonarray", "jriapp_shared/utils/dates", "jriapp_shared/utils/weakmap", "jriapp_shared/lang", "jriapp_shared/collection/base", "jriapp_shared/collection/item", "jriapp_shared/collection/aspect", "jriapp_shared/collection/list", "jriapp_shared/collection/dictionary", "jriapp_shared/errors", "jriapp_shared/utils/ideferred", "jriapp_shared/utils/deferred", "jriapp_shared/utils/utils", "jriapp_shared/utils/waitqueue", "jriapp_shared/utils/debounce", "jriapp_shared/utils/lazy"], function (require, exports, consts_3, int_2, errors_10, object_7, jsonbag_1, jsonarray_1, dates_2, weakmap_1, lang_11, base_3, item_2, aspect_2, list_3, dictionary_1, errors_11, ideferred_1, deferred_7, utils_11, waitqueue_2, debounce_3, lazy_1) {
+define("jriapp_shared", ["require", "exports", "jriapp_shared/consts", "jriapp_shared/int", "jriapp_shared/errors", "jriapp_shared/object", "jriapp_shared/utils/jsonbag", "jriapp_shared/utils/jsonarray", "jriapp_shared/utils/dates", "jriapp_shared/utils/weakmap", "jriapp_shared/lang", "jriapp_shared/collection/base", "jriapp_shared/collection/item", "jriapp_shared/collection/aspect", "jriapp_shared/collection/list", "jriapp_shared/collection/dictionary", "jriapp_shared/errors", "jriapp_shared/utils/ipromise", "jriapp_shared/utils/promise", "jriapp_shared/utils/utils", "jriapp_shared/utils/waitqueue", "jriapp_shared/utils/debounce", "jriapp_shared/utils/lazy"], function (require, exports, consts_3, int_2, errors_10, object_7, jsonbag_1, jsonarray_1, dates_2, weakmap_1, lang_11, base_3, item_2, aspect_2, list_3, dictionary_1, errors_11, ipromise_2, promise_6, utils_11, waitqueue_2, debounce_3, lazy_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.VERSION = exports.Lazy = exports.Debounce = exports.WaitQueue = exports.Utils = exports.CancellationTokenSource = exports.AbortablePromise = exports.StatefulPromise = exports.ValidationError = exports.BaseDictionary = exports.BaseList = exports.ListItemAspect = exports.ItemAspect = exports.CollectionItem = exports.BaseCollection = exports.LocaleERRS = exports.LocaleSTRS = exports.createWeakMap = void 0;
@@ -5972,13 +5981,13 @@ define("jriapp_shared", ["require", "exports", "jriapp_shared/consts", "jriapp_s
     Object.defineProperty(exports, "BaseList", { enumerable: true, get: function () { return list_3.BaseList; } });
     Object.defineProperty(exports, "BaseDictionary", { enumerable: true, get: function () { return dictionary_1.BaseDictionary; } });
     Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function () { return errors_11.ValidationError; } });
-    __exportStar(ideferred_1, exports);
-    Object.defineProperty(exports, "StatefulPromise", { enumerable: true, get: function () { return deferred_7.StatefulPromise; } });
-    Object.defineProperty(exports, "AbortablePromise", { enumerable: true, get: function () { return deferred_7.AbortablePromise; } });
-    Object.defineProperty(exports, "CancellationTokenSource", { enumerable: true, get: function () { return deferred_7.CancellationTokenSource; } });
+    __exportStar(ipromise_2, exports);
+    Object.defineProperty(exports, "StatefulPromise", { enumerable: true, get: function () { return promise_6.StatefulPromise; } });
+    Object.defineProperty(exports, "AbortablePromise", { enumerable: true, get: function () { return promise_6.AbortablePromise; } });
+    Object.defineProperty(exports, "CancellationTokenSource", { enumerable: true, get: function () { return promise_6.CancellationTokenSource; } });
     Object.defineProperty(exports, "Utils", { enumerable: true, get: function () { return utils_11.Utils; } });
     Object.defineProperty(exports, "WaitQueue", { enumerable: true, get: function () { return waitqueue_2.WaitQueue; } });
     Object.defineProperty(exports, "Debounce", { enumerable: true, get: function () { return debounce_3.Debounce; } });
     Object.defineProperty(exports, "Lazy", { enumerable: true, get: function () { return lazy_1.Lazy; } });
-    exports.VERSION = "3.0.8";
+    exports.VERSION = "4.0.0";
 });

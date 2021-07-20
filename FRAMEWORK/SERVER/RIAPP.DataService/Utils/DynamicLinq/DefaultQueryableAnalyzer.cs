@@ -28,7 +28,7 @@ namespace System.Linq.Dynamic.Core
                     {
                         PropertyInfo property = providerType.GetProperty("OriginalProvider");
                         if (property != null)
-                        { 
+                        {
                             IQueryProvider originalProvider = property.GetValue(provider, null) as IQueryProvider;
                             return originalProvider != null && SupportsLinqToObjects(query, originalProvider);
                         }

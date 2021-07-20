@@ -89,13 +89,13 @@ namespace System.Linq.Dynamic.Core.CustomTypeProviders
 
         private Dictionary<Type, List<MethodInfo>> GetExtensionMethodsInternal()
         {
-            var types = GetCustomTypes();
+            HashSet<Type> types = GetCustomTypes();
 
-            List<Tuple<Type, MethodInfo>> list= new List<Tuple<Type, MethodInfo>>();
+            List<Tuple<Type, MethodInfo>> list = new List<Tuple<Type, MethodInfo>>();
 
-            foreach (var type in types)
+            foreach (Type type in types)
             {
-                var extensionMethods = type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+                List<MethodInfo> extensionMethods = type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                     .Where(x => x.IsDefined(typeof(ExtensionAttribute), false)).ToList();
 
                 extensionMethods.ForEach(x => list.Add(new Tuple<Type, MethodInfo>(x.GetParameters()[0].ParameterType, x)));

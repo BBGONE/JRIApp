@@ -18,9 +18,9 @@ namespace RIAPP.DataService.Core.UseCases.InvokeMiddleware
 
         public async Task Invoke(InvokeContext<TService> ctx)
         {
-            var dataHelper = ctx.ServiceContainer.GetDataHelper();
-            var serviceHelper = ctx.ServiceContainer.GetServiceHelper();
-            var metadata = ctx.Service.GetMetadata();
+            IDataHelper<TService> dataHelper = ctx.ServiceContainer.GetDataHelper();
+            IServiceOperationsHelper<TService> serviceHelper = ctx.ServiceContainer.GetServiceHelper();
+            RunTimeMetadata metadata = ctx.Service.GetMetadata();
             MethodDescription method = metadata.GetInvokeMethod(ctx.Request.methodName);
 
             List<object> methParams = new List<object>();
@@ -28,10 +28,10 @@ namespace RIAPP.DataService.Core.UseCases.InvokeMiddleware
             {
                 methParams.Add(ctx.Request.paramInfo.GetValue(method.parameters[i].name, method, dataHelper));
             }
-            var req = InvokeContext<TService>.CreateRequestContext(ctx.Service);
-            using (var callContext = new RequestCallContext(req))
+            RequestContext req = InvokeContext<TService>.CreateRequestContext(ctx.Service);
+            using (RequestCallContext callContext = new RequestCallContext(req))
             {
-                var methodData = method.GetMethodData();
+                MethodInfoData methodData = method.GetMethodData();
                 object instance = serviceHelper.GetMethodOwner(methodData);
                 object invokeRes = methodData.MethodInfo.Invoke(instance, methParams.ToArray());
                 object methodResult = await serviceHelper.GetMethodResult(invokeRes);

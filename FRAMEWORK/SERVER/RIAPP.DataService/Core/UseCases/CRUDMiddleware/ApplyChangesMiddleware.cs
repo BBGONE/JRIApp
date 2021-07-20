@@ -38,12 +38,12 @@ namespace RIAPP.DataService.Core.UseCases.CRUDMiddleware
 
         private async Task Insert(CRUDContext<TService> ctx, RunTimeMetadata metadata, ChangeSetRequest changeSet, IChangeSetGraph graph, RowInfo rowInfo)
         {
-            var service = ctx.Service;
-            var serviceHelper = ctx.ServiceContainer.GetServiceHelper();
+            TService service = ctx.Service;
+            IServiceOperationsHelper<TService> serviceHelper = ctx.ServiceContainer.GetServiceHelper();
 
-            this.CheckRowInfo(rowInfo);
+            CheckRowInfo(rowInfo);
 
-            using (var callContext = new RequestCallContext(CRUDContext<TService>.CreateRequestContext(service, changeSet, rowInfo)))
+            using (RequestCallContext callContext = new RequestCallContext(CRUDContext<TService>.CreateRequestContext(service, changeSet, rowInfo)))
             {
                 rowInfo.SetChangeState(new EntityChangeState { ParentRows = graph.GetParents(rowInfo) });
                 await serviceHelper.InsertEntity(metadata, rowInfo);
@@ -52,12 +52,12 @@ namespace RIAPP.DataService.Core.UseCases.CRUDMiddleware
 
         private async Task Update(CRUDContext<TService> ctx, RunTimeMetadata metadata, ChangeSetRequest changeSet, RowInfo rowInfo)
         {
-            var service = ctx.Service;
-            var serviceHelper = ctx.ServiceContainer.GetServiceHelper();
+            TService service = ctx.Service;
+            IServiceOperationsHelper<TService> serviceHelper = ctx.ServiceContainer.GetServiceHelper();
 
-            this.CheckRowInfo(rowInfo);
+            CheckRowInfo(rowInfo);
 
-            using (var callContext = new RequestCallContext(CRUDContext<TService>.CreateRequestContext(service, changeSet, rowInfo)))
+            using (RequestCallContext callContext = new RequestCallContext(CRUDContext<TService>.CreateRequestContext(service, changeSet, rowInfo)))
             {
                 rowInfo.SetChangeState(new EntityChangeState());
                 await serviceHelper.UpdateEntity(metadata, rowInfo);
@@ -66,12 +66,12 @@ namespace RIAPP.DataService.Core.UseCases.CRUDMiddleware
 
         private async Task Delete(CRUDContext<TService> ctx, RunTimeMetadata metadata, ChangeSetRequest changeSet, RowInfo rowInfo)
         {
-            var service = ctx.Service;
-            var serviceHelper = ctx.ServiceContainer.GetServiceHelper();
+            TService service = ctx.Service;
+            IServiceOperationsHelper<TService> serviceHelper = ctx.ServiceContainer.GetServiceHelper();
 
-            this.CheckRowInfo(rowInfo);
+            CheckRowInfo(rowInfo);
 
-            using (var callContext = new RequestCallContext(CRUDContext<TService>.CreateRequestContext(service, changeSet, rowInfo)))
+            using (RequestCallContext callContext = new RequestCallContext(CRUDContext<TService>.CreateRequestContext(service, changeSet, rowInfo)))
             {
                 rowInfo.SetChangeState(new EntityChangeState());
                 await serviceHelper.DeleteEntity(metadata, rowInfo); ;
@@ -80,9 +80,9 @@ namespace RIAPP.DataService.Core.UseCases.CRUDMiddleware
 
         public async Task Invoke(CRUDContext<TService> ctx)
         {
-            var serviceHelper = ctx.ServiceContainer.GetServiceHelper();
-            var metadata = ctx.Service.GetMetadata();
-            var changeSet = ctx.Request;
+            IServiceOperationsHelper<TService> serviceHelper = ctx.ServiceContainer.GetServiceHelper();
+            RunTimeMetadata metadata = ctx.Service.GetMetadata();
+            ChangeSetRequest changeSet = ctx.Request;
 
             ChangeSetGraph graph = new ChangeSetGraph(ctx.Request, metadata);
             graph.Prepare();
@@ -92,22 +92,22 @@ namespace RIAPP.DataService.Core.UseCases.CRUDMiddleware
 
             try
             {
-                foreach (var rowInfo in graph.InsertList)
+                foreach (RowInfo rowInfo in graph.InsertList)
                 {
                     currentRowInfo = rowInfo;
-                    await this.Insert(ctx, metadata, changeSet, graph, rowInfo);
+                    await Insert(ctx, metadata, changeSet, graph, rowInfo);
                 }
 
                 foreach (RowInfo rowInfo in graph.UpdateList)
                 {
                     currentRowInfo = rowInfo;
-                    await this.Update(ctx, metadata, changeSet, rowInfo);
+                    await Update(ctx, metadata, changeSet, rowInfo);
                 }
 
                 foreach (RowInfo rowInfo in graph.DeleteList)
                 {
                     currentRowInfo = rowInfo;
-                    await this.Delete(ctx, metadata, changeSet, rowInfo);
+                    await Delete(ctx, metadata, changeSet, rowInfo);
                 }
             }
             catch (Exception ex)

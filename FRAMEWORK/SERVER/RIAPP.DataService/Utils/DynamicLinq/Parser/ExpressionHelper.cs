@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using JetBrains.Annotations;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq.Dynamic.Core.Validation;
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
 
 namespace System.Linq.Dynamic.Core.Parser
 {
@@ -113,8 +113,8 @@ namespace System.Linq.Dynamic.Core.Parser
 
             if (left.Type.GetTypeInfo().IsEnum || right.Type.GetTypeInfo().IsEnum)
             {
-                var leftPart = left.Type.GetTypeInfo().IsEnum ? Expression.Convert(left, Enum.GetUnderlyingType(left.Type)) : left;
-                var rightPart = right.Type.GetTypeInfo().IsEnum ? Expression.Convert(right, Enum.GetUnderlyingType(right.Type)) : right;
+                Expression leftPart = left.Type.GetTypeInfo().IsEnum ? Expression.Convert(left, Enum.GetUnderlyingType(left.Type)) : left;
+                Expression rightPart = right.Type.GetTypeInfo().IsEnum ? Expression.Convert(right, Enum.GetUnderlyingType(right.Type)) : right;
                 return Expression.GreaterThan(leftPart, rightPart);
             }
 
@@ -211,7 +211,7 @@ namespace System.Linq.Dynamic.Core.Parser
 
         private MethodInfo GetStaticMethod(string methodName, Expression left, Expression right)
         {
-            var methodInfo = left.Type.GetMethod(methodName, new[] { left.Type, right.Type });
+            MethodInfo methodInfo = left.Type.GetMethod(methodName, new[] { left.Type, right.Type });
             if (methodInfo == null)
             {
                 methodInfo = right.Type.GetMethod(methodName, new[] { left.Type, right.Type });
@@ -236,7 +236,7 @@ namespace System.Linq.Dynamic.Core.Parser
 
         public bool TryGenerateAndAlsoNotNullExpression(Expression sourceExpression, bool addSelf, out Expression generatedExpression)
         {
-            var expressions = CollectExpressions(addSelf, sourceExpression);
+            List<Expression> expressions = CollectExpressions(addSelf, sourceExpression);
 
             if (expressions.Count == 1 && !(expressions[0] is MethodCallExpression))
             {
@@ -248,7 +248,7 @@ namespace System.Linq.Dynamic.Core.Parser
             expressions.Reverse();
 
             // Convert all expressions into '!= null'
-            var binaryExpressions = expressions.Select(expression => Expression.NotEqual(expression, Expression.Constant(null))).ToArray();
+            BinaryExpression[] binaryExpressions = expressions.Select(expression => Expression.NotEqual(expression, Expression.Constant(null))).ToArray();
 
             // Convert all binary expressions into `AndAlso(...)`
             generatedExpression = binaryExpressions[0];
@@ -292,7 +292,7 @@ namespace System.Linq.Dynamic.Core.Parser
         {
             Expression expression = GetMemberExpression(sourceExpression);
 
-            var list = new List<Expression>();
+            List<Expression> list = new List<Expression>();
 
             if (addSelf && expression is MemberExpression memberExpressionFirst)
             {

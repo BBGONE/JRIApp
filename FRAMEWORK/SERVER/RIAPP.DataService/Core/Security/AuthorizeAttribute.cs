@@ -35,7 +35,7 @@ namespace RIAPP.DataService.Core.Security
 
             int cnt = 0;
 
-            foreach (var role in Roles)
+            foreach (string role in Roles)
             {
                 ++cnt;
 

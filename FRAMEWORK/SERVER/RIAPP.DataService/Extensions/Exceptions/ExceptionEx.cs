@@ -30,7 +30,7 @@ namespace RIAPP.DataService.Core.Exceptions
         public static string GetFriendlyMessage(this Exception exception)
         {
             string result = exception.Message;
-           
+
 
             return result;
         }

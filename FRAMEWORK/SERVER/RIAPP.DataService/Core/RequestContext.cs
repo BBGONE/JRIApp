@@ -28,7 +28,7 @@ namespace RIAPP.DataService.Core
         {
             get
             {
-                var reqCtxt = RequestCallContext.CurrentContext;
+                RequestContext reqCtxt = RequestCallContext.CurrentContext;
                 if (reqCtxt == null)
                 {
                     throw new InvalidOperationException("Current RequestCallContext is null");
@@ -67,24 +67,24 @@ namespace RIAPP.DataService.Core
 
         object IEntityVersionProvider.GetOriginal()
         {
-            return this.DataService.ServiceContainer.ServiceHelper.GetOriginalEntity(CurrentRowInfo);
+            return DataService.ServiceContainer.ServiceHelper.GetOriginalEntity(CurrentRowInfo);
         }
 
         public object GetParent(Type entityType)
         {
-            return this.DataService.ServiceContainer.ServiceHelper.GetParentEntity(entityType, CurrentRowInfo);
+            return DataService.ServiceContainer.ServiceHelper.GetParentEntity(entityType, CurrentRowInfo);
         }
 
         public TModel GetOriginal<TModel>()
             where TModel : class
         {
-            return this.DataService.ServiceContainer.ServiceHelper.GetOriginalEntity<TModel>(CurrentRowInfo);
+            return DataService.ServiceContainer.ServiceHelper.GetOriginalEntity<TModel>(CurrentRowInfo);
         }
 
         public TModel GetParent<TModel>()
             where TModel : class
         {
-            return this.DataService.ServiceContainer.ServiceHelper.GetParentEntity<TModel>(CurrentRowInfo);
+            return DataService.ServiceContainer.ServiceHelper.GetParentEntity<TModel>(CurrentRowInfo);
         }
 
         #endregion

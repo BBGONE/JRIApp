@@ -15,7 +15,7 @@ namespace System.Linq.Dynamic.Core.TypeConverters
         /// <exception cref="NotSupportedException">The conversion cannot be performed.</exception>
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
-            var dateTimeOffset = base.ConvertFrom(context, culture, value) as DateTimeOffset?;
+            DateTimeOffset? dateTimeOffset = base.ConvertFrom(context, culture, value) as DateTimeOffset?;
 
             return dateTimeOffset?.UtcDateTime;
         }

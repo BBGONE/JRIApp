@@ -57,7 +57,7 @@ namespace RIAPP.DataService.Mvc.Utils
         public void Minify(StreamReader[] readers, string dst)
         {
             sw = new StreamWriter(dst);
-            for (var i = 0; i < readers.Length; i++)
+            for (int i = 0; i < readers.Length; i++)
             {
                 using (sr = readers[i])
                 {
@@ -278,7 +278,7 @@ namespace RIAPP.DataService.Mvc.Utils
 
         private int next()
         {
-            var c = get();
+            int c = get();
 
             if (c == '/')
             {
@@ -345,7 +345,7 @@ namespace RIAPP.DataService.Mvc.Utils
 
         private int get()
         {
-            var c = theLookahead;
+            int c = theLookahead;
             theLookahead = EOF;
 
             if (c == EOF)

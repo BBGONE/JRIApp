@@ -33,7 +33,7 @@ namespace RIAPP.DataService.Core.Query
             SortInfo sort)
             where T : class
         {
-            var result = entities;
+            IQueryable<T> result = entities;
             if (sort == null || sort.sortItems == null || sort.sortItems.Count == 0)
             {
                 return result;
@@ -44,11 +44,11 @@ namespace RIAPP.DataService.Core.Query
                 return result;
             }
 
-            var first = true;
-            var sb = new StringBuilder();
-            foreach (var si in sort.sortItems)
+            bool first = true;
+            StringBuilder sb = new StringBuilder();
+            foreach (SortItem si in sort.sortItems)
             {
-                var fldName = si.fieldName;
+                string fldName = si.fieldName;
                 if (!first)
                 {
                     sb.Append(",");
@@ -70,19 +70,19 @@ namespace RIAPP.DataService.Core.Query
             FilterInfo filter, DbSetInfo dbInfo)
             where T : class
         {
-            var dataHelper = dataService.ServiceContainer.DataHelper;
-            var result = entities;
+            Utils.IDataHelper dataHelper = dataService.ServiceContainer.DataHelper;
+            IQueryable<T> result = entities;
             if (filter == null || filter.filterItems == null || filter.filterItems.Count == 0)
             {
                 return result;
             }
 
             int cnt = 0;
-            var sb = new StringBuilder();
-            var filterParams = new LinkedList<object>();
-            foreach (var filterItem in filter.filterItems)
+            StringBuilder sb = new StringBuilder();
+            LinkedList<object> filterParams = new LinkedList<object>();
+            foreach (FilterItem filterItem in filter.filterItems)
             {
-                var field = dbInfo.fieldInfos.Where(finf => finf.fieldName == filterItem.fieldName).FirstOrDefault();
+                Field field = dbInfo.fieldInfos.Where(finf => finf.fieldName == filterItem.fieldName).FirstOrDefault();
                 if (field == null)
                 {
                     throw new DomainServiceException(string.Format(ErrorStrings.ERR_REC_FIELDNAME_INVALID, dbInfo.dbSetName, filterItem.fieldName));
@@ -106,7 +106,7 @@ namespace RIAPP.DataService.Core.Query
                             string args = string.Join(",", filterItem.values.Select(v => string.Format("@{0}", cnt++)));
                             sb.AppendFormat("({0} in ({1}))", filterItem.fieldName, args);
 
-                            foreach (var v in filterItem.values)
+                            foreach (string v in filterItem.values)
                             {
                                 filterParams.AddLast(dataHelper.DeserializeField(typeof(T), field, v));
                             }
@@ -160,7 +160,7 @@ namespace RIAPP.DataService.Core.Query
             int pageSize, int pageCount, DbSetInfo dbInfo)
             where T : class
         {
-            var result = entities;
+            IQueryable<T> result = entities;
             if (!dbInfo.enablePaging || pageIndex < 0)
             {
                 return result;
@@ -171,7 +171,7 @@ namespace RIAPP.DataService.Core.Query
                 pageSize = 0;
             }
 
-            var skipRows = pageIndex * pageSize;
+            int skipRows = pageIndex * pageSize;
             result = Queryable.Take(Queryable.Skip(entities, skipRows), pageSize * pageCount);
             return result;
         }
@@ -180,8 +180,8 @@ namespace RIAPP.DataService.Core.Query
            where T : class
         {
             totalCountQuery = null;
-            var reqCtxt = RequestContext.Current;
-            var queryInfo = reqCtxt.CurrentQueryInfo;
+            RequestContext reqCtxt = RequestContext.Current;
+            QueryRequest queryInfo = reqCtxt.CurrentQueryInfo;
             entities = PerformFilter(dataService, entities, queryInfo.filterInfo, queryInfo.GetDbSetInfo());
             if (queryInfo.isIncludeTotalCount)
             {
@@ -218,7 +218,7 @@ namespace RIAPP.DataService.Core.Query
         public static IQueryable<T> PerformQuery<T>(this IDataServiceComponent dataService, IQueryable<T> entities, ref int? totalCount)
             where T : class
         {
-            IQueryable<T> result = PerformQuery(dataService, entities, out var countQuery);
+            IQueryable<T> result = PerformQuery(dataService, entities, out IQueryable<T> countQuery);
 
             if (countQuery != null && !totalCount.HasValue)
             {
@@ -230,8 +230,8 @@ namespace RIAPP.DataService.Core.Query
         public static IQueryable<T> GetRefreshedEntityQuery<T>(this IDataServiceComponent dataService, IQueryable<T> entities, RefreshRequest info)
             where T : class
         {
-            var dataHelper = dataService.ServiceContainer.DataHelper;
-            var keyValue = info.rowInfo.GetPKValues(dataHelper);
+            Utils.IDataHelper dataHelper = dataService.ServiceContainer.DataHelper;
+            object[] keyValue = info.rowInfo.GetPKValues(dataHelper);
             return FindEntityQuery(entities, info.rowInfo, keyValue);
         }
 

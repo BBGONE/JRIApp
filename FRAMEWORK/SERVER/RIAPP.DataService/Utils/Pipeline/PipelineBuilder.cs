@@ -26,7 +26,7 @@ namespace Pipeline
 
         public RequestDelegate<TContext> Build()
         {
-            var node = _components.Last;
+            LinkedListNode<MiddlewareComponentNode<TContext>> node = _components.Last;
             while (node != null)
             {
                 node.Value.Next = GetNextFunc(node);
@@ -83,7 +83,7 @@ namespace Pipeline
 
         public PipelineBuilder<TService, TContext> Use(Func<RequestDelegate<TContext>, RequestDelegate<TContext>> component)
         {
-            var node = new MiddlewareComponentNode<TContext>
+            MiddlewareComponentNode<TContext> node = new MiddlewareComponentNode<TContext>
             {
                 Component = component
             };

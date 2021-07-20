@@ -1,6 +1,6 @@
 ﻿namespace System.Linq.Dynamic.Core.Parser
 {
-    interface IKeywordsHelper
+    internal interface IKeywordsHelper
     {
         bool TryGetValue(string name, out object type);
     }

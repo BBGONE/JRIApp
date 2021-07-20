@@ -25,7 +25,7 @@ namespace System.Linq.Dynamic.Core
         {
             Check.NotEmpty(expression, nameof(expression));
 
-            var parser = new ExpressionParser(new ParameterExpression[0], expression, values, parsingConfig);
+            ExpressionParser parser = new ExpressionParser(new ParameterExpression[0], expression, values, parsingConfig);
 
             return Expression.Lambda(parser.Parse(resultType, createParameterCtor));
         }
@@ -62,13 +62,13 @@ namespace System.Linq.Dynamic.Core
             Check.HasNoNulls(parameters, nameof(parameters));
             Check.NotEmpty(expression, nameof(expression));
 
-            var parser = new ExpressionParser(parameters, expression, values, parsingConfig);
+            ExpressionParser parser = new ExpressionParser(parameters, expression, values, parsingConfig);
 
-            var parsedExpression = parser.Parse(resultType, createParameterCtor);
+            Expression parsedExpression = parser.Parse(resultType, createParameterCtor);
 
             if (parsingConfig != null && parsingConfig.RenameParameterExpression && parameters.Length == 1)
             {
-                var renamer = new ParameterExpressionRenamer(parser.LastLambdaItName);
+                ParameterExpressionRenamer renamer = new ParameterExpressionRenamer(parser.LastLambdaItName);
                 parsedExpression = renamer.Rename(parsedExpression, out ParameterExpression newParameterExpression);
 
                 return Expression.Lambda(parsedExpression, new[] { newParameterExpression });

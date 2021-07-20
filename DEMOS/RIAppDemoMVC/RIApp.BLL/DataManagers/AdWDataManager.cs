@@ -14,21 +14,18 @@ namespace RIAppDemo.BLL.DataServices.DataManagers
         protected const string USERS_ROLE = RIAppDemoServiceEF.USERS_ROLE;
         protected const string ADMINS_ROLE = RIAppDemoServiceEF.ADMINS_ROLE;
 
-        protected ADWDbContext DB
-        {
-            get { return DataService.DB; }
-        }
+        protected ADWDbContext DB => DataService.DB;
 
         protected PerformQueryResult<TModel> PerformQuery(Func<IQueryable<TModel>, Task<int>> totalCountFunc)
         {
-            var dbset = DB.Set<TModel>();
+            System.Data.Entity.DbSet<TModel> dbset = DB.Set<TModel>();
             return this.PerformQuery(dbset.AsNoTracking(), totalCountFunc);
         }
 
         protected PerformQueryResult<TEntity> PerformQuery<TEntity>(Func<IQueryable<TEntity>, Task<int>> totalCountFunc)
             where TEntity : class
         {
-            var dbset = DB.Set<TEntity>();
+            System.Data.Entity.DbSet<TEntity> dbset = DB.Set<TEntity>();
             return this.PerformQuery(dbset.AsNoTracking(), totalCountFunc);
         }
     }
