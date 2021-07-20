@@ -1,7 +1,7 @@
 ﻿import * as RIAPP from "jriapp";
 import * as uiMOD from "jriapp_ui";
 
-const bootstrapper = RIAPP.bootstrapper, utils = RIAPP.Utils, $ = uiMOD.$, dom = RIAPP.DOM;
+const bootstrap = RIAPP.bootstrapper, utils = RIAPP.Utils, $ = uiMOD.$, dom = RIAPP.DOM;
 
 function findElemViewInTemplate(template: RIAPP.ITemplate, name: string) {
     //look by data-name attribute value
@@ -28,8 +28,8 @@ export interface IDropDownBoxConstructorOptions extends IDropDownBoxOptions {
 }
 
 const enum TEXT {
-    Selected = "Selected",
-    NoSelection = "Nothing selected"
+    Selected = "Выбрано",
+    NoSelection = "Ничего не выбрано"
 }
 const css = {
     BUTTON: "btn-dropdown"
@@ -216,15 +216,14 @@ export class DropDownBoxElView extends uiMOD.InputElView implements RIAPP.ITempl
                 self.onRowSelected(args.row);
             }, this.uniqueID, this);
 
-            bootstrapper.selectedControl = self._grid;
+            bootstrap.selectedControl = self._grid;
 
             $(dom.document).on('keyup.' + this.uniqueID, function (e) {
-                if (bootstrapper.selectedControl === self._grid) {
+                if (bootstrap.selectedControl === self._grid) {
                     if (self._onKeyPress(e.which))
                         e.stopPropagation();
                 }
             });
-
             this._grid.dataSource = this.dataSource;
         }
 
@@ -352,6 +351,16 @@ export class DropDownBoxElView extends uiMOD.InputElView implements RIAPP.ITempl
     set selected(v: Array<number> | null) {
         if (!v && this.selectedCount > 0) {
             this._clear(true);
+        }
+        if (!!v && v.length > 0 && !!this._dataSource) {
+            this._selectedClone = {};
+            for (let item of this._dataSource.items) {
+                const key = parseInt(utils.core.getValue(item, this._valuePath));
+                if (v.indexOf(key) > -1) {
+                    this._selectItem(item, true);
+                }
+            }
+            this._updateSelection();
         }
     }
     get template(): RIAPP.ITemplate { return this._template; }
