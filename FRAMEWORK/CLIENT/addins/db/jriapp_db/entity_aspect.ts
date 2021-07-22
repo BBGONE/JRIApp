@@ -140,10 +140,18 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
         sys.raiseProp(this.item, fieldName);
         const info = fieldInfo || this.coll.getFieldInfo(fieldName);
         if (!!info.dependents) {
-            for (const d of info.dependents)
-            {
-                sys.raiseProp(this.item, d);
-            }
+            const item = this.item;
+            // this call is made async for calculated properties correctly updated
+            // because it needs to be updated after all the fields are refreshed
+            utils.async.getTaskQueue().enque(() => {
+                if (item.getIsStateDirty()) {
+                    return;
+                }
+
+                for (const d of info.dependents) {
+                    sys.raiseProp(item, d);
+                }
+            });
         }
     }
     protected _getValueChange(fullName: string, fieldInfo: IFieldInfo, changedOnly: boolean): IValueChange {

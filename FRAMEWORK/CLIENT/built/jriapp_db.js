@@ -3472,10 +3472,16 @@ define("jriapp_db/entity_aspect", ["require", "exports", "jriapp_shared", "jriap
             sys.raiseProp(this.item, fieldName);
             var info = fieldInfo || this.coll.getFieldInfo(fieldName);
             if (!!info.dependents) {
-                for (var _i = 0, _a = info.dependents; _i < _a.length; _i++) {
-                    var d = _a[_i];
-                    sys.raiseProp(this.item, d);
-                }
+                var item_3 = this.item;
+                utils.async.getTaskQueue().enque(function () {
+                    if (item_3.getIsStateDirty()) {
+                        return;
+                    }
+                    for (var _i = 0, _a = info.dependents; _i < _a.length; _i++) {
+                        var d = _a[_i];
+                        sys.raiseProp(item_3, d);
+                    }
+                });
             }
         };
         EntityAspect.prototype._getValueChange = function (fullName, fieldInfo, changedOnly) {
@@ -4669,5 +4675,5 @@ define("jriapp_db", ["require", "exports", "jriapp_db/dbset", "jriapp_db/datavie
     __exportStar(entity_aspect_2, exports);
     __exportStar(error_3, exports);
     __exportStar(complexprop_1, exports);
-    exports.VERSION = "3.0.8";
+    exports.VERSION = "3.0.9";
 });
