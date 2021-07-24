@@ -5549,6 +5549,7 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
         GRID_EVENTS["row_state_changed"] = "row_state_changed";
         GRID_EVENTS["cell_dblclicked"] = "cell_dblclicked";
         GRID_EVENTS["row_action"] = "row_action";
+        GRID_EVENTS["refresh"] = "refresh";
     })(GRID_EVENTS || (GRID_EVENTS = {}));
     var DataGrid = (function (_super) {
         __extends(DataGrid, _super);
@@ -5599,6 +5600,7 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
             _this._scrollDebounce = new jriapp_shared_29.Debounce();
             _this._dsDebounce = new jriapp_shared_29.Debounce();
             _this._pageDebounce = new jriapp_shared_29.Debounce();
+            _this._refreshCounter = 0;
             _this._selectable = {
                 onKeyDown: function (key, event) {
                     self._onKeyDown(key, event);
@@ -5707,11 +5709,6 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
             this._internal = null;
             _super.prototype.dispose.call(this);
         };
-        DataGrid.prototype._updateContentOptions = function () {
-            this.columns.filter(function (column) { return column instanceof data_2.DataColumn; }).forEach(function (column) {
-                column.updateContentOptions();
-            });
-        };
         DataGrid.prototype._onKeyDown = function (key, event) {
             var ds = this.dataSource, self = this;
             if (!ds) {
@@ -5802,17 +5799,10 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
                     break;
             }
         };
-        DataGrid.prototype._isRowExpanded = function (row) {
-            return this._expandedRow === row;
-        };
-        DataGrid.prototype._setCurrentColumn = function (column) {
-            if (!!this._currentColumn) {
-                this._currentColumn.isSelected = false;
-            }
-            this._currentColumn = column;
-            if (!!this._currentColumn) {
-                this._currentColumn.isSelected = true;
-            }
+        DataGrid.prototype._onRefresh = function (args) {
+            var _this = this;
+            this._refreshCounter++;
+            utils.async.getTaskQueue().enque(this._getRefreshHandler(this._refreshCounter, function () { return _this.objEvents.raise("refresh", args); }));
         };
         DataGrid.prototype._onRowStateChanged = function (row, val) {
             var args = { row: row, val: val, css: null };
@@ -5825,6 +5815,145 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
         };
         DataGrid.prototype._onRowSelectionChanged = function (row) {
             this.objEvents.raise("row_selected", { row: row });
+        };
+        DataGrid.prototype._onDSCurrentChanged = function (prevCurrent, newCurrent) {
+            if (prevCurrent !== newCurrent) {
+                var oldRow = !prevCurrent ? null : this._rowMap[prevCurrent._key];
+                var newRow = !newCurrent ? null : this._rowMap[newCurrent._key];
+                if (!!oldRow) {
+                    oldRow.objEvents.raiseProp("isCurrent");
+                    dom.removeClass([oldRow.tr], "ria-row-highlight");
+                }
+                if (!!newRow) {
+                    newRow.objEvents.raiseProp("isCurrent");
+                    dom.addClass([newRow.tr], "ria-row-highlight");
+                }
+            }
+        };
+        DataGrid.prototype._onDSCollectionChanged = function (_, args) {
+            var self = this;
+            switch (args.changeType) {
+                case 2:
+                    {
+                        if (args.reason === 0) {
+                            self._resetColumnsSort();
+                        }
+                        self._refresh(args.reason === 1);
+                    }
+                    break;
+                case 1:
+                    {
+                        self._appendItems(args.items);
+                        self._updateTableDisplay();
+                    }
+                    break;
+                case 0:
+                    {
+                        var rowpos_1 = -1;
+                        args.items.forEach(function (item) {
+                            var row = self._rowMap[item._key];
+                            if (!!row) {
+                                rowpos_1 = self._removeRow(row);
+                            }
+                        });
+                        var rowlen = this._rows.length;
+                        if (rowpos_1 > -1 && rowlen > 0) {
+                            if (rowpos_1 < rowlen) {
+                                this.currentRow = this._rows[rowpos_1];
+                            }
+                            else {
+                                this.currentRow = this._rows[rowlen - 1];
+                            }
+                        }
+                        self._updateTableDisplay();
+                    }
+                    break;
+                case 3:
+                    {
+                        var row = self._rowMap[args.old_key];
+                        if (!!row) {
+                            delete self._rowMap[args.old_key];
+                            self._rowMap[args.new_key] = row;
+                        }
+                    }
+                    break;
+                default:
+                    throw new Error(format(jriapp_shared_29.LocaleERRS.ERR_COLLECTION_CHANGETYPE_INVALID, args.changeType));
+            }
+        };
+        DataGrid.prototype._onPageChanged = function () {
+            if (!!this._rowSelectorCol) {
+                this._rowSelectorCol.checked = false;
+            }
+            this.objEvents.raise("page_changed", {});
+        };
+        DataGrid.prototype._onItemEdit = function (item, isBegin, isCanceled) {
+            var row = this._rowMap[item._key];
+            if (!row) {
+                return;
+            }
+            if (isBegin) {
+                row._onBeginEdit();
+                this._editingRow = row;
+            }
+            else {
+                row._onEndEdit(isCanceled);
+                this._editingRow = null;
+            }
+            this.objEvents.raiseProp("editingRow");
+        };
+        DataGrid.prototype._onItemAdded = function (_, args) {
+            var item = args.item, row = this._rowMap[item._key];
+            if (!row) {
+                return;
+            }
+            this.scrollToCurrent();
+            if (this._options.isHandleAddNew && !args.isAddNewHandled) {
+                args.isAddNewHandled = this.showEditDialog();
+            }
+        };
+        DataGrid.prototype._onItemStatusChanged = function (item, oldStatus) {
+            var newStatus = item._aspect.status, ds = this.dataSource, row = this._rowMap[item._key];
+            if (!row) {
+                return;
+            }
+            if (newStatus === 3) {
+                row.isDeleted = true;
+                var row2 = this._findUndeleted(row, true);
+                if (!row2) {
+                    row2 = this._findUndeleted(row, false);
+                }
+                if (!!row2) {
+                    ds.currentItem = row2.item;
+                }
+            }
+            else if (oldStatus === 3) {
+                row.isDeleted = false;
+            }
+        };
+        DataGrid.prototype._onDSErrorsChanged = function (_, args) {
+            var row = this._rowMap[args.item._key];
+            if (!row) {
+                return;
+            }
+            row.updateErrorState();
+        };
+        DataGrid.prototype._updateContentOptions = function () {
+            this.columns.filter(function (column) { return column instanceof data_2.DataColumn; }).forEach(function (column) {
+                column.updateContentOptions();
+            });
+        };
+        DataGrid.prototype._isRowExpanded = function (row) {
+            return this._expandedRow === row;
+        };
+        DataGrid.prototype._setCurrentColumn = function (column) {
+            if (!!this._currentColumn) {
+                this._currentColumn.isSelected = false;
+            }
+            this._currentColumn = column;
+            if (!!this._currentColumn) {
+                this._currentColumn.isSelected = true;
+            }
         };
         DataGrid.prototype._resetColumnsSort = function () {
             this.columns.forEach(function (col) {
@@ -5965,71 +6094,6 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
             }
             return row;
         };
-        DataGrid.prototype._onDSCurrentChanged = function (prevCurrent, newCurrent) {
-            if (prevCurrent !== newCurrent) {
-                var oldRow = !prevCurrent ? null : this._rowMap[prevCurrent._key];
-                var newRow = !newCurrent ? null : this._rowMap[newCurrent._key];
-                if (!!oldRow) {
-                    oldRow.objEvents.raiseProp("isCurrent");
-                    dom.removeClass([oldRow.tr], "ria-row-highlight");
-                }
-                if (!!newRow) {
-                    newRow.objEvents.raiseProp("isCurrent");
-                    dom.addClass([newRow.tr], "ria-row-highlight");
-                }
-            }
-        };
-        DataGrid.prototype._onDSCollectionChanged = function (_, args) {
-            var self = this;
-            switch (args.changeType) {
-                case 2:
-                    {
-                        if (args.reason === 0) {
-                            self._resetColumnsSort();
-                        }
-                        self._refresh(args.reason === 1);
-                    }
-                    break;
-                case 1:
-                    {
-                        self._appendItems(args.items);
-                        self._updateTableDisplay();
-                    }
-                    break;
-                case 0:
-                    {
-                        var rowpos_1 = -1;
-                        args.items.forEach(function (item) {
-                            var row = self._rowMap[item._key];
-                            if (!!row) {
-                                rowpos_1 = self._removeRow(row);
-                            }
-                        });
-                        var rowlen = this._rows.length;
-                        if (rowpos_1 > -1 && rowlen > 0) {
-                            if (rowpos_1 < rowlen) {
-                                this.currentRow = this._rows[rowpos_1];
-                            }
-                            else {
-                                this.currentRow = this._rows[rowlen - 1];
-                            }
-                        }
-                        self._updateTableDisplay();
-                    }
-                    break;
-                case 3:
-                    {
-                        var row = self._rowMap[args.old_key];
-                        if (!!row) {
-                            delete self._rowMap[args.old_key];
-                            self._rowMap[args.new_key] = row;
-                        }
-                    }
-                    break;
-                default:
-                    throw new Error(format(jriapp_shared_29.LocaleERRS.ERR_COLLECTION_CHANGETYPE_INVALID, args.changeType));
-            }
-        };
         DataGrid.prototype._updateTableDisplay = function () {
             if (!this._table) {
                 return;
@@ -6041,62 +6105,14 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
                 this._table.style.visibility = "visible";
             }
         };
-        DataGrid.prototype._onPageChanged = function () {
-            if (!!this._rowSelectorCol) {
-                this._rowSelectorCol.checked = false;
-            }
-            this.objEvents.raise("page_changed", {});
-        };
-        DataGrid.prototype._onItemEdit = function (item, isBegin, isCanceled) {
-            var row = this._rowMap[item._key];
-            if (!row) {
-                return;
-            }
-            if (isBegin) {
-                row._onBeginEdit();
-                this._editingRow = row;
-            }
-            else {
-                row._onEndEdit(isCanceled);
-                this._editingRow = null;
-            }
-            this.objEvents.raiseProp("editingRow");
-        };
-        DataGrid.prototype._onItemAdded = function (_, args) {
-            var item = args.item, row = this._rowMap[item._key];
-            if (!row) {
-                return;
-            }
-            this.scrollToCurrent();
-            if (this._options.isHandleAddNew && !args.isAddNewHandled) {
-                args.isAddNewHandled = this.showEditDialog();
-            }
-        };
-        DataGrid.prototype._onItemStatusChanged = function (item, oldStatus) {
-            var newStatus = item._aspect.status, ds = this.dataSource, row = this._rowMap[item._key];
-            if (!row) {
-                return;
-            }
-            if (newStatus === 3) {
-                row.isDeleted = true;
-                var row2 = this._findUndeleted(row, true);
-                if (!row2) {
-                    row2 = this._findUndeleted(row, false);
+        DataGrid.prototype._getRefreshHandler = function (num, fn) {
+            var _this = this;
+            return function () {
+                if (_this.getIsStateDirty() || _this._refreshCounter !== num) {
+                    return;
                 }
-                if (!!row2) {
-                    ds.currentItem = row2.item;
-                }
-            }
-            else if (oldStatus === 3) {
-                row.isDeleted = false;
-            }
-        };
-        DataGrid.prototype._onDSErrorsChanged = function (_, args) {
-            var row = this._rowMap[args.item._key];
-            if (!row) {
-                return;
-            }
-            row.updateErrorState();
+                fn();
+            };
         };
         DataGrid.prototype._bindDS = function () {
             var _this = this;
@@ -6126,9 +6142,7 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
                 self._onItemStatusChanged(args.item, args.oldStatus);
             }, self._uniqueID);
             ds.addOnItemAdded(self._onItemAdded, self._uniqueID, self);
-            ds.addOnItemAdding(function () {
-                self.collapseDetails();
-            }, self._uniqueID);
+            ds.addOnItemAdding(function () { return self.collapseDetails(); }, self._uniqueID);
         };
         DataGrid.prototype._unbindDS = function () {
             var self = this, ds = this.dataSource;
@@ -6247,15 +6261,16 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
                 }
             }
             else {
-                var docFr = doc.createDocumentFragment(), k = newItems.length;
-                for (var i = 0; i < k; i += 1) {
-                    var item = newItems[i];
+                var docFr = doc.createDocumentFragment();
+                for (var _i = 0, newItems_1 = newItems; _i < newItems_1.length; _i++) {
+                    var item = newItems_1[_i];
                     if (!self._rowMap[item._key]) {
                         self._createRowForItem(docFr, item, (isPrependNew && item._aspect.isNew));
                     }
                 }
                 self._addNodeToParent(tbody, docFr, isPrepend);
             }
+            self._onRefresh({});
             self.updateColumnsSize();
         };
         DataGrid.prototype._refresh = function (isPageChanged) {
@@ -6280,6 +6295,7 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
             self.updateColumnsSize();
             self._updateTableDisplay();
             self._updateCurrent();
+            self._onRefresh({});
         };
         DataGrid.prototype._addNodeToParent = function (parent, node, prepend) {
             if (!prepend) {
@@ -6328,8 +6344,8 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
             var _this = this;
             this._unbindDS();
             this._options.dataSource = v;
-            var fn_init = function () {
-                var ds = _this._options.dataSource;
+            var fn_resetDS = function () {
+                var ds = _this.dataSource;
                 if (!!ds && !ds.getIsStateDirty()) {
                     _this._updateContentOptions();
                     _this._bindDS();
@@ -6340,10 +6356,10 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
                 }
             };
             if (!!this._options.syncSetDatasource) {
-                fn_init();
+                fn_resetDS();
             }
             else {
-                this._dsDebounce.enque(fn_init);
+                this._dsDebounce.enque(fn_resetDS);
             }
         };
         DataGrid.prototype._getInternal = function () {
@@ -6509,6 +6525,14 @@ define("jriapp_ui/datagrid/datagrid", ["require", "exports", "jriapp_shared", "j
         };
         DataGrid.prototype.offOnPageChanged = function (nmspace) {
             this.objEvents.off("page_changed", nmspace);
+        };
+        DataGrid.prototype.addOnRefresh = function (fn, nmspace, context) {
+            var _this = this;
+            this.objEvents.on("refresh", fn, nmspace, context);
+            utils.async.getTaskQueue().enque(this._getRefreshHandler(this._refreshCounter, function () { return fn(_this, {}); }));
+        };
+        DataGrid.prototype.offOnRefresh = function (nmspace) {
+            this.objEvents.off("refresh", nmspace);
         };
         DataGrid.prototype.addOnRowStateChanged = function (fn, nmspace, context) {
             this.objEvents.on("row_state_changed", fn, nmspace, context);

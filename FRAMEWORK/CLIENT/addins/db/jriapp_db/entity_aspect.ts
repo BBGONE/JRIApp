@@ -136,22 +136,13 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
                 break;
         }
     }
-    protected _onFieldChanged(fieldName: string, fieldInfo?: IFieldInfo): void {
+    protected _onFieldChanged(fieldName: string, dependents: IIndexer<any>, fieldInfo?: IFieldInfo): void {
         sys.raiseProp(this.item, fieldName);
         const info = fieldInfo || this.coll.getFieldInfo(fieldName);
         if (!!info.dependents) {
-            const item = this.item;
-            // this call is made async for calculated properties correctly updated
-            // because it needs to be updated after all the fields are refreshed
-            utils.async.getTaskQueue().enque(() => {
-                if (item.getIsStateDirty()) {
-                    return;
-                }
-
-                for (const d of info.dependents) {
-                    sys.raiseProp(item, d);
-                }
-            });
+            for (const d of info.dependents) {
+                dependents[d] = true;
+            }
         }
     }
     protected _getValueChange(fullName: string, fieldInfo: IFieldInfo, changedOnly: boolean): IValueChange {
@@ -280,14 +271,18 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
         dbSet.errors.removeAllErrors(this.item);
         this._setStatus(this._savedStatus);
         this._savedStatus = null;
+
+        const dependents = utils.core.Indexer();
         for (const change of changes)
         {
             const fld = dbSet.getFieldInfo(change.fieldName);
             if (!fld) {
                 throw new Error(format(ERRS.ERR_DBSET_INVALID_FIELDNAME, self.dbSetName, change.fieldName));
             }
-            self._onFieldChanged(change.fieldName, fld);
+            self._onFieldChanged(change.fieldName, dependents, fld);
         }
+
+        self._updateDependents(dependents);
         return true;
     }
     // override
@@ -310,6 +305,19 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
         }
         this._disposables.push(obj);
     }
+    _updateDependents(dependents: IIndexer<any>) {
+        const item = this.item, queue = utils.async.getTaskQueue();
+        // this call is made async for calculated properties correctly updated
+        // because it needs to be updated after all the fields are refreshed
+        queue.enque(() => {
+            if (item.getIsStateDirty()) {
+                return;
+            }
+            utils.core.forEach(dependents, (name) => {
+                sys.raiseProp(item, name);
+            });
+        });
+    }
     _updateKeys(key: string): void {
         this._setSrvKey(key);
         this._setKey(key);
@@ -319,7 +327,7 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
             throw new Error(ERRS.ERR_OPER_REFRESH_INVALID);
         }
     }
-    _refreshValue(val: any, fullName: string, refreshMode: REFRESH_MODE): void {
+    _refreshValue(val: any, fullName: string, refreshMode: REFRESH_MODE, dependents: IIndexer<any>): void {
         const self = this, fld = self.dbSet.getFieldInfo(fullName);
         if (!fld) {
             throw new Error(format(ERRS.ERR_DBSET_INVALID_FIELDNAME, self.dbSetName, fullName));
@@ -331,7 +339,7 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
                 {
                     if (!compareVals(newVal, oldVal, dataType)) {
                         self._setValue(fullName, newVal, VALS_VERSION.Current);
-                        self._onFieldChanged(fullName, fld);
+                        self._onFieldChanged(fullName, dependents, fld);
                     }
                 }
                 break;
@@ -345,7 +353,7 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
                     }
                     if (!compareVals(newVal, oldVal, dataType)) {
                         self._setValue(fullName, newVal, VALS_VERSION.Current);
-                        self._onFieldChanged(fullName, fld);
+                        self._onFieldChanged(fullName, dependents, fld);
                     }
                 }
                 break;
@@ -360,7 +368,7 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
                         // unmodified
                         if (!compareVals(newVal, oldVal, dataType)) {
                             self._setValue(fullName, newVal, VALS_VERSION.Current);
-                            self._onFieldChanged(fullName, fld);
+                            self._onFieldChanged(fullName, dependents, fld);
                         }
                     }
                 }
@@ -376,11 +384,13 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
                 refreshMode = REFRESH_MODE.RefreshCurrent;
             }
 
+            const dependents = utils.core.Indexer();
+
             for (const val of rowInfo.values)
             {
                 fn_walkChanges(val, (fullName, vc) => {
                     if ((vc.flags & FLAGS.Refreshed)) {
-                        self._refreshValue(vc.val, fullName, refreshMode);
+                        self._refreshValue(vc.val, fullName, refreshMode, dependents);
                     }
                 });
             }
@@ -392,6 +402,8 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
                     this._setStatus(ITEM_STATUS.None);
                 }
             }
+
+            this._updateDependents(dependents);
         }
     }
     _getRowInfo(): IRowInfo {
@@ -451,7 +463,9 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
                                 break;
                         }
                     }
-                    this._onFieldChanged(fieldName, fieldInfo);
+                    const dependents = utils.core.Indexer();
+                    this._onFieldChanged(fieldName, dependents, fieldInfo);
+                    this._updateDependents(dependents);
                     res = true;
                 }
                 dbSet.errors.removeError(this.item, fieldName);
@@ -555,13 +569,15 @@ export class EntityAspect<TItem extends IEntityItem = IEntityItem, TObj extends 
                 }
                 self._setStatus(ITEM_STATUS.None);
                 errors.removeAllErrors(this.item);
+                const dependents = utils.core.Indexer();
                 for (const change of changes)
                 {
                     fn_walkChanges(change, (fullName) => {
-                        self._onFieldChanged(fullName, dbSet.getFieldInfo(fullName));
+                        self._onFieldChanged(fullName, dependents, dbSet.getFieldInfo(fullName));
                     });
                 }
                 internal.onCommitChanges(this.item, false, true, oldStatus);
+                this._updateDependents(dependents);
             }
         }
     }

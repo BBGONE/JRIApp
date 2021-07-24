@@ -576,7 +576,7 @@ declare module "jriapp_db/entity_aspect" {
         protected _setValue(name: string, val: any, ver: VALS_VERSION): void;
         protected _storeVals(toVer: VALS_VERSION): void;
         protected _restoreVals(fromVer: VALS_VERSION): void;
-        protected _onFieldChanged(fieldName: string, fieldInfo?: IFieldInfo): void;
+        protected _onFieldChanged(fieldName: string, dependents: IIndexer<any>, fieldInfo?: IFieldInfo): void;
         protected _getValueChange(fullName: string, fieldInfo: IFieldInfo, changedOnly: boolean): IValueChange;
         protected _getValueChanges(changedOnly: boolean): IValueChange[];
         protected _fldChanging(_fieldName: string, _fieldInfo: IFieldInfo, _oldV: any, _newV: any): boolean;
@@ -586,9 +586,10 @@ declare module "jriapp_db/entity_aspect" {
         protected _cancelEdit(): boolean;
         protected _setStatus(v: ITEM_STATUS): void;
         _addDisposable(obj: IBaseObject): void;
+        _updateDependents(dependents: IIndexer<any>): void;
         _updateKeys(key: string): void;
         _checkCanRefresh(): void;
-        _refreshValue(val: any, fullName: string, refreshMode: REFRESH_MODE): void;
+        _refreshValue(val: any, fullName: string, refreshMode: REFRESH_MODE, dependents: IIndexer<any>): void;
         _refreshValues(rowInfo: IRowInfo, refreshMode: REFRESH_MODE): void;
         _getRowInfo(): IRowInfo;
         _getCalcFieldVal(fieldName: string): any;
@@ -998,5 +999,5 @@ declare module "jriapp_db" {
     export * from "jriapp_db/entity_aspect";
     export * from "jriapp_db/error";
     export * from "jriapp_db/complexprop";
-    export const VERSION = "3.0.9";
+    export const VERSION = "3.0.10";
 }

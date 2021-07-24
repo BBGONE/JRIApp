@@ -345,7 +345,8 @@ export abstract class DbSet<TItem extends IEntityItem = IEntityItem, TObj extend
         return result;
     }
     protected _refreshValues(path: string, item: IEntityItem, values: any[], names: IFieldName[], rm: REFRESH_MODE): void {
-        const self = this;
+        const self = this, dependents = utils.core.Indexer();
+
         values.forEach((value, index) => {
             const name: IFieldName = names[index], fieldName = path + name.n, fld = self.getFieldInfo(fieldName);
             if (!fld) {
@@ -357,9 +358,11 @@ export abstract class DbSet<TItem extends IEntityItem = IEntityItem, TObj extend
                 self._refreshValues(fieldName + ".", item, <any[]>value, name.p, rm);
             } else {
                 // for other fields the value is a string
-                item._aspect._refreshValue(value, fieldName, rm);
+                item._aspect._refreshValue(value, fieldName, rm, dependents);
             }
         });
+
+        item._aspect._updateDependents(dependents);
     }
     protected _applyFieldVals(vals: any, path: string, values: any[], names: IFieldName[]) {
         const self = this, stz = self.dbContext.serverTimezone;

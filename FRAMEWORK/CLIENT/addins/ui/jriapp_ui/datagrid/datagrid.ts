@@ -108,7 +108,8 @@ const enum GRID_EVENTS {
     page_changed = "page_changed",
     row_state_changed = "row_state_changed",
     cell_dblclicked = "cell_dblclicked",
-    row_action = "row_action"
+    row_action = "row_action",
+    refresh = "refresh"
 }
 
 export interface IRowStateProvider {
@@ -181,6 +182,7 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
     private _dsDebounce: Debounce;
     private _pageDebounce: Debounce;
     private _updateCurrent: () => void;
+    private _refreshCounter: number;
 
     constructor(table: HTMLTableElement, options: IDataGridOptions) {
         super();
@@ -231,6 +233,7 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
         this._scrollDebounce = new Debounce();
         this._dsDebounce = new Debounce();
         this._pageDebounce = new Debounce();
+        this._refreshCounter = 0;
 
         this._selectable = {
             onKeyDown: (key: number, event: Event) => {
@@ -341,11 +344,6 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
         this._internal = null;
         super.dispose();
     }
-    protected _updateContentOptions(): void {
-        this.columns.filter((column) => column instanceof DataColumn).forEach((column: DataColumn) => {
-            column.updateContentOptions();
-        });
-    }
     protected _onKeyDown(key: number, event: Event): void {
         const ds = this.dataSource, self = this;
         if (!ds) {
@@ -435,17 +433,9 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
                 break;
         }
     }
-    protected _isRowExpanded(row: Row): boolean {
-        return this._expandedRow === row;
-    }
-    protected _setCurrentColumn(column: BaseColumn): void {
-        if (!!this._currentColumn) {
-            this._currentColumn.isSelected = false;
-        }
-        this._currentColumn = column;
-        if (!!this._currentColumn) {
-            this._currentColumn.isSelected = true;
-        }
+    protected _onRefresh(args: {}): void {
+        this._refreshCounter++;
+        utils.async.getTaskQueue().enque(this._getRefreshHandler(this._refreshCounter, () => this.objEvents.raise(GRID_EVENTS.refresh, args)));
     }
     protected _onRowStateChanged(row: Row, val: any): string {
         const args = { row: row, val: val, css: <string>null };
@@ -458,6 +448,145 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
     }
     protected _onRowSelectionChanged(row: Row): void {
         this.objEvents.raise(GRID_EVENTS.row_selected, { row: row });
+    }
+    protected _onDSCurrentChanged(prevCurrent: ICollectionItem, newCurrent: ICollectionItem): void {
+        if (prevCurrent !== newCurrent) {
+            const oldRow = !prevCurrent ? null : this._rowMap[prevCurrent._key];
+            const newRow = !newCurrent ? null : this._rowMap[newCurrent._key];
+            if (!!oldRow) {
+                oldRow.objEvents.raiseProp("isCurrent");
+                dom.removeClass([oldRow.tr], css.rowHighlight);
+            }
+            if (!!newRow) {
+                newRow.objEvents.raiseProp("isCurrent");
+                dom.addClass([newRow.tr], css.rowHighlight);
+            }
+        }
+    }
+    protected _onDSCollectionChanged(_: any, args: ICollChangedArgs<ICollectionItem>): void {
+        const self = this;
+        switch (args.changeType) {
+            case COLL_CHANGE_TYPE.Reset:
+                {
+                    if (args.reason === COLL_CHANGE_REASON.None) {
+                        self._resetColumnsSort();
+                    }
+                    self._refresh(args.reason === COLL_CHANGE_REASON.PageChange);
+                }
+                break;
+            case COLL_CHANGE_TYPE.Add:
+                {
+                    self._appendItems(args.items);
+                    self._updateTableDisplay();
+                }
+                break;
+            case COLL_CHANGE_TYPE.Remove:
+                {
+                    let rowpos = -1;
+                    args.items.forEach((item) => {
+                        const row = self._rowMap[item._key];
+                        if (!!row) {
+                            rowpos = self._removeRow(row);
+                        }
+                    });
+                    // positioning the row after deletion
+                    const rowlen = this._rows.length;
+                    if (rowpos > -1 && rowlen > 0) {
+                        if (rowpos < rowlen) {
+                            this.currentRow = this._rows[rowpos];
+                        } else {
+                            this.currentRow = this._rows[rowlen - 1];
+                        }
+                    }
+
+                    self._updateTableDisplay();
+                }
+                break;
+            case COLL_CHANGE_TYPE.Remap:
+                {
+                    const row = self._rowMap[args.old_key];
+                    if (!!row) {
+                        delete self._rowMap[args.old_key];
+                        self._rowMap[args.new_key] = row;
+                    }
+                }
+                break;
+            default:
+                throw new Error(format(ERRS.ERR_COLLECTION_CHANGETYPE_INVALID, args.changeType));
+        }
+    }
+    protected _onPageChanged(): void {
+        if (!!this._rowSelectorCol) {
+            this._rowSelectorCol.checked = false;
+        }
+        this.objEvents.raise(GRID_EVENTS.page_changed, {});
+    }
+    protected _onItemEdit(item: ICollectionItem, isBegin: boolean, isCanceled: boolean): void {
+        const row = this._rowMap[item._key];
+        if (!row) {
+            return;
+        }
+        if (isBegin) {
+            row._onBeginEdit();
+            this._editingRow = row;
+        } else {
+            row._onEndEdit(isCanceled);
+            this._editingRow = null;
+        }
+        this.objEvents.raiseProp("editingRow");
+    }
+    protected _onItemAdded(_: any, args: ICollItemAddedArgs<ICollectionItem>): void {
+        const item = args.item, row = this._rowMap[item._key];
+        if (!row) {
+            return;
+        }
+        this.scrollToCurrent();
+        // row.isExpanded = true;
+        if (this._options.isHandleAddNew && !args.isAddNewHandled) {
+            args.isAddNewHandled = this.showEditDialog();
+        }
+    }
+    protected _onItemStatusChanged(item: ICollectionItem, oldStatus: ITEM_STATUS): void {
+        const newStatus: ITEM_STATUS = item._aspect.status, ds = this.dataSource, row = this._rowMap[item._key];
+        if (!row) {
+            return;
+        }
+        if (newStatus === ITEM_STATUS.Deleted) {
+            row.isDeleted = true;
+            let row2 = this._findUndeleted(row, true);
+            if (!row2) {
+                row2 = this._findUndeleted(row, false);
+            }
+            if (!!row2) {
+                ds.currentItem = row2.item;
+            }
+        } else if (oldStatus === ITEM_STATUS.Deleted) {
+            row.isDeleted = false;
+        }
+    }
+    protected _onDSErrorsChanged(_: any, args: ICollItemArgs<ICollectionItem>): void {
+        const row = this._rowMap[args.item._key];
+        if (!row) {
+            return;
+        }
+        row.updateErrorState();
+    }
+    protected _updateContentOptions(): void {
+        this.columns.filter((column) => column instanceof DataColumn).forEach((column: DataColumn) => {
+            column.updateContentOptions();
+        });
+    }
+    protected _isRowExpanded(row: Row): boolean {
+        return this._expandedRow === row;
+    }
+    protected _setCurrentColumn(column: BaseColumn): void {
+        if (!!this._currentColumn) {
+            this._currentColumn.isSelected = false;
+        }
+        this._currentColumn = column;
+        if (!!this._currentColumn) {
+            this._currentColumn.isSelected = true;
+        }
     }
     protected _resetColumnsSort(): void {
         this.columns.forEach((col) => {
@@ -601,72 +730,6 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
         }
         return row;
     }
-    protected _onDSCurrentChanged(prevCurrent: ICollectionItem, newCurrent: ICollectionItem): void {
-        if (prevCurrent !== newCurrent) {
-            const oldRow = !prevCurrent ? null : this._rowMap[prevCurrent._key];
-            const newRow = !newCurrent ? null : this._rowMap[newCurrent._key];
-            if (!!oldRow) {
-                oldRow.objEvents.raiseProp("isCurrent");
-                dom.removeClass([oldRow.tr], css.rowHighlight);
-            }
-            if (!!newRow) {
-                newRow.objEvents.raiseProp("isCurrent");
-                dom.addClass([newRow.tr], css.rowHighlight);
-            }
-        }
-    }
-    protected _onDSCollectionChanged(_: any, args: ICollChangedArgs<ICollectionItem>): void {
-        const self = this;
-        switch (args.changeType) {
-            case COLL_CHANGE_TYPE.Reset:
-                {
-                    if (args.reason === COLL_CHANGE_REASON.None) {
-                        self._resetColumnsSort();
-                    }
-                    self._refresh(args.reason === COLL_CHANGE_REASON.PageChange);
-                }
-                break;
-            case COLL_CHANGE_TYPE.Add:
-                {
-                    self._appendItems(args.items);
-                    self._updateTableDisplay();
-                }
-                break;
-            case COLL_CHANGE_TYPE.Remove:
-                {
-                    let rowpos = -1;
-                    args.items.forEach((item) => {
-                        const row = self._rowMap[item._key];
-                        if (!!row) {
-                            rowpos = self._removeRow(row);
-                        }
-                    });
-                    // positioning the row after deletion
-                    const rowlen = this._rows.length;
-                    if (rowpos > -1 && rowlen > 0) {
-                        if (rowpos < rowlen) {
-                            this.currentRow = this._rows[rowpos];
-                        } else {
-                            this.currentRow = this._rows[rowlen - 1];
-                        }
-                    }
-
-                    self._updateTableDisplay();
-                }
-                break;
-            case COLL_CHANGE_TYPE.Remap:
-                {
-                    const row = self._rowMap[args.old_key];
-                    if (!!row) {
-                        delete self._rowMap[args.old_key];
-                        self._rowMap[args.new_key] = row;
-                    }
-                }
-                break;
-            default:
-                throw new Error(format(ERRS.ERR_COLLECTION_CHANGETYPE_INVALID, args.changeType));
-        }
-    }
     protected _updateTableDisplay(): void {
         if (!this._table) {
             return;
@@ -677,61 +740,13 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
             this._table.style.visibility = "visible";
         }
     }
-    protected _onPageChanged(): void {
-        if (!!this._rowSelectorCol) {
-            this._rowSelectorCol.checked = false;
-        }
-        this.objEvents.raise(GRID_EVENTS.page_changed, {});
-    }
-    protected _onItemEdit(item: ICollectionItem, isBegin: boolean, isCanceled: boolean): void {
-        const row = this._rowMap[item._key];
-        if (!row) {
-            return;
-        }
-        if (isBegin) {
-            row._onBeginEdit();
-            this._editingRow = row;
-        } else {
-            row._onEndEdit(isCanceled);
-            this._editingRow = null;
-        }
-        this.objEvents.raiseProp("editingRow");
-    }
-    protected _onItemAdded(_: any, args: ICollItemAddedArgs<ICollectionItem>): void {
-        const item = args.item, row = this._rowMap[item._key];
-        if (!row) {
-            return;
-        }
-        this.scrollToCurrent();
-        // row.isExpanded = true;
-        if (this._options.isHandleAddNew && !args.isAddNewHandled) {
-            args.isAddNewHandled = this.showEditDialog();
-        }
-    }
-    protected _onItemStatusChanged(item: ICollectionItem, oldStatus: ITEM_STATUS): void {
-        const newStatus: ITEM_STATUS = item._aspect.status, ds = this.dataSource, row = this._rowMap[item._key];
-        if (!row) {
-             return;
-        }
-        if (newStatus === ITEM_STATUS.Deleted) {
-            row.isDeleted = true;
-            let row2 = this._findUndeleted(row, true);
-            if (!row2) {
-                row2 = this._findUndeleted(row, false);
+    protected _getRefreshHandler(num: number, fn: () => void): () => void {
+        return () => {
+            if (this.getIsStateDirty() || this._refreshCounter !== num) {
+                return;
             }
-            if (!!row2) {
-                ds.currentItem = row2.item;
-            }
-        } else if (oldStatus === ITEM_STATUS.Deleted) {
-            row.isDeleted = false;
-        }
-    }
-    protected _onDSErrorsChanged(_: any, args: ICollItemArgs<ICollectionItem>): void {
-        const row = this._rowMap[args.item._key];
-        if (!row) {
-            return;
-        }
-        row.updateErrorState();
+            fn();
+        };
     }
     protected _bindDS(): void {
         const self = this, ds = this.dataSource;
@@ -761,9 +776,7 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
             self._onItemStatusChanged(args.item, args.oldStatus);
         }, self._uniqueID);
         ds.addOnItemAdded(self._onItemAdded, self._uniqueID, self);
-        ds.addOnItemAdding(() => {
-            self.collapseDetails();
-        }, self._uniqueID);
+        ds.addOnItemAdding(() => self.collapseDetails(), self._uniqueID);
     }
     protected _unbindDS(): void {
         const self = this, ds = this.dataSource;
@@ -889,9 +902,8 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
                 self._createRowForItem(tbody, item, isPrepend);
             }
         } else {
-            const docFr = doc.createDocumentFragment(), k = newItems.length;
-            for (let i = 0; i < k; i += 1) {
-                const item = newItems[i];
+            const docFr = doc.createDocumentFragment();
+            for (const item of newItems) {
                 if (!self._rowMap[item._key]) {
                     self._createRowForItem(docFr, item, (isPrependNew && item._aspect.isNew));
                 }
@@ -899,7 +911,7 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
 
             self._addNodeToParent(tbody, docFr, isPrepend);
         }
-
+        self._onRefresh({});
         self.updateColumnsSize();
     }
     protected _refresh(isPageChanged: boolean): void {
@@ -925,6 +937,7 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
         self.updateColumnsSize();
         self._updateTableDisplay();
         self._updateCurrent();
+        self._onRefresh({});
     }
     protected _addNodeToParent(parent: Node, node: Node, prepend: boolean): void {
         if (!prepend) {
@@ -969,8 +982,8 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
     protected setDataSource(v: ICollection<ICollectionItem>): void {
         this._unbindDS();
         this._options.dataSource = v;
-        const fn_init = () => {
-            const ds = this._options.dataSource;
+        const fn_resetDS = () => {
+            const ds = this.dataSource;
             if (!!ds && !ds.getIsStateDirty()) {
                 this._updateContentOptions();
                 this._bindDS();
@@ -981,9 +994,9 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
         };
 
         if (!!this._options.syncSetDatasource) {
-            fn_init();
+            fn_resetDS();
         } else {
-            this._dsDebounce.enque(fn_init);
+            this._dsDebounce.enque(fn_resetDS);
         }
     }
     _getInternal(): IInternalDataGridMethods {
@@ -1170,6 +1183,14 @@ export class DataGrid extends BaseObject implements ISelectableProvider {
     }
     offOnPageChanged(nmspace?: string): void {
         this.objEvents.off(GRID_EVENTS.page_changed, nmspace);
+    }
+    addOnRefresh(fn: TEventHandler<DataGrid, {}>, nmspace?: string, context?: any): void {
+        this.objEvents.on(GRID_EVENTS.refresh, fn, nmspace, context);
+        // invoke the function on subscription (asynchronously)
+        utils.async.getTaskQueue().enque(this._getRefreshHandler(this._refreshCounter, () => fn(this, {})));
+    }
+    offOnRefresh(nmspace?: string): void {
+        this.objEvents.off(GRID_EVENTS.refresh, nmspace);
     }
     addOnRowStateChanged(fn: TEventHandler<DataGrid, { row: Row; val: any; css: string; }>, nmspace?: string, context?: any): void {
         this.objEvents.on(GRID_EVENTS.row_state_changed, fn, nmspace, context);
