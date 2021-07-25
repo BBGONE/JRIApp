@@ -17,8 +17,21 @@ export interface IDynaContentAnimation {
     isAnimateFirstShow: boolean;
 }
 
+export type TDynaContentViewChangeArgs = {
+    sender: DynaContentElView,
+    previousView: string,
+    currentView: string
+};
+
+export interface IDynaContentEvents {
+    viewChanged(args: TDynaContentViewChangeArgs): void;
+}
+
 export interface IDynaContentOptions extends IViewOptions {
-    animate?: string;
+    templateID?: string;
+    animation?: IDynaContentAnimation;
+    viewEvents?: IDynaContentEvents;
+    dataContext?: any;
 }
 
 export class DynaContentElView extends BaseElView implements ITemplateEvents {
@@ -29,16 +42,43 @@ export class DynaContentElView extends BaseElView implements ITemplateEvents {
     private _animation: IDynaContentAnimation;
     private _tDebounce: Debounce;
     private _dsDebounce: Debounce;
+    private _viewEvents: IDynaContentEvents;
 
     constructor(el: HTMLElement, options: IDynaContentOptions) {
         super(el, options);
+        this._tDebounce = new Debounce();
+        this._dsDebounce = new Debounce();
         this._dataContext = null;
         this._prevTemplateID = null;
         this._templateID = null;
         this._template = null;
-        this._animation = null;
-        this._tDebounce = new Debounce();
-        this._dsDebounce = new Debounce();
+        this._animation = !options.animation ? null : options.animation;
+        this._viewEvents = !options.viewEvents ? null : options.viewEvents;
+        if (!!options.dataContext) {
+            this._setDataContext(options.dataContext);
+        }
+        if (!!options.templateID) {
+            this._setTemplateID(null, options.templateID);
+        }
+    }
+    protected _setDataContext(dataContext: any) {
+        this._dataContext = dataContext;
+        this._dsDebounce.enque(() => {
+            const ds = this._dataContext;
+            if (!!this._template) {
+                this._template.dataContext = ds;
+            }
+        });
+    }
+    protected _setTemplateID(oldTemplateID: string, templateID: string) {
+        this._prevTemplateID = oldTemplateID;
+        this._templateID = templateID;
+        this._tDebounce.enque(() => {
+            this._templateChanging(oldTemplateID, templateID);
+        });
+    }
+    protected _onViewChanged(args: TDynaContentViewChangeArgs): void {
+        this._viewEvents?.viewChanged(args);
     }
     templateLoading(template: ITemplate): void {
         if (this.getIsStateDirty()) {
@@ -46,6 +86,7 @@ export class DynaContentElView extends BaseElView implements ITemplateEvents {
         }
         const isFirstShow = !this._prevTemplateID,
             canShow = !!this._animation && (this._animation.isAnimateFirstShow || (!this._animation.isAnimateFirstShow && !isFirstShow));
+
         if (canShow) {
             this._animation.beforeShow(template, isFirstShow);
         }
@@ -57,11 +98,15 @@ export class DynaContentElView extends BaseElView implements ITemplateEvents {
         if (!dom.isContained(template.el, this.el)) {
             this.el.appendChild(template.el);
         }
-
         const isFirstShow = !this._prevTemplateID,
-            canShow = !!this._animation && (this._animation.isAnimateFirstShow || (!this._animation.isAnimateFirstShow && !isFirstShow));
+            canShow = !!this._animation && (this._animation.isAnimateFirstShow || (!this._animation.isAnimateFirstShow && !isFirstShow)),
+            viewChangedArgs = { sender: this, previousView: this._prevTemplateID, currentView: this.templateID };
+
         if (canShow) {
-            this._animation.show(template, isFirstShow);
+            this._animation.show(template, isFirstShow).then(() => this._onViewChanged(viewChangedArgs));
+        }
+        else {
+            this._onViewChanged(viewChangedArgs);
         }
     }
     templateUnLoading(_template: ITemplate): void {
@@ -128,6 +173,7 @@ export class DynaContentElView extends BaseElView implements ITemplateEvents {
         this._animation = null;
         const t = this._template;
         this._template = null;
+        this._viewEvents = null;
 
         if (sys.isBaseObj(a)) {
             a.dispose();
@@ -145,24 +191,14 @@ export class DynaContentElView extends BaseElView implements ITemplateEvents {
     set templateID(v: string) {
         const self = this, old = self._templateID;
         if (old !== v) {
-            this._prevTemplateID = old;
-            this._templateID = v;
-            this._tDebounce.enque(() => {
-                self._templateChanging(old, v);
-            });
+            this._setTemplateID(old, v);
             this.objEvents.raiseProp("templateID");
         }
     }
     get dataContext() { return this._dataContext; }
     set dataContext(v) {
         if (this._dataContext !== v) {
-            this._dataContext = v;
-            this._dsDebounce.enque(() => {
-                const ds = this._dataContext;
-                if (!!this._template) {
-                    this._template.dataContext = ds;
-                }
-            });
+            this._setDataContext(v);
             this.objEvents.raiseProp("dataContext");
         }
     }
@@ -171,6 +207,13 @@ export class DynaContentElView extends BaseElView implements ITemplateEvents {
         if (this._animation !== v) {
             this._animation = v;
             this.objEvents.raiseProp("animation");
+        }
+    }
+    get viewEvents() { return this._viewEvents; }
+    set viewEvents(v) {
+        if (this._viewEvents !== v) {
+            this._viewEvents = v;
+            this.objEvents.raiseProp("viewEvents");
         }
     }
 }

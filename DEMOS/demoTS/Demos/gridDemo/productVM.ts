@@ -3,7 +3,7 @@ import * as dbMOD from "jriapp_db";
 import * as uiMOD from "jriapp_ui";
 
 import * as COMMON from "common";
-import * as DEMODB from "../demo/demoDB";
+import * as DB from "../demo/demoDB";
 import { ProductsFilter } from "./filters";
 import { DemoApplication } from "./app";
 import { TestInvokeCommand, TestComplexInvokeCommand } from "./commands";
@@ -14,7 +14,7 @@ let utils = RIAPP.Utils;
 
 export class ProductViewModel extends RIAPP.ViewModel<DemoApplication> implements uiMOD.ITabsEvents {
     private _filter: ProductsFilter;
-    private _dbSet: DEMODB.ProductDb;
+    private _dbSet: DB.ProductDb;
     private _dataGrid: uiMOD.DataGrid;
     private _propWatcher: RIAPP.PropWatcher;
     private _selected: any;
@@ -27,7 +27,7 @@ export class ProductViewModel extends RIAPP.ViewModel<DemoApplication> implement
     private _loadCommand: RIAPP.ICommand;
     private _columnCommand: RIAPP.ICommand;
     private _dialogVM: uiMOD.DialogVM;
-    private _vwSalesOrderDet: dbMOD.ChildDataView<DEMODB.SalesOrderDetail>;
+    private _vwSalesOrderDet: dbMOD.ChildDataView<DB.SalesOrderDetail>;
     private _rowStateProvider: uiMOD.IRowStateProvider;
     private _optionTextProvider: uiMOD.IOptionTextProvider;
     private _optionStateProvider: uiMOD.IOptionStateProvider;
@@ -50,7 +50,7 @@ export class ProductViewModel extends RIAPP.ViewModel<DemoApplication> implement
         let sodAssoc = self.dbContext.associations.getOrdDetailsToProduct();
 
         //the view to filter DEMODB.SalesOrderDetails related to the currently selected product only
-        this._vwSalesOrderDet = new dbMOD.ChildDataView<DEMODB.SalesOrderDetail>(
+        this._vwSalesOrderDet = new dbMOD.ChildDataView<DB.SalesOrderDetail>(
             {
                 association: sodAssoc,
                 fn_sort: function (a, b) { return a.SalesOrderDetailID - b.SalesOrderDetailID; }
@@ -93,7 +93,7 @@ export class ProductViewModel extends RIAPP.ViewModel<DemoApplication> implement
 
         //example of using custom validation on client (in addition to a built-in validation)
         const validations = [{
-            fieldName: <string>null, fn: (item: DEMODB.Product, errors: string[]) => {
+            fieldName: <string>null, fn: (item: DB.Product, errors: string[]) => {
                 if (!!item.SellEndDate) { //check it must be after Start Date
                     if (item.SellEndDate < item.SellStartDate) {
                         errors.push('End Date must be after Start Date');
@@ -102,7 +102,7 @@ export class ProductViewModel extends RIAPP.ViewModel<DemoApplication> implement
             }
         },
         {
-            fieldName: "Weight", fn: (item: DEMODB.Product, errors: string[]) => {
+            fieldName: "Weight", fn: (item: DB.Product, errors: string[]) => {
                 if (item.Weight > 20000) {
                     errors.push('Weight must be less than 20000');
                 }
@@ -153,7 +153,7 @@ export class ProductViewModel extends RIAPP.ViewModel<DemoApplication> implement
 
 
         //for testing templates in datagrid columns
-        this._columnCommand = new RIAPP.Command<DEMODB.Product>(function (product) {
+        this._columnCommand = new RIAPP.Command<DB.Product>(function (product) {
             alert(utils.str.format("You clicked on \"{0}\", current ProductID is: {1}", "Product Column", (!product ? "Not selected" : product.ProductID)));
         }, function () {
             return !!self.currentItem;

@@ -3487,15 +3487,44 @@ define("jriapp_ui/dynacontent", ["require", "exports", "jriapp_shared", "jriapp/
         __extends(DynaContentElView, _super);
         function DynaContentElView(el, options) {
             var _this = _super.call(this, el, options) || this;
+            _this._tDebounce = new jriapp_shared_16.Debounce();
+            _this._dsDebounce = new jriapp_shared_16.Debounce();
             _this._dataContext = null;
             _this._prevTemplateID = null;
             _this._templateID = null;
             _this._template = null;
-            _this._animation = null;
-            _this._tDebounce = new jriapp_shared_16.Debounce();
-            _this._dsDebounce = new jriapp_shared_16.Debounce();
+            _this._animation = !options.animation ? null : options.animation;
+            _this._viewEvents = !options.viewEvents ? null : options.viewEvents;
+            if (!!options.dataContext) {
+                _this._setDataContext(options.dataContext);
+            }
+            if (!!options.templateID) {
+                _this._setTemplateID(null, options.templateID);
+            }
             return _this;
         }
+        DynaContentElView.prototype._setDataContext = function (dataContext) {
+            var _this = this;
+            this._dataContext = dataContext;
+            this._dsDebounce.enque(function () {
+                var ds = _this._dataContext;
+                if (!!_this._template) {
+                    _this._template.dataContext = ds;
+                }
+            });
+        };
+        DynaContentElView.prototype._setTemplateID = function (oldTemplateID, templateID) {
+            var _this = this;
+            this._prevTemplateID = oldTemplateID;
+            this._templateID = templateID;
+            this._tDebounce.enque(function () {
+                _this._templateChanging(oldTemplateID, templateID);
+            });
+        };
+        DynaContentElView.prototype._onViewChanged = function (args) {
+            var _a;
+            (_a = this._viewEvents) === null || _a === void 0 ? void 0 : _a.viewChanged(args);
+        };
         DynaContentElView.prototype.templateLoading = function (template) {
             if (this.getIsStateDirty()) {
                 return;
@@ -3506,15 +3535,19 @@ define("jriapp_ui/dynacontent", ["require", "exports", "jriapp_shared", "jriapp/
             }
         };
         DynaContentElView.prototype.templateLoaded = function (template, _error) {
+            var _this = this;
             if (this.getIsStateDirty()) {
                 return;
             }
             if (!dom.isContained(template.el, this.el)) {
                 this.el.appendChild(template.el);
             }
-            var isFirstShow = !this._prevTemplateID, canShow = !!this._animation && (this._animation.isAnimateFirstShow || (!this._animation.isAnimateFirstShow && !isFirstShow));
+            var isFirstShow = !this._prevTemplateID, canShow = !!this._animation && (this._animation.isAnimateFirstShow || (!this._animation.isAnimateFirstShow && !isFirstShow)), viewChangedArgs = { sender: this, previousView: this._prevTemplateID, currentView: this.templateID };
             if (canShow) {
-                this._animation.show(template, isFirstShow);
+                this._animation.show(template, isFirstShow).then(function () { return _this._onViewChanged(viewChangedArgs); });
+            }
+            else {
+                this._onViewChanged(viewChangedArgs);
             }
         };
         DynaContentElView.prototype.templateUnLoading = function (_template) {
@@ -3581,6 +3614,7 @@ define("jriapp_ui/dynacontent", ["require", "exports", "jriapp_shared", "jriapp/
             this._animation = null;
             var t = this._template;
             this._template = null;
+            this._viewEvents = null;
             if (sys.isBaseObj(a)) {
                 a.dispose();
             }
@@ -3602,11 +3636,7 @@ define("jriapp_ui/dynacontent", ["require", "exports", "jriapp_shared", "jriapp/
             set: function (v) {
                 var self = this, old = self._templateID;
                 if (old !== v) {
-                    this._prevTemplateID = old;
-                    this._templateID = v;
-                    this._tDebounce.enque(function () {
-                        self._templateChanging(old, v);
-                    });
+                    this._setTemplateID(old, v);
                     this.objEvents.raiseProp("templateID");
                 }
             },
@@ -3616,15 +3646,8 @@ define("jriapp_ui/dynacontent", ["require", "exports", "jriapp_shared", "jriapp/
         Object.defineProperty(DynaContentElView.prototype, "dataContext", {
             get: function () { return this._dataContext; },
             set: function (v) {
-                var _this = this;
                 if (this._dataContext !== v) {
-                    this._dataContext = v;
-                    this._dsDebounce.enque(function () {
-                        var ds = _this._dataContext;
-                        if (!!_this._template) {
-                            _this._template.dataContext = ds;
-                        }
-                    });
+                    this._setDataContext(v);
                     this.objEvents.raiseProp("dataContext");
                 }
             },
@@ -3637,6 +3660,17 @@ define("jriapp_ui/dynacontent", ["require", "exports", "jriapp_shared", "jriapp/
                 if (this._animation !== v) {
                     this._animation = v;
                     this.objEvents.raiseProp("animation");
+                }
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(DynaContentElView.prototype, "viewEvents", {
+            get: function () { return this._viewEvents; },
+            set: function (v) {
+                if (this._viewEvents !== v) {
+                    this._viewEvents = v;
+                    this.objEvents.raiseProp("viewEvents");
                 }
             },
             enumerable: false,

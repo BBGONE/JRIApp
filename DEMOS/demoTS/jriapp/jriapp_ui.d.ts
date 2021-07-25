@@ -644,8 +644,19 @@ declare module "jriapp_ui/dynacontent" {
         stop(): void;
         isAnimateFirstShow: boolean;
     }
+    export type TDynaContentViewChangeArgs = {
+        sender: DynaContentElView;
+        previousView: string;
+        currentView: string;
+    };
+    export interface IDynaContentEvents {
+        viewChanged(args: TDynaContentViewChangeArgs): void;
+    }
     export interface IDynaContentOptions extends IViewOptions {
-        animate?: string;
+        templateID?: string;
+        animation?: IDynaContentAnimation;
+        viewEvents?: IDynaContentEvents;
+        dataContext?: any;
     }
     export class DynaContentElView extends BaseElView implements ITemplateEvents {
         private _dataContext;
@@ -655,7 +666,11 @@ declare module "jriapp_ui/dynacontent" {
         private _animation;
         private _tDebounce;
         private _dsDebounce;
+        private _viewEvents;
         constructor(el: HTMLElement, options: IDynaContentOptions);
+        protected _setDataContext(dataContext: any): void;
+        protected _setTemplateID(oldTemplateID: string, templateID: string): void;
+        protected _onViewChanged(args: TDynaContentViewChangeArgs): void;
         templateLoading(template: ITemplate): void;
         templateLoaded(template: ITemplate, _error?: any): void;
         templateUnLoading(_template: ITemplate): void;
@@ -668,6 +683,8 @@ declare module "jriapp_ui/dynacontent" {
         set dataContext(v: any);
         get animation(): IDynaContentAnimation;
         set animation(v: IDynaContentAnimation);
+        get viewEvents(): IDynaContentEvents;
+        set viewEvents(v: IDynaContentEvents);
     }
 }
 declare module "jriapp_ui/content/int" {
